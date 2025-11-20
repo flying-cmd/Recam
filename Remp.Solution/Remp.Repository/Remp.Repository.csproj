@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Remp.DataAccess\Remp.DataAccess.csproj" />
+  </ItemGroup>
+
 </Project>
