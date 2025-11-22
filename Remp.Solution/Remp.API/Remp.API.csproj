@@ -21,8 +21,4 @@
     <ProjectReference Include="..\Remp.Service\Remp.Service.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
 </Project>

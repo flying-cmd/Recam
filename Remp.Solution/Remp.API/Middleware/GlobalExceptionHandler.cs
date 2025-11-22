@@ -45,6 +45,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         return exception switch
         {
             NotFoundException ne => (ne.StatusCode, ne.Title),
+            UnauthorizedException ue => (ue.StatusCode, ue.Title),
+            RegisterException re => (re.StatusCode, re.Title),
             _ => (HttpStatusCode.InternalServerError, "Internal Server Error")
         };
     }

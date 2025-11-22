@@ -9,7 +9,7 @@ public static class AppDbContextSeed
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        var roles = new[] { "PhotographyCompany", "User" };
+        var roles = new[] { "PhotographyCompany", "User", "Agent" };
 
         // Seed roles
         foreach (var role in roles)
