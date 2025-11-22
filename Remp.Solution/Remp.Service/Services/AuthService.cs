@@ -26,6 +26,11 @@ public class AuthService : IAuthService
         
         if (user is null)
         {
+            UserActivityLogService.LogLogin(
+                email: loginRequest.Email,
+                userId: null,
+                description: "User try to login but email is not found"
+            );
             throw new UnauthorizedException(message: "Email is not found", title: "Email is incorrect");
         }
 
@@ -33,10 +38,21 @@ public class AuthService : IAuthService
 
         if (!passwordCheck)
         {
+            UserActivityLogService.LogLogin(
+                email: loginRequest.Email,
+                userId: user.Id.ToString(),
+                description: "User try to login but password is incorrect"
+            );
             throw new UnauthorizedException(message: "Password is incorrect", title: "Password is incorrect");
         }
 
         var token = await _jwtTokenService.CreateTokenAsync(user);
+
+        UserActivityLogService.LogLogin(
+            email: loginRequest.Email,
+            userId: user.Id.ToString(),
+            description: "User logged in"
+        );
         return token;
     }
 
@@ -46,6 +62,11 @@ public class AuthService : IAuthService
         
         if (emailExists != null)
         {
+            UserActivityLogService.LogRegister(
+                email: registerRequest.Email,
+                userId: null,
+                description: "User try to register but email already exists"
+            );
             throw new RegisterException(message: "Email already exists", title: "Email already exists");
         }
 
@@ -60,7 +81,13 @@ public class AuthService : IAuthService
         var result = await _userManager.CreateAsync(user, registerRequest.Password);
         if (!result.Succeeded)
         {
-            throw new RegisterException(message: string.Join("; ", result.Errors.Select(e => e.Description)), title: "User registration failed");
+            string message = string.Join("; ", result.Errors.Select(e => e.Description));
+            UserActivityLogService.LogRegister(
+                email: registerRequest.Email,
+                userId: null,
+                description: $"User try to register but registration failed with errors: {message}"
+            );
+            throw new RegisterException(message: message, title: "User registration failed");
         }
 
         await _userManager.AddToRoleAsync(user, "Agent");
@@ -78,6 +105,11 @@ public class AuthService : IAuthService
         await _dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
         
+        UserActivityLogService.LogRegister(
+            email: registerRequest.Email,
+            userId: user.Id.ToString(),
+            description: "User registered and is given Agent role"
+        );
         var token = await _jwtTokenService.CreateTokenAsync(user);
         return token;
     }

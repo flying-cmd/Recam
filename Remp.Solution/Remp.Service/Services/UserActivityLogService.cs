@@ -1,0 +1,22 @@
+﻿using Serilog;
+
+namespace Remp.Service.Services;
+
+public static class UserActivityLogService
+{
+    public static void LogLogin(string? email, string? userId, string description = "User logged in")
+    {
+        Log.ForContext("LogType", "UserActivity")
+            .ForContext("Email", email)
+            .ForContext("UserId", userId)
+            .Information(description);
+    }
+
+    public static void LogRegister(string? email, string? userId, string description = "User registered")
+    {
+        Log.ForContext("LogType", "UserActivity")
+            .ForContext("Email", email)
+            .ForContext("UserId", userId)
+            .Information(description);
+    }
+}
