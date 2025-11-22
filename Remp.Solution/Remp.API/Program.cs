@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Remp.DataAccess.Data;
 using Remp.Models.Entities;
 using Remp.Service.Interfaces;
 using Remp.Service.Services;
+using Remp.Service.Validators;
 using Serilog;
 using System.Text;
 
@@ -27,12 +29,12 @@ builder.Host.UseSerilog((ctx, services, lc) =>
       .Enrich.FromLogContext()
       .WriteTo.Console()
 
-    // UserActivityLog
-    .WriteTo.Logger(lc2 => lc2
-        .Filter.ByIncludingOnly("LogType = 'UserActivity'")
-        .WriteTo.MongoDB(
-            mongoDbConnectionString!,
-            collectionName: "UserActivityLog"));
+      // UserActivityLog
+      .WriteTo.Logger(lc2 => lc2
+          .Filter.ByIncludingOnly("LogType = 'UserActivity'")
+          .WriteTo.MongoDB(
+              mongoDbConnectionString!,
+              collectionName: "UserActivityLog"));
 });
 
 
@@ -67,6 +69,9 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!))
     };
 });
+
+// Validation
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDtoValidator>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();

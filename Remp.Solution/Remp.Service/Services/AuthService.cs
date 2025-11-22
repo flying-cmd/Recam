@@ -29,7 +29,7 @@ public class AuthService : IAuthService
             UserActivityLogService.LogLogin(
                 email: loginRequest.Email,
                 userId: null,
-                description: "User try to login but email is not found"
+                description: "User failed to login because email is not found"
             );
             throw new UnauthorizedException(message: "Email is not found", title: "Email is incorrect");
         }
@@ -56,16 +56,16 @@ public class AuthService : IAuthService
         return token;
     }
 
-    public async Task<string> RegisterAsync(RegisterRequestDto registerRequest)
+    public async Task<string> RegisterAsync(RegisterUserDto registerUser)
     {
-        var emailExists = await _userManager.FindByEmailAsync(registerRequest.Email);
+        var emailExists = await _userManager.FindByEmailAsync(registerUser.Email);
         
         if (emailExists != null)
         {
             UserActivityLogService.LogRegister(
-                email: registerRequest.Email,
+                email: registerUser.Email,
                 userId: null,
-                description: "User try to register but email already exists"
+                description: "User failed to register because email already exists"
             );
             throw new RegisterException(message: "Email already exists", title: "Email already exists");
         }
@@ -74,18 +74,18 @@ public class AuthService : IAuthService
     
         var user = new User()
         {
-            Email = registerRequest.Email,
-            UserName = registerRequest.Email
+            Email = registerUser.Email,
+            UserName = registerUser.Email
         };
 
-        var result = await _userManager.CreateAsync(user, registerRequest.Password);
+        var result = await _userManager.CreateAsync(user, registerUser.Password);
         if (!result.Succeeded)
         {
             string message = string.Join("; ", result.Errors.Select(e => e.Description));
             UserActivityLogService.LogRegister(
-                email: registerRequest.Email,
+                email: registerUser.Email,
                 userId: null,
-                description: $"User try to register but registration failed with errors: {message}"
+                description: $"User failed to register with errors: {message}"
             );
             throw new RegisterException(message: message, title: "User registration failed");
         }
@@ -95,10 +95,10 @@ public class AuthService : IAuthService
         var agent = new Agent()
         {
             Id = user.Id,
-            AgentFirstName = registerRequest.FirstName,
-            AgentLastName = registerRequest.LastName,
-            CompanyName = registerRequest.CompanyName,
-            AvataUrl = registerRequest.AvatarUrl,
+            AgentFirstName = registerUser.FirstName,
+            AgentLastName = registerUser.LastName,
+            CompanyName = registerUser.CompanyName,
+            AvataUrl = registerUser.AvatarUrl,
         };
 
         _dbContext.Agents.Add(agent);
@@ -106,7 +106,7 @@ public class AuthService : IAuthService
         await transaction.CommitAsync();
         
         UserActivityLogService.LogRegister(
-            email: registerRequest.Email,
+            email: registerUser.Email,
             userId: user.Id.ToString(),
             description: "User registered and is given Agent role"
         );

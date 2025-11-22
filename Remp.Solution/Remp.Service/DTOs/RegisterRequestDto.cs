@@ -1,4 +1,6 @@
-﻿namespace Remp.Service.DTOs;
+﻿using Microsoft.AspNetCore.Http;
+
+namespace Remp.Service.DTOs;
 
 public class RegisterRequestDto
 {
@@ -8,7 +10,7 @@ public class RegisterRequestDto
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;
     public string CompanyName { get; set; } = null!;
-    public string AvatarUrl { get; set; } = null!;
+    public IFormFile Avatar { get; set; } = null!;
 
     // TODO: add more fields
 }

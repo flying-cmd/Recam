@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
+using Remp.Service.Services;
+using System.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -23,16 +27,59 @@ namespace Remp.API.Controllers
         /// <param name="loginRequest"></param>
         /// <returns></returns>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest, IValidator<LoginRequestDto> validator)
         {
+            // Validate
+            var validationResult = await validator.ValidateAsync(loginRequest);
+            if (!validationResult.IsValid)
+            {
+                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
+                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+
+                UserActivityLogService.LogLogin(
+                    email: loginRequest.Email,
+                    userId: null,
+                    description: $"User failed to login with erros: {errors}"
+                );
+                return ValidationProblem(problemDetails);
+            }
+
             var result = await _authService.LoginAsync(loginRequest);
             return Ok(result);
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerRequest)
+        public async Task<IActionResult> Register([FromForm] RegisterRequestDto registerRequest, IValidator<RegisterRequestDto> validator)
         {
-            var result = await _authService.RegisterAsync(registerRequest);
+            // Validate
+            var validationResult = await validator.ValidateAsync(registerRequest);
+            if (!validationResult.IsValid)
+            {
+                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
+                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+
+                UserActivityLogService.LogRegister(
+                    email: registerRequest.Email,
+                    userId: null,
+                    description: $"User failed to register with erros: {errors}"
+                );
+                return ValidationProblem(problemDetails);
+            }
+
+            // TODO: Save avatar and return string path
+
+            var registerUser = new RegisterUserDto
+            (
+                email: registerRequest.Email,
+                password: registerRequest.Password,
+                confirmPassword: registerRequest.ConfirmPassword,
+                firstName: registerRequest.FirstName,
+                lastName: registerRequest.LastName,
+                companyName: registerRequest.CompanyName,
+                avatarUrl: "http://test.com/avatar.jpg" // TODO: hardcode for test now, need to be changed later
+            );
+
+            var result = await _authService.RegisterAsync(registerUser);
             return Ok(result);
         }
     }
