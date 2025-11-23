@@ -94,6 +94,7 @@ typeof(AgentProfile).Assembly);
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDtoValidator>();
 
 // Repositories
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IPhotographyCompanyRepository, PhotographyCompanyRepository>();
 
 // Services

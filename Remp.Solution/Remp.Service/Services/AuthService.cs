@@ -1,29 +1,26 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Remp.Models.Entities;
+﻿using Remp.Models.Entities;
 using Remp.Common.Exceptions;
 using Remp.Service.Interfaces;
 using Remp.Service.DTOs;
-using Remp.DataAccess.Data;
 using Remp.Models.Constants;
+using Remp.Repository.Interfaces;
 
 namespace Remp.Service.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly UserManager<User> _userManager;
+    private readonly IAuthRepository _authRepository;
     private readonly IJwtTokenService _jwtTokenService;
-    private readonly AppDbContext _dbContext;
 
-    public AuthService(UserManager<User> userManager, IJwtTokenService jwtTokenService, AppDbContext dbContext)
+    public AuthService(IAuthRepository authRepository, IJwtTokenService jwtTokenService)
     {
-        _userManager = userManager;
+        _authRepository = authRepository;
         _jwtTokenService = jwtTokenService;
-        _dbContext = dbContext;
     }
 
     public async Task<string> LoginAsync(LoginRequestDto loginRequest)
     {
-        var user = await _userManager.FindByEmailAsync(loginRequest.Email);
+        var user = await _authRepository.FindByEmailAsync(loginRequest.Email);
         
         if (user is null)
         {
@@ -35,7 +32,7 @@ public class AuthService : IAuthService
             throw new UnauthorizedException(message: "Email is not found", title: "Email is incorrect");
         }
 
-        var passwordCheck = await _userManager.CheckPasswordAsync(user, loginRequest.Password);
+        var passwordCheck = await _authRepository.CheckPasswordAsync(user, loginRequest.Password);
 
         if (!passwordCheck)
         {
@@ -59,7 +56,7 @@ public class AuthService : IAuthService
 
     public async Task<string> RegisterAsync(RegisterUserDto registerUser)
     {
-        var emailExists = await _userManager.FindByEmailAsync(registerUser.Email);
+        var emailExists = await _authRepository.FindByEmailAsync(registerUser.Email);
         
         if (emailExists != null)
         {
@@ -71,27 +68,11 @@ public class AuthService : IAuthService
             throw new RegisterException(message: "Email already exists", title: "Email already exists");
         }
 
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
-    
         var user = new User()
         {
             Email = registerUser.Email,
             UserName = registerUser.Email
         };
-
-        var result = await _userManager.CreateAsync(user, registerUser.Password);
-        if (!result.Succeeded)
-        {
-            string message = string.Join("; ", result.Errors.Select(e => e.Description));
-            UserActivityLogService.LogRegister(
-                email: registerUser.Email,
-                userId: null,
-                description: $"User failed to register with errors: {message}"
-            );
-            throw new RegisterException(message: message, title: "User registration failed");
-        }
-
-        await _userManager.AddToRoleAsync(user, RoleNames.Agent);
         
         var agent = new Agent()
         {
@@ -102,9 +83,20 @@ public class AuthService : IAuthService
             AvataUrl = registerUser.AvatarUrl,
         };
 
-        _dbContext.Agents.Add(agent);
-        await _dbContext.SaveChangesAsync();
-        await transaction.CommitAsync();
+        // Create Agent
+        try
+        {
+            await _authRepository.CreateAgentAsync(user, agent, registerUser.Password, RoleNames.Agent);
+        }
+        catch (Exception e)
+        {
+            UserActivityLogService.LogRegister(
+                email: registerUser.Email,
+                userId: null,
+                description: $"User failed to register with errors: {e.Message}"
+            );
+            throw new RegisterException(message: e.Message, title: "User registration failed");
+        }
         
         UserActivityLogService.LogRegister(
             email: registerUser.Email,
