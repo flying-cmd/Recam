@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Remp.Common\Remp.Common.csproj" />
     <ProjectReference Include="..\Remp.DataAccess\Remp.DataAccess.csproj" />
   </ItemGroup>
 

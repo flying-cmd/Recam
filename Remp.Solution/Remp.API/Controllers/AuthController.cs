@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using Remp.Service.Services;
-using System.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 

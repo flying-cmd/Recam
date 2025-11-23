@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Remp.Models.Constants;
 using Remp.Models.Entities;
 using Remp.Service.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
@@ -37,6 +38,9 @@ public class JwtTokenService : IJwtTokenService
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
+        // Assign scopes based on user roles
+        claims.Add(new Claim("scopes", roles.Contains(RoleNames.PhotographyCompany) ? RoleNames.PhotographyCompany : RoleNames.Agent));
+        
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var token = new JwtSecurityToken(

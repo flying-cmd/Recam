@@ -4,6 +4,7 @@ using Remp.Common.Exceptions;
 using Remp.Service.Interfaces;
 using Remp.Service.DTOs;
 using Remp.DataAccess.Data;
+using Remp.Models.Constants;
 
 namespace Remp.Service.Services;
 
@@ -90,7 +91,7 @@ public class AuthService : IAuthService
             throw new RegisterException(message: message, title: "User registration failed");
         }
 
-        await _userManager.AddToRoleAsync(user, "Agent");
+        await _userManager.AddToRoleAsync(user, RoleNames.Agent);
         
         var agent = new Agent()
         {
@@ -108,7 +109,7 @@ public class AuthService : IAuthService
         UserActivityLogService.LogRegister(
             email: registerUser.Email,
             userId: user.Id.ToString(),
-            description: "User registered and is given Agent role"
+            description: $"User registered and is given {RoleNames.Agent} role"
         );
         var token = await _jwtTokenService.CreateTokenAsync(user);
         return token;
