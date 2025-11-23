@@ -96,10 +96,12 @@ builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDtoValidator
 // Repositories
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IPhotographyCompanyRepository, PhotographyCompanyRepository>();
+builder.Services.AddScoped<IListingCaseRepository, ListingCaseRepository>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPhotographyCompanyService, PhotographyCompanyService>();
+builder.Services.AddScoped<IListingCaseService, ListingCaseService>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

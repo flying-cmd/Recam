@@ -2,7 +2,8 @@
 
 public enum ListingCaseStatus
 {
-    Inactive,
-    Active
+    Created,
+    Updated,
+    Deleted
 }
 

@@ -75,7 +75,7 @@ public class ListingCaseConfiguration : IEntityTypeConfiguration<ListingCase>
             .IsRequired();
 
         builder.Property(lc => lc.ListingCaseStatus)
-            .HasDefaultValue(ListingCaseStatus.Inactive)
+            .HasDefaultValue(ListingCaseStatus.Created)
             .IsRequired();
 
         builder.HasMany(lc => lc.AgentListingCases)
