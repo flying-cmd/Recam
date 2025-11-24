@@ -38,7 +38,7 @@ public class ListingCaseRepository : IListingCaseRepository
             .CountAsync();
     }
 
-    public async Task<ListingCase?> FindListingCaseByIdAsync(int id)
+    public async Task<ListingCase?> FindListingCaseByListingCaseIdAsync(int id)
     {
         return await _dbContext.ListingCases
             .Where(lc => lc.Id == id)

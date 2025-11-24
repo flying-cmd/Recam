@@ -67,7 +67,7 @@ public class ListingCaseService : IListingCaseService
             {
                 throw new NotFoundException(
                     message: $"No listing cases created by the photography company {currentUserId} found. Page number: {pageNumber}, Page size: {pageSize}", 
-                    title: "No agents found."
+                    title: "No listing cases found."
                     );
             }
 
@@ -91,13 +91,14 @@ public class ListingCaseService : IListingCaseService
             totalCount = await _listingCaseRepository.CountListingCasesByAgentIdAsync(currentUserId);
         }
 
+        var temp = _mapper.Map<IEnumerable<ListingCaseResponseDto>>(listingCases);
         return new PagedResult<ListingCaseResponseDto>(pageNumber, pageSize, totalCount, _mapper.Map<IEnumerable<ListingCaseResponseDto>>(listingCases));
     }
 
-    public async Task<ListingCaseDetailResponseDto> GetListingCaseByIdAsync(int listingCaseId, string userId, string userRole)
+    public async Task<ListingCaseDetailResponseDto> GetListingCaseByListingCaseIdAsync(int listingCaseId, string userId, string userRole)
     {
         // Check if the listing case exists
-        var listingCase = await _listingCaseRepository.FindListingCaseByIdAsync(listingCaseId);
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
         if (listingCase is null)
         {
             throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");

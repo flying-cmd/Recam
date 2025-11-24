@@ -21,9 +21,9 @@ public class ListingCaseDetailResponseDto
     public double FloorArea { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsDeleted { get; set; }
-    public PropertyType PropertyType { get; set; }
-    public SaleCategory SaleCategory { get; set; }
-    public ListingCaseStatus ListingCaseStatus { get; set; }
+    public string PropertyType { get; set; } = null!;
+    public string SaleCategory { get; set; } = null!;
+    public string ListingCaseStatus { get; set; } = null!;
     public string UserId { get; set; } = null!;
     public IEnumerable<MediaAsset> MediaAssets { get; set; } = new List<MediaAsset>();
     public IEnumerable<CaseContact> CaseContacts { get; set; } = new List<CaseContact>();

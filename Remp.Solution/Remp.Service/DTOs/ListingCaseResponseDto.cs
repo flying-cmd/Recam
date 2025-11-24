@@ -20,7 +20,7 @@ public class ListingCaseResponseDto
     public double FloorArea { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsDeleted { get; set; }
-    public PropertyType PropertyType { get; set; }
-    public SaleCategory SaleCategory { get; set; }
-    public ListingCaseStatus ListingCaseStatus { get; set; }
+    public string PropertyType { get; set; } = null!;
+    public string SaleCategory { get; set; } = null!;
+    public string ListingCaseStatus { get; set; } = null!;
 }

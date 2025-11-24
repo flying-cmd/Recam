@@ -36,9 +36,9 @@ namespace Remp.API.Controllers
         /// <remarks>
         /// This endpoint is restricted to users in the <c>PhotographyCompany</c> or <c>Agent</c> roles.
         /// </remarks>
-        [HttpGet("{listingCaseId:int}")]
+        [HttpGet("{listingCaseId:int}", Name = "GetListingCaseByListingCaseIdAsync")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
-        public async Task<ActionResult<ListingCaseResponseDto>> GetListingCaseByIdAsync(int listingCaseId)
+        public async Task<ActionResult<ListingCaseResponseDto>> GetListingCaseByListingCaseIdAsync(int listingCaseId)
         {
             var currentUser = HttpContext.User;
             var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -53,7 +53,7 @@ namespace Remp.API.Controllers
                 return Forbid();
             }
 
-            var result = await _listingCaseService.GetListingCaseByIdAsync(listingCaseId, currentUserId, currrentUserRole);
+            var result = await _listingCaseService.GetListingCaseByListingCaseIdAsync(listingCaseId, currentUserId, currrentUserRole);
             return Ok(result);
         }
 
@@ -96,7 +96,7 @@ namespace Remp.API.Controllers
 
             var result = await _listingCaseService.CreateListingCaseAsync(createListingCaseRequest);
             
-            return CreatedAtAction(nameof(GetListingCaseByIdAsync), new { listingCaseId = result.Id }, result);
+            return CreatedAtRoute(nameof(GetListingCaseByListingCaseIdAsync), new { listingCaseId = result.Id }, result);
         }
 
         /// <summary>
