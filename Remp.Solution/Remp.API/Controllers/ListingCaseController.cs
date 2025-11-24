@@ -5,6 +5,7 @@ using Remp.Common.Helpers;
 using Remp.Models.Constants;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
+using System.Security.Claims;
 
 namespace Remp.API.Controllers
 {
@@ -19,9 +20,60 @@ namespace Remp.API.Controllers
             _listingCaseService = listingCaseService;
         }
 
+        /// <summary>
+        /// Get a listing case by id
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case to retrieve.
+        /// </param>
+        /// <returns>
+        /// Returns the retrieved listing case.
+        /// </returns>
+        /// <response code="200">Returns <see cref="ListingCaseResponseDto"/></response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="403">Forbidden</response>
+        /// <response code="404">The listing case was not found</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> or <c>Agent</c> roles.
+        /// </remarks>
+        [HttpGet("{listingCaseId:int}")]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        public async Task<ActionResult<ListingCaseResponseDto>> GetListingCaseByIdAsync(int listingCaseId)
+        {
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+            
+            var currrentUserRole = currentUser.FindFirstValue("scopes");
+            if (currrentUserRole == null)
+            {
+                return Forbid();
+            }
+
+            var result = await _listingCaseService.GetListingCaseByIdAsync(listingCaseId, currentUserId, currrentUserRole);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Create a new listing case
+        /// </summary>
+        /// <param name="createListingCaseRequest">
+        /// The payload containing the details of the listing case to create.
+        /// <returns>
+        /// Returns the created listing case and a location header pointing to access it.
+        /// </returns>
+        /// <response code="201">Listing case created.</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Request validation failed.</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
         [HttpPost]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<ActionResult<CreateListingCaseResponseDto>> CreateListingCase(
+        public async Task<ActionResult<ListingCaseResponseDto>> CreateListingCase(
             [FromBody] CreateListingCaseRequestDto createListingCaseRequest, 
             IValidator<CreateListingCaseRequestDto> validator)
         {
@@ -44,8 +96,7 @@ namespace Remp.API.Controllers
 
             var result = await _listingCaseService.CreateListingCaseAsync(createListingCaseRequest);
             
-            // TODO: later change to location with id
-            return Ok(result);
+            return CreatedAtAction(nameof(GetListingCaseByIdAsync), new { listingCaseId = result.Id }, result);
         }
     }
 }

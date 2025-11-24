@@ -22,6 +22,16 @@ public class ListingCaseRepository : IListingCaseRepository
         return listingCase;
     }
 
+    public async Task<ListingCase?> FindListingCaseByIdAsync(int id)
+    {
+        return await _dbContext.ListingCases
+            .Where(lc => lc.Id == id)
+            .Include(lc => lc.MediaAssets)
+            .Include(lc => lc.CaseContacts)
+            .Include(lc => lc.AgentListingCases)
+            .SingleOrDefaultAsync();
+    }
+
     public async Task<User?> FindUserByIdAsync(string userId)
     {
         return await _dbContext.Users.FindAsync(userId);

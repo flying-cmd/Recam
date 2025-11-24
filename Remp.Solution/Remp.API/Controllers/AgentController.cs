@@ -9,7 +9,6 @@ namespace Remp.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = RoleNames.PhotographyCompany)]
     public class AgentController : ControllerBase
     {
         private readonly IAgentService _agentService;
@@ -19,7 +18,26 @@ namespace Remp.API.Controllers
             _agentService = agentService;
         }
 
+        /// <summary>
+        /// Get all agents
+        /// </summary>
+        /// <param name="pageNumer">
+        /// Page number
+        /// </param>
+        /// <param name="pageSize">
+        /// Page size
+        /// </param>
+        /// <returns>
+        /// Returns a list of agents, current page number, page size, total pages and total count.
+        /// </returns>
+        /// <response code="200">Returns a list of agents</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Invalid page number or page size</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
         [HttpGet]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
         public async Task<ActionResult<PagedResult<AgentResponseDto>>> GetAgentsAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
         {
             var result = await _agentService.GetAgentsAsync(pageNumer, pageSize);

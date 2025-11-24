@@ -22,8 +22,14 @@ namespace Remp.API.Controllers
         /// <summary>
         /// Login
         /// </summary>
-        /// <param name="loginRequest"></param>
-        /// <returns></returns>
+        /// <param name="loginRequest">
+        /// The payload containing the email and password of the user.
+        /// </param>
+        /// <returns>
+        /// Returns the jwt token.
+        /// </returns>
+        /// <response code="200">User logged in</response>
+        /// <response code="400">Email or password is invalid</response>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest, IValidator<LoginRequestDto> validator)
         {
@@ -46,6 +52,17 @@ namespace Remp.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Register
+        /// </summary>
+        /// <param name="registerRequest">
+        /// The payload containing the details of the user to register.
+        /// </param>
+        /// <returns>
+        /// Returns the jwt token.
+        /// </returns>
+        /// <response code="200">User registered.</response>
+        /// <response code="400">Request validation failed.</response>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromForm] RegisterRequestDto registerRequest, IValidator<RegisterRequestDto> validator)
         {

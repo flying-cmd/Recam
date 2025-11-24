@@ -2,20 +2,21 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Remp.API.Middleware;
 using Remp.DataAccess.Data;
+using Remp.Models.Constants;
 using Remp.Models.Entities;
-using Remp.Service.Interfaces;
-using Remp.Service.Services;
-using Remp.Service.Mappers;
-using Remp.Service.Validators;
-using Serilog;
-using System.Text;
-using Microsoft.Extensions.DependencyInjection;
 using Remp.Repository.Interfaces;
 using Remp.Repository.Repositories;
-using Remp.Models.Constants;
+using Remp.Service.Interfaces;
+using Remp.Service.Mappers;
+using Remp.Service.Services;
+using Remp.Service.Validators;
+using Serilog;
+using System.Reflection;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -118,6 +119,9 @@ builder.Services.AddSwaggerGen(
     c =>
     {
         c.SwaggerDoc("v1", new() { Title = "Recam API", Version = "v1" });
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath);
         c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
         {
             Description = "JWT Authorization header using the Bearer scheme.",

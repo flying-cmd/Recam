@@ -2,7 +2,7 @@
 
 namespace Remp.Service.DTOs;
 
-public class CreateListingCaseResponseDto
+public class ListingCaseResponseDto
 {
     public int Id { get; set; }
     public string Title { get; set; } = null!;
