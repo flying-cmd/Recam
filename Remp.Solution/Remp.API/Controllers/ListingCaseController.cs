@@ -8,7 +8,7 @@ using Remp.Service.Interfaces;
 
 namespace Remp.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/listings")]
     [ApiController]
     public class ListingCaseController : ControllerBase
     {

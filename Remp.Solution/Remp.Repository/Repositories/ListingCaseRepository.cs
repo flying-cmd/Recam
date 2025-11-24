@@ -1,4 +1,5 @@
-﻿using Remp.DataAccess.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using Remp.DataAccess.Data;
 using Remp.Models.Entities;
 using Remp.Repository.Interfaces;
 
@@ -19,5 +20,10 @@ public class ListingCaseRepository : IListingCaseRepository
         await _dbContext.SaveChangesAsync();
 
         return listingCase;
+    }
+
+    public async Task<User?> FindUserByIdAsync(string userId)
+    {
+        return await _dbContext.Users.FindAsync(userId);
     }
 }

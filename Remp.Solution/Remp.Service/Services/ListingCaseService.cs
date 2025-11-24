@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Remp.Common.Exceptions;
 using Remp.Common.Helpers;
 using Remp.Models.Entities;
 using Remp.Models.Enums;
@@ -21,6 +22,13 @@ public class ListingCaseService : IListingCaseService
 
     public async Task<CreateListingCaseResponseDto> CreateListingCaseAsync(CreateListingCaseRequestDto createListingCaseRequestDto)
     {
+        // Check if the user exists
+        var user = await _listingCaseRepository.FindUserByIdAsync(createListingCaseRequestDto.UserId);
+        if (user is null)
+        {
+            throw new NotFoundException(message: "User does not exist", title: "User does not exist");
+        }
+
         var listingCase = _mapper.Map<ListingCase>(createListingCaseRequestDto);
 
         listingCase.CreatedAt = DateTime.UtcNow;
