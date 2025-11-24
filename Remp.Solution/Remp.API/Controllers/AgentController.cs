@@ -19,13 +19,13 @@ namespace Remp.API.Controllers
         }
 
         /// <summary>
-        /// Get all agents
+        /// Get all agents in pagination.
         /// </summary>
         /// <param name="pageNumer">
         /// Page number
         /// </param>
         /// <param name="pageSize">
-        /// Page size
+        /// Page size (how many items per page)
         /// </param>
         /// <returns>
         /// Returns a list of agents, current page number, page size, total pages and total count.

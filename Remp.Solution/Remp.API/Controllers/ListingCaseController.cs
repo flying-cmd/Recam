@@ -98,5 +98,43 @@ namespace Remp.API.Controllers
             
             return CreatedAtAction(nameof(GetListingCaseByIdAsync), new { listingCaseId = result.Id }, result);
         }
+
+        /// <summary>
+        /// Get all listing cases in pagination.
+        /// If the user is an agent, it will return the listing cases that are assigned to the agent.
+        /// If the user is a photography company, it will return the listing cases that are created by the photography company.
+        /// </summary>
+        /// <param name="pageNumer">Page number</param>
+        /// <param name="pageSize">Page size (how many items per page)</param>
+        /// <returns>
+        /// Returns a list of listing cases, current page number, page size, total pages and total count
+        /// </returns>
+        /// <response code="200">Returns a list of listing cases, current page number, page size, total pages and total count</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Invalid page number or page size</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> or <c>Agent</c> roles.
+        /// </remarks>
+        [HttpGet]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        public async Task<ActionResult<IEnumerable<ListingCaseResponseDto>>> GetAllListingCasesAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
+        {
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            var currrentUserRole = currentUser.FindFirstValue("scopes");
+            if (currrentUserRole == null)
+            {
+                return Forbid();
+            }
+
+            var result = await _listingCaseService.GetAllListingCasesAsync(pageNumer, pageSize, currentUserId, currrentUserRole);
+
+            return Ok(result);
+        }
     }
 }

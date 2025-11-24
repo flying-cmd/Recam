@@ -48,6 +48,52 @@ public class ListingCaseService : IListingCaseService
         return _mapper.Map<ListingCaseResponseDto>(createdListingCase);
     }
 
+    public async Task<PagedResult<ListingCaseResponseDto>> GetAllListingCasesAsync(int pageNumber, int pageSize, string currentUserId, string currrentUserRole)
+    {
+        if (pageNumber <= 0 || pageSize <= 0)
+        {
+            throw new ArgumentErrorException(message: "Page number and page size must be greater than 0.", title: "Page number and page size must be greater than 0.");
+        }
+
+        IEnumerable<ListingCase> listingCases = [];
+        int totalCount = 0;
+
+        // If the user role is PhotographyCompany, return only the listing cases created by the user
+        if (currrentUserRole == RoleNames.PhotographyCompany)
+        {
+            listingCases = await _listingCaseRepository.FindListingCasesByPhotographyCompanyIdAsync(pageNumber, pageSize, currentUserId);
+
+            if (listingCases == null || !listingCases.Any())
+            {
+                throw new NotFoundException(
+                    message: $"No listing cases created by the photography company {currentUserId} found. Page number: {pageNumber}, Page size: {pageSize}", 
+                    title: "No agents found."
+                    );
+            }
+
+            totalCount = await _listingCaseRepository.CountListingCasesByPhotographyCompanyIdAsync(currentUserId);
+        }
+
+        // If the user role is Agent, return only the listing cases assigned to the user
+        if (currrentUserRole == RoleNames.Agent)
+        {
+            listingCases = await _listingCaseRepository.FindListingCasesByAgentIdAsync(pageNumber, pageSize, currentUserId);
+
+
+            if (!listingCases.Any())
+            {
+                throw new NotFoundException(
+                    message: $"No listing cases related to the agent {currentUserId} found. Page number: {pageNumber}, Page size: {pageSize}", 
+                    title: "No listing cases found."
+                    );
+            }
+
+            totalCount = await _listingCaseRepository.CountListingCasesByAgentIdAsync(currentUserId);
+        }
+
+        return new PagedResult<ListingCaseResponseDto>(pageNumber, pageSize, totalCount, _mapper.Map<IEnumerable<ListingCaseResponseDto>>(listingCases));
+    }
+
     public async Task<ListingCaseDetailResponseDto> GetListingCaseByIdAsync(int listingCaseId, string userId, string userRole)
     {
         // Check if the listing case exists
