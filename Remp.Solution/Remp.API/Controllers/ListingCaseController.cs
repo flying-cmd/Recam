@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Remp.Common.Helpers;
 using Remp.Models.Constants;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
@@ -32,6 +33,11 @@ namespace Remp.API.Controllers
                 string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
 
                 // TODO: Log
+                CaseHistoryLog.LogCreateListingCase(
+                    listingCaseId: null,
+                    userId: createListingCaseRequest.UserId,
+                    description: $"User failed to create listing case with erros: {errors}"
+                );
 
                 return ValidationProblem(problemDetails);
             }

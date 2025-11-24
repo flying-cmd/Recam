@@ -36,10 +36,17 @@ builder.Host.UseSerilog((ctx, services, lc) =>
 
       // UserActivityLog
       .WriteTo.Logger(lc2 => lc2
-          .Filter.ByIncludingOnly("LogType = 'UserActivity'")
+          .Filter.ByIncludingOnly($"LogType = 'UserActivity'")
           .WriteTo.MongoDB(
               mongoDbConnectionString!,
-              collectionName: "UserActivityLog"));
+              collectionName: "UserActivityLog"))
+
+      // CaseHistoryLog
+      .WriteTo.Logger(lc2 => lc2
+          .Filter.ByIncludingOnly($"LogType = 'CaseHistory'")
+          .WriteTo.MongoDB(
+              mongoDbConnectionString!,
+              collectionName: "CaseHistoryLog"));
 });
 
 
@@ -95,12 +102,12 @@ builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDtoValidator
 
 // Repositories
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
-builder.Services.AddScoped<IPhotographyCompanyRepository, AgentRepository>();
+builder.Services.AddScoped<IAgentRepository, AgentRepository>();
 builder.Services.AddScoped<IListingCaseRepository, ListingCaseRepository>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IPhotographyCompanyService, AgentService>();
+builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IListingCaseService, ListingCaseService>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

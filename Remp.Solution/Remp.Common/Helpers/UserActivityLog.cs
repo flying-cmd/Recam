@@ -2,7 +2,7 @@
 
 namespace Remp.Service.Services;
 
-public static class UserActivityLogService
+public static class UserActivityLog
 {
     public static void LogLogin(string? email, string? userId, string description = "User logged in")
     {

@@ -2,7 +2,8 @@
 
 public enum SaleCategory
 {
-    Rent,
-    Sold
+    ForSale,
+    ForRent,
+    Auction
 }
 

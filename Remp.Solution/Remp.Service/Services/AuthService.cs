@@ -24,7 +24,7 @@ public class AuthService : IAuthService
         
         if (user is null)
         {
-            UserActivityLogService.LogLogin(
+            UserActivityLog.LogLogin(
                 email: loginRequest.Email,
                 userId: null,
                 description: "User failed to login because email is not found"
@@ -36,7 +36,7 @@ public class AuthService : IAuthService
 
         if (!passwordCheck)
         {
-            UserActivityLogService.LogLogin(
+            UserActivityLog.LogLogin(
                 email: loginRequest.Email,
                 userId: user.Id.ToString(),
                 description: "User try to login but password is incorrect"
@@ -46,7 +46,7 @@ public class AuthService : IAuthService
 
         var token = await _jwtTokenService.CreateTokenAsync(user);
 
-        UserActivityLogService.LogLogin(
+        UserActivityLog.LogLogin(
             email: loginRequest.Email,
             userId: user.Id.ToString(),
             description: "User logged in"
@@ -60,7 +60,7 @@ public class AuthService : IAuthService
         
         if (emailExists != null)
         {
-            UserActivityLogService.LogRegister(
+            UserActivityLog.LogRegister(
                 email: registerUser.Email,
                 userId: null,
                 description: "User failed to register because email already exists"
@@ -90,7 +90,7 @@ public class AuthService : IAuthService
         }
         catch (Exception e)
         {
-            UserActivityLogService.LogRegister(
+            UserActivityLog.LogRegister(
                 email: registerUser.Email,
                 userId: null,
                 description: $"User failed to register with errors: {e.Message}"
@@ -98,7 +98,7 @@ public class AuthService : IAuthService
             throw new RegisterException(message: e.Message, title: "User registration failed");
         }
         
-        UserActivityLogService.LogRegister(
+        UserActivityLog.LogRegister(
             email: registerUser.Email,
             userId: user.Id.ToString(),
             description: $"User registered and is given {RoleNames.Agent} role"

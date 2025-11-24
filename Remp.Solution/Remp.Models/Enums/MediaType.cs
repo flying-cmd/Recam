@@ -2,6 +2,8 @@
 
 public enum MediaType
 {
-    Image,
-    Video
+    Photo,
+    Videography,
+    FloorPlan,
+    VRTour
 }

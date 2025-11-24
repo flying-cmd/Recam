@@ -2,8 +2,9 @@
 
 public enum PropertyType
 {
-    Apartment,
     House,
     Unit,
-    Townhouse
+    Townhouse,
+    Villa,
+    Others
 }

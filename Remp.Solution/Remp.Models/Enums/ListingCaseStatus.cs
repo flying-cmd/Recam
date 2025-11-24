@@ -3,7 +3,7 @@
 public enum ListingCaseStatus
 {
     Created,
-    Updated,
-    Deleted
+    Pending,
+    Delivered
 }
 

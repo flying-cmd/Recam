@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Remp.Common.Helpers;
 using Remp.Models.Entities;
 using Remp.Models.Enums;
 using Remp.Repository.Interfaces;
@@ -27,6 +28,12 @@ public class ListingCaseService : IListingCaseService
         listingCase.ListingCaseStatus = ListingCaseStatus.Created;
 
         var createdListingCase = await _listingCaseRepository.AddListingCaseAsync(listingCase);
+
+        // Log
+        CaseHistoryLog.LogCreateListingCase(
+            listingCaseId: createdListingCase.Id.ToString(),
+            userId: createdListingCase.UserId
+        );
     
         return _mapper.Map<CreateListingCaseResponseDto>(createdListingCase);
     }

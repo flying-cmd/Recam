@@ -34,7 +34,7 @@ namespace Remp.API.Controllers
                 var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
                 string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
 
-                UserActivityLogService.LogLogin(
+                UserActivityLog.LogLogin(
                     email: loginRequest.Email,
                     userId: null,
                     description: $"User failed to login with erros: {errors}"
@@ -56,7 +56,7 @@ namespace Remp.API.Controllers
                 var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
                 string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
 
-                UserActivityLogService.LogRegister(
+                UserActivityLog.LogRegister(
                     email: registerRequest.Email,
                     userId: null,
                     description: $"User failed to register with erros: {errors}"
