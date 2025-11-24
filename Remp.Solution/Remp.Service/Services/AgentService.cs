@@ -7,14 +7,14 @@ using Remp.Service.Interfaces;
 
 namespace Remp.Service.Services;
 
-public class PhotographyCompanyService : IPhotographyCompanyService
+public class AgentService : IAgentService
 {
-    private readonly IPhotographyCompanyRepository _photographyCompanyRepository;
+    private readonly IAgentRepository _agentRepository;
     private readonly IMapper _mapper;
 
-    public PhotographyCompanyService(IPhotographyCompanyRepository photographyCompanyRepository, IMapper mapper)
+    public AgentService(IAgentRepository agentRepository, IMapper mapper)
     {
-        _photographyCompanyRepository = photographyCompanyRepository;
+        _agentRepository = agentRepository;
         _mapper = mapper;
     }
 
@@ -25,9 +25,9 @@ public class PhotographyCompanyService : IPhotographyCompanyService
             throw new ArgumentErrorException(message: "Page number and page size must be greater than 0.", title: "Page number and page size must be greater than 0.");
         }
 
-        var totalCount = await _photographyCompanyRepository.GetTotalCountAsync();
+        var totalCount = await _agentRepository.GetTotalCountAsync();
 
-        var agents = await _photographyCompanyRepository.GetAgentsAsync(pageNumber, pageSize);
+        var agents = await _agentRepository.GetAgentsAsync(pageNumber, pageSize);
 
         if (agents == null || !agents.Any())
         {

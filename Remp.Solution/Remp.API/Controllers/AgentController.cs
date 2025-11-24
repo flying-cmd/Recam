@@ -10,19 +10,19 @@ namespace Remp.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = RoleNames.PhotographyCompany)]
-    public class PhotographyCompanyController : ControllerBase
+    public class AgentController : ControllerBase
     {
-        private readonly IPhotographyCompanyService PhotographyCompanyService;
+        private readonly IAgentService _agentService;
 
-        public PhotographyCompanyController(IPhotographyCompanyService photographyCompanyService)
+        public AgentController(IAgentService agentService)
         {
-            PhotographyCompanyService = photographyCompanyService;
+            _agentService = agentService;
         }
 
         [HttpGet]
         public async Task<ActionResult<PagedResult<AgentResponseDto>>> GetAgentsAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
         {
-            var result = await PhotographyCompanyService.GetAgentsAsync(pageNumer, pageSize);
+            var result = await _agentService.GetAgentsAsync(pageNumer, pageSize);
             return Ok(result);
         }
     }

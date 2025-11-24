@@ -1,9 +1,8 @@
-﻿using Remp.Common.Helpers;
-using Remp.Models.Entities;
+﻿using Remp.Models.Entities;
 
 namespace Remp.Repository.Interfaces;
 
-public interface IPhotographyCompanyRepository
+public interface IAgentRepository
 {
     Task<IEnumerable<Agent>> GetAgentsAsync(int pageNumber, int pageSize);
     Task<int> GetTotalCountAsync();

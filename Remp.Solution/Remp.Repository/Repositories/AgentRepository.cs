@@ -6,11 +6,11 @@ using Remp.Repository.Interfaces;
 
 namespace Remp.Repository.Repositories;
 
-public class PhotographyCompanyRepository : IPhotographyCompanyRepository
+public class AgentRepository : IAgentRepository
 {
     private readonly AppDbContext _context;
 
-    public PhotographyCompanyRepository(AppDbContext context)
+    public AgentRepository(AppDbContext context)
     {
         _context = context;
     }
