@@ -6,4 +6,5 @@ namespace Remp.Service.Interfaces;
 public interface IUserService
 {
     Task<PagedResult<AgentResponseDto>> GetAgentsAsync(int pageNumber, int pageSize);
+    Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId);
 }

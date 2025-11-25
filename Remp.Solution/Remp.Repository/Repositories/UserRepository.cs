@@ -28,4 +28,12 @@ public class UserRepository : IUserRepository
     {
         return await _context.Agents.AsNoTracking().CountAsync();
     }
+
+    public async Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId)
+    {
+        return await _context.AgentListingCases
+            .Where(alc => alc.AgentId == currentUserId)
+            .Select(alc => alc.ListingCaseId)
+            .ToListAsync();
+    }
 }

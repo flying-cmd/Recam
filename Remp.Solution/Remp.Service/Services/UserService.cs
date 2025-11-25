@@ -9,12 +9,12 @@ namespace Remp.Service.Services;
 
 public class UserService : IUserService
 {
-    private readonly IUserRepository _agentRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
 
-    public UserService(IUserRepository agentRepository, IMapper mapper)
+    public UserService(IUserRepository userRepository, IMapper mapper)
     {
-        _agentRepository = agentRepository;
+        _userRepository = userRepository;
         _mapper = mapper;
     }
 
@@ -25,9 +25,9 @@ public class UserService : IUserService
             throw new ArgumentErrorException(message: "Page number and page size must be greater than 0.", title: "Page number and page size must be greater than 0.");
         }
 
-        var totalCount = await _agentRepository.GetTotalCountAsync();
+        var totalCount = await _userRepository.GetTotalCountAsync();
 
-        var agents = await _agentRepository.GetAgentsAsync(pageNumber, pageSize);
+        var agents = await _userRepository.GetAgentsAsync(pageNumber, pageSize);
 
         if (agents == null || !agents.Any())
         {
@@ -37,5 +37,10 @@ public class UserService : IUserService
         var agentsDto = _mapper.Map<IEnumerable<AgentResponseDto>>(agents);
 
         return new PagedResult<AgentResponseDto>(pageNumber, pageSize, totalCount, agentsDto);
+    }
+
+    public Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId)
+    {
+        return _userRepository.GetUserListingCaseIdsAsync(currentUserId);
     }
 }
