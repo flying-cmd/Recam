@@ -62,6 +62,8 @@ namespace Remp.API.Controllers
         /// </summary>
         /// <param name="createListingCaseRequest">
         /// The payload containing the details of the listing case to create.
+        /// </param>
+        /// <param name="validator"></param>
         /// <returns>
         /// Returns the created listing case and a location header pointing to access it.
         /// </returns>
@@ -135,6 +137,57 @@ namespace Remp.API.Controllers
             var result = await _listingCaseService.GetAllListingCasesAsync(pageNumer, pageSize, currentUserId, currrentUserRole);
 
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Update a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case to update.
+        /// </param>
+        /// <param name="updateListingCaseRequest">
+        /// The payload containing the details of the listing case to update.
+        /// </param>
+        /// <param name="validator"></param>
+        /// <returns></returns>
+        /// <response code="204">Listing case updated.</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Request validation failed.</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
+        [HttpPut("{listingCaseId}")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        public async Task<IActionResult> UpdateListingCaseAsync(int listingCaseId, [FromBody] UpdateListingCaseRequestDto updateListingCaseRequest, IValidator<UpdateListingCaseRequestDto> validator)
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            // Validate
+            var validationResult = await validator.ValidateAsync(updateListingCaseRequest);
+            if (!validationResult.IsValid)
+            {
+                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
+                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+
+                // Log
+                CaseHistoryLog.LogUpdateListingCase(
+                    listingCaseId: listingCaseId.ToString(),
+                    userId: currentUserId,
+                    updatedFields: null,
+                    description: $"User failed to update listing case with erros: {errors}"
+                );
+
+                return ValidationProblem(problemDetails);
+            }
+
+            await _listingCaseService.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, currentUserId);
+            return NoContent();
         }
     }
 }

@@ -124,4 +124,49 @@ public class ListingCaseService : IListingCaseService
 
         return _mapper.Map<ListingCaseDetailResponseDto>(listingCase);
     }
+
+    public async Task UpdateListingCaseAsync(int listingCaseId, UpdateListingCaseRequestDto updateListingCaseRequest, string userId)
+    {
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Check if the listing case belongs to the user
+        if (userId != listingCase.UserId)
+        {
+            throw new UnauthorizedException(
+                message: $"User {userId} cannot update this listing case because the user is not the owner of this listing case",
+                title: "You cannot update this listing case because you are not the owner of this listing case"
+                );
+        }
+
+        // Update the listing case
+        // Check if any fields are changed
+        var fieldChanges = Checker.CheckChanges(_mapper.Map<UpdateListingCaseRequestDto>(listingCase), updateListingCaseRequest);
+
+        if (fieldChanges.Count == 0)
+        {
+            // Log
+            CaseHistoryLog.LogUpdateListingCase(
+                listingCase.Id.ToString(),
+                listingCase.UserId.ToString(),
+                fieldChanges
+                );
+
+            return;
+        }
+
+        _mapper.Map(updateListingCaseRequest, listingCase);
+        await _listingCaseRepository.UpdateListingCaseAsync(listingCase);
+
+        // Log
+        CaseHistoryLog.LogUpdateListingCase(
+            listingCase.Id.ToString(),
+            listingCase.UserId.ToString(),
+            fieldChanges
+            );
+    }
 }

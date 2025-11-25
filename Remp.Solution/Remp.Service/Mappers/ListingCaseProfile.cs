@@ -9,6 +9,7 @@ public class ListingCaseProfile : Profile
     public ListingCaseProfile()
     {
         CreateMap<CreateListingCaseRequestDto, ListingCase>();
+
         CreateMap<ListingCase, ListingCaseResponseDto>()
             .ForMember(d => d.PropertyType, opt => opt.MapFrom(src => src.PropertyType.ToString()))
             .ForMember(d => d.SaleCategory, opt => opt.MapFrom(src => src.SaleCategory.ToString()))
@@ -25,5 +26,11 @@ public class ListingCaseProfile : Profile
             .ForMember(d => d.PropertyType, opt => opt.MapFrom(src => src.PropertyType.ToString()))
             .ForMember(d => d.SaleCategory, opt => opt.MapFrom(src => src.SaleCategory.ToString()))
             .ForMember(d => d.ListingCaseStatus, opt => opt.MapFrom(src => src.ListingCaseStatus.ToString()));
+
+        CreateMap<ListingCase, UpdateListingCaseRequestDto>()
+            .ForMember(d => d.PropertyType, opt => opt.MapFrom(src => src.PropertyType.ToString()))
+            .ForMember(d => d.SaleCategory, opt => opt.MapFrom(src => src.SaleCategory.ToString()));
+
+        CreateMap<UpdateListingCaseRequestDto, ListingCase>();
     }
 }

@@ -12,4 +12,14 @@ public static class CaseHistoryLog
             .ForContext("UserId", userId)
             .Information(description ?? details);
     }
+
+    public static void LogUpdateListingCase(string? listingCaseId, string userId, Dictionary<string, FieldChange>? updatedFields, string? description = null)
+    {
+        var details = $"ListingCase {listingCaseId} updated by User {userId}";
+        Log.ForContext("LogType", "CaseHistory")
+            .ForContext("ListingCaseId", listingCaseId)
+            .ForContext("UserId", userId)
+            .ForContext("updatedFields", updatedFields != null && updatedFields.Count > 0 ? updatedFields : "No fields updated", true)
+            .Information(description ?? details);
+    }
 }

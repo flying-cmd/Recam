@@ -25,6 +25,7 @@ namespace Remp.API.Controllers
         /// <param name="loginRequest">
         /// The payload containing the email and password of the user.
         /// </param>
+        /// <param name="validator"></param>
         /// <returns>
         /// Returns the jwt token.
         /// </returns>
@@ -58,6 +59,7 @@ namespace Remp.API.Controllers
         /// <param name="registerRequest">
         /// The payload containing the details of the user to register.
         /// </param>
+        /// <param name="validator"></param>
         /// <returns>
         /// Returns the jwt token.
         /// </returns>

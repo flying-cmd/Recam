@@ -70,4 +70,10 @@ public class ListingCaseRepository : IListingCaseRepository
     {
         return await _dbContext.Users.FindAsync(userId);
     }
+
+    public async Task UpdateListingCaseAsync(ListingCase listingCase)
+    {
+        _dbContext.ListingCases.Update(listingCase);
+        await _dbContext.SaveChangesAsync();
+    }
 }
