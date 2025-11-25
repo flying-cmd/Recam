@@ -1,16 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Remp.Common.Helpers;
 using Remp.DataAccess.Data;
 using Remp.Models.Entities;
 using Remp.Repository.Interfaces;
 
 namespace Remp.Repository.Repositories;
 
-public class AgentRepository : IAgentRepository
+public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _context;
 
-    public AgentRepository(AppDbContext context)
+    public UserRepository(AppDbContext context)
     {
         _context = context;
     }

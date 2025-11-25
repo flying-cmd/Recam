@@ -7,12 +7,12 @@ using Remp.Service.Interfaces;
 
 namespace Remp.Service.Services;
 
-public class AgentService : IAgentService
+public class UserService : IUserService
 {
-    private readonly IAgentRepository _agentRepository;
+    private readonly IUserRepository _agentRepository;
     private readonly IMapper _mapper;
 
-    public AgentService(IAgentRepository agentRepository, IMapper mapper)
+    public UserService(IUserRepository agentRepository, IMapper mapper)
     {
         _agentRepository = agentRepository;
         _mapper = mapper;

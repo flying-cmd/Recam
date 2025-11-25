@@ -9,11 +9,11 @@ namespace Remp.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AgentController : ControllerBase
+    public class UserController : ControllerBase
     {
-        private readonly IAgentService _agentService;
+        private readonly IUserService _agentService;
 
-        public AgentController(IAgentService agentService)
+        public UserController(IUserService agentService)
         {
             _agentService = agentService;
         }

@@ -3,7 +3,7 @@ using Remp.Service.DTOs;
 
 namespace Remp.Service.Interfaces;
 
-public interface IAgentService
+public interface IUserService
 {
     Task<PagedResult<AgentResponseDto>> GetAgentsAsync(int pageNumber, int pageSize);
 }
