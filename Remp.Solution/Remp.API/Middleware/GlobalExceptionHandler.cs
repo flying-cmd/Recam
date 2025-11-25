@@ -44,6 +44,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
     {
         return exception switch
         {
+            ArgumentErrorException ae => (ae.StatusCode, ae.Title),
+            DeleteException de => (de.StatusCode, de.Title),
             NotFoundException ne => (ne.StatusCode, ne.Title),
             UnauthorizedException ue => (ue.StatusCode, ue.Title),
             RegisterException re => (re.StatusCode, re.Title),

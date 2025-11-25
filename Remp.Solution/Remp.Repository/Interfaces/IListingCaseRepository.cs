@@ -12,5 +12,6 @@ public interface IListingCaseRepository
     Task<IEnumerable<ListingCase>> FindListingCasesByAgentIdAsync(int pageNumber, int pageSize, string currentUserId);
     Task<IEnumerable<ListingCase>> FindListingCasesByPhotographyCompanyIdAsync(int pageNumber, int pageSize, string currentUserId);
     Task<User?> FindUserByIdAsync(string userId);
-    Task UpdateListingCaseAsync(ListingCase listingCase);
+    Task UpdateListingCaseAsync(ListingCase newListingCase);
+    Task UpdateListingCaseStatusAsync(ListingCase newListingCase);
 }

@@ -34,4 +34,16 @@ public static class CaseHistoryLog
             .ForContext("UserId", userId)
             .Information(description ?? details);
     }
+
+    public static void LogUpdateListingCaseStatus(string? listingCaseId, string userId, string? oldStatus, string? newStatus, string? description = null)
+    {
+        var details = $"ListingCase {listingCaseId} status updated from {oldStatus} to {newStatus} by User {userId}";
+        Log.ForContext("LogType", "CaseHistory")
+            .ForContext("EventType", "UpdateStatus")
+            .ForContext("ListingCaseId", listingCaseId)
+            .ForContext("OldStatus", oldStatus)
+            .ForContext("NewStatus", newStatus)
+            .ForContext("UserId", userId)
+            .Information(description ?? details);
+    }
 }

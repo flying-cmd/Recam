@@ -212,4 +212,54 @@ public class ListingCaseService : IListingCaseService
             fieldChanges
             );
     }
+
+    // Update the status of the listing case following the workflow
+    public async Task UpdateListingCaseStatusAsync(int listingCaseId, string currentUserId)
+    {
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            // Log
+            CaseHistoryLog.LogUpdateListingCaseStatus(
+                listingCaseId.ToString(),
+                currentUserId,
+                null,
+                null,
+                $"User {currentUserId} failed to update the status of listing case {listingCaseId} because the it does not exist"
+                );
+
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Update the listing case status
+        var oldStatus = listingCase.ListingCaseStatus;
+
+        // If the oldStatus is Delivered, it will not be updated
+        if (oldStatus == ListingCaseStatus.Delivered)
+        {
+            // Log
+            CaseHistoryLog.LogUpdateListingCaseStatus(
+                listingCaseId.ToString(),
+                currentUserId,
+                oldStatus.ToString(),
+                oldStatus.ToString(),
+                $"User {currentUserId} failed to update the status of listing case {listingCaseId} because the it is already delivered"
+                );
+
+            throw new ArgumentErrorException(message: $"Listing case {listingCaseId} cannot be updated because it is already delivered", title: "Listing case cannot be updated because it is already delivered");
+        }
+
+        var newStatus = (ListingCaseStatus)((int)listingCase.ListingCaseStatus + 1);
+        listingCase.ListingCaseStatus = newStatus;
+        await _listingCaseRepository.UpdateListingCaseStatusAsync(listingCase);
+
+        // Log
+        CaseHistoryLog.LogUpdateListingCaseStatus(
+            listingCase.Id.ToString(),
+            currentUserId,
+            oldStatus.ToString(),
+            newStatus.ToString()
+            );
+    }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Remp.DataAccess.Data;
 using Remp.Models.Entities;
+using Remp.Models.Enums;
 using Remp.Repository.Interfaces;
 
 namespace Remp.Repository.Repositories;
@@ -77,9 +78,14 @@ public class ListingCaseRepository : IListingCaseRepository
         return await _dbContext.Users.FindAsync(userId);
     }
 
-    public async Task UpdateListingCaseAsync(ListingCase listingCase)
+    public async Task UpdateListingCaseAsync(ListingCase newListingCase)
     {
-        _dbContext.ListingCases.Update(listingCase);
+        _dbContext.ListingCases.Update(newListingCase);
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task UpdateListingCaseStatusAsync(ListingCase newListingCase)
+    {
+        await UpdateListingCaseAsync(newListingCase);
     }
 }

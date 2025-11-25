@@ -219,5 +219,32 @@ namespace Remp.API.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Update listing case status
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <returns></returns>
+        /// <response code="204">Listing case status updated</response>
+        /// <response code="400">Failed to update listing case status</response>
+        /// <remarks>
+        /// Updating listing case status must follow the workflow of the listing case (Created -> Pending -> Delivered).
+        /// </remarks>
+        [HttpPatch("{listingCaseId:int}/status")]
+        public async Task<IActionResult> UpdateListingCaseStatusAsync(int listingCaseId)
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            await _listingCaseService.UpdateListingCaseStatusAsync(listingCaseId, currentUserId);
+            return NoContent();
+        }
     }
 }
