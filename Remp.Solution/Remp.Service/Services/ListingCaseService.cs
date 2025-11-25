@@ -7,7 +7,6 @@ using Remp.Models.Enums;
 using Remp.Repository.Interfaces;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
-using System.Security.Claims;
 
 namespace Remp.Service.Services;
 
@@ -46,6 +45,50 @@ public class ListingCaseService : IListingCaseService
         );
     
         return _mapper.Map<ListingCaseResponseDto>(createdListingCase);
+    }
+
+    public async Task<DeleteListingCaseResponseDto> DeleteListingCaseByListingCaseIdAsync(int listingCaseId, string currentUserId)
+    {
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Check if the user is the owner of the listing case (PhotographyCompany)
+        if (listingCase.UserId != currentUserId)
+        {
+            throw new UnauthorizedException(
+                message: $"User {currentUserId} cannot delete this listing case because the user is not the owner of this listing case",
+                title: "You cannot delete this listing case because you are not the owner of this listing case"
+                );
+        }
+
+        try
+        {
+            await _listingCaseRepository.DeleteListingCaseAsync(listingCase);
+
+            // Log
+            CaseHistoryLog.LogDeleteListingCase(
+                listingCaseId: listingCase.Id.ToString(),
+                userId: currentUserId
+            );
+        }
+        catch (Exception ex)
+        {
+            var message = $"Listing case {listingCaseId} cannot be deleted because of errors {ex.Message}";
+
+            // Log
+            CaseHistoryLog.LogDeleteListingCase(
+                listingCaseId: listingCase.Id.ToString(),
+                userId: currentUserId,
+                description: message
+            );
+            throw new DeleteException(message: message, title: "Listing case failed to delete");
+        }
+
+        return new DeleteListingCaseResponseDto();
     }
 
     public async Task<PagedResult<ListingCaseResponseDto>> GetAllListingCasesAsync(int pageNumber, int pageSize, string currentUserId, string currrentUserRole)

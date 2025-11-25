@@ -38,6 +38,12 @@ public class ListingCaseRepository : IListingCaseRepository
             .CountAsync();
     }
 
+    public async Task DeleteListingCaseAsync(ListingCase listingCase)
+    {
+        _dbContext.ListingCases.Remove(listingCase);
+        await _dbContext.SaveChangesAsync();
+    }
+
     public async Task<ListingCase?> FindListingCaseByListingCaseIdAsync(int id)
     {
         return await _dbContext.ListingCases

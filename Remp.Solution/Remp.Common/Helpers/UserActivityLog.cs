@@ -7,6 +7,7 @@ public static class UserActivityLog
     public static void LogLogin(string? email, string? userId, string description = "User logged in")
     {
         Log.ForContext("LogType", "UserActivity")
+            .ForContext("EventType", "Login")
             .ForContext("Email", email)
             .ForContext("UserId", userId)
             .Information(description);
@@ -15,6 +16,7 @@ public static class UserActivityLog
     public static void LogRegister(string? email, string? userId, string description = "User registered")
     {
         Log.ForContext("LogType", "UserActivity")
+            .ForContext("EventType", "Register")
             .ForContext("Email", email)
             .ForContext("UserId", userId)
             .Information(description);

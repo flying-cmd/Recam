@@ -189,5 +189,35 @@ namespace Remp.API.Controllers
             await _listingCaseService.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, currentUserId);
             return NoContent();
         }
+
+        /// <summary>
+        /// Delete a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case to delete
+        /// </param>
+        /// <returns>If success, returns a message "Listing case deleted successfully."</returns>
+        /// <response code="200">Listing case deleted</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to delete listing case</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
+        [HttpDelete("{listingCaseId:int}")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        public async Task<ActionResult<DeleteListingCaseResponseDto>> DeleteListingCaseByListingCaseIdAsync(int listingCaseId)
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            var result = await _listingCaseService.DeleteListingCaseByListingCaseIdAsync(listingCaseId, currentUserId);
+
+            return Ok(result);
+        }
     }
 }
