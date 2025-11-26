@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Remp.Common.Exceptions;
-using System.Diagnostics;
 using System.Net;
 
 namespace Remp.API.Middleware;

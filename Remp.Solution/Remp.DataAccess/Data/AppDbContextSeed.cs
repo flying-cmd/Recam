@@ -37,11 +37,23 @@ public static class AppDbContextSeed
             if (await userManager.FindByNameAsync(email) == null)
             {
                 var photographyCompanyUser = new User { Email = email, UserName = email };
+
+                // Add PhotographyCompany user
                 var result = await userManager.CreateAsync(photographyCompanyUser, password);
 
                 if (result.Succeeded)
                 {
+                    // Add PhotographyCompany role
                     await userManager.AddToRoleAsync(photographyCompanyUser, RoleNames.PhotographyCompany);
+
+                    // Add PhotographyCompany to PhtographyCompany table
+                    await context.PhotographyCompanies.AddAsync(new PhotographyCompany
+                    {
+                        Id = photographyCompanyUser.Id,
+                        PhotographyCompanyName = "PhotographyCompany-1",
+                    });
+
+                    await context.SaveChangesAsync();
                 }
             }
 

@@ -18,6 +18,26 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
+    public async Task<bool> AddAgentByIdAsync(string agentId, string photographyCompanyId)
+    {
+        // Check if the agent exists
+        var agent = await _userRepository.FindAgentByIdAsync(agentId);
+        if (agent is null)
+        {
+            throw new NotFoundException(message: $"Agent {agentId} does not exist", title: "Agent does not exist");
+        }
+
+        // Check if the photography company already added the agent
+        if (await _userRepository.IsAgentAddedToPhotographyCompanyAsync(agentId, photographyCompanyId))
+        {
+            return false;
+        }
+
+        await _userRepository.AddAgentToPhotographyCompanyAsync(agentId, photographyCompanyId);
+
+        return true;
+    }
+
     public async Task<PagedResult<AgentResponseDto>> GetAgentsAsync(int pageNumber, int pageSize)
     {
         if (pageNumber <= 0 || pageSize <= 0)
@@ -39,8 +59,8 @@ public class UserService : IUserService
         return new PagedResult<AgentResponseDto>(pageNumber, pageSize, totalCount, agentsDto);
     }
 
-    public Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId)
+    public async Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId)
     {
-        return _userRepository.GetUserListingCaseIdsAsync(currentUserId);
+        return await _userRepository.GetUserListingCaseIdsAsync(currentUserId);
     }
 }

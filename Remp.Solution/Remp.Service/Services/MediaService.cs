@@ -47,21 +47,7 @@ public class MediaService : IMediaService
                 );
         }
 
-        try
-        {
-            await _mediaRepository.DeleteMediaByIdAsync(media);
-        }
-        catch (Exception ex)
-        {
-            // Log
-            CaseHistoryLog.LogDeleteMedia(
-                mediaId: mediaId.ToString(),
-                userId: userId,
-                description: $"User {userId} failed to delete media {mediaId} because of error: {ex.Message}"
-                );
-
-            throw new DeleteException(message: ex.Message, title: "Failed to delete media.");
-        }
+        await _mediaRepository.DeleteMediaByIdAsync(media);
 
         // Log
         CaseHistoryLog.LogDeleteMedia(mediaId.ToString(), userId);

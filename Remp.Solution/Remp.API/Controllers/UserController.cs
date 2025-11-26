@@ -83,5 +83,42 @@ namespace Remp.API.Controllers
 
             return Ok(userInfoResponseDto);
         }
+
+        /// <summary>
+        /// Photograhpy company adds an agent by agent id.
+        /// </summary>
+        /// <param name="agentId">
+        /// The ID of the agent to add.
+        /// </param>
+        /// <returns>
+        /// Returns status code 200 if success. Returns status code 400 if failed.
+        /// </returns>
+        /// <response code="200">Agent added</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to add agent or agent has already been added</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
+        [HttpPost("add-agent/{agentId}")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        public async Task<IActionResult> AddAgentByIdAsync(string agentId)
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            var result = await _userService.AddAgentByIdAsync(agentId, currentUserId);
+
+            if (!result)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+        }
     }
 }

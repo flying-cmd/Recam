@@ -65,28 +65,14 @@ public class ListingCaseService : IListingCaseService
                 );
         }
 
-        try
-        {
-            await _listingCaseRepository.DeleteListingCaseAsync(listingCase);
 
-            // Log
-            CaseHistoryLog.LogDeleteListingCase(
-                listingCaseId: listingCase.Id.ToString(),
-                userId: currentUserId
-            );
-        }
-        catch (Exception ex)
-        {
-            var message = $"Listing case {listingCaseId} cannot be deleted because of errors {ex.Message}";
+        await _listingCaseRepository.DeleteListingCaseAsync(listingCase);
 
-            // Log
-            CaseHistoryLog.LogDeleteListingCase(
-                listingCaseId: listingCase.Id.ToString(),
-                userId: currentUserId,
-                description: message
-            );
-            throw new DeleteException(message: message, title: "Listing case failed to delete");
-        }
+        // Log
+        CaseHistoryLog.LogDeleteListingCase(
+            listingCaseId: listingCase.Id.ToString(),
+            userId: currentUserId
+        );
 
         return new DeleteListingCaseResponseDto();
     }

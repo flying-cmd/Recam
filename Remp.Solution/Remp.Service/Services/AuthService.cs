@@ -84,19 +84,7 @@ public class AuthService : IAuthService
         };
 
         // Create Agent
-        try
-        {
-            await _authRepository.CreateAgentAsync(user, agent, registerUser.Password, RoleNames.Agent);
-        }
-        catch (Exception e)
-        {
-            UserActivityLog.LogRegister(
-                email: registerUser.Email,
-                userId: null,
-                description: $"User failed to register with errors: {e.Message}"
-            );
-            throw new RegisterException(message: e.Message, title: "User registration failed");
-        }
+        await _authRepository.CreateAgentAsync(user, agent, registerUser.Password, RoleNames.Agent);
         
         UserActivityLog.LogRegister(
             email: registerUser.Email,
