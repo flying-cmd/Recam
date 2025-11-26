@@ -46,4 +46,14 @@ public static class CaseHistoryLog
             .ForContext("UserId", userId)
             .Information(description ?? details);
     }
+
+    public static void LogDeleteMedia(string? mediaId, string userId, string? description = null)
+    {
+        var details = $"Media {mediaId} deleted by User {userId}";
+        Log.ForContext("LogType", "CaseHistory")
+            .ForContext("EventType", "DeleteMedia")
+            .ForContext("MediaId", mediaId)
+            .ForContext("UserId", userId)
+            .Information(description ?? details);
+    }
 }

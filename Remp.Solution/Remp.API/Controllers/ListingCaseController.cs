@@ -86,7 +86,7 @@ namespace Remp.API.Controllers
                 var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
                 string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
 
-                // TODO: Log
+                // Log
                 CaseHistoryLog.LogCreateListingCase(
                     listingCaseId: null,
                     userId: createListingCaseRequest.UserId,
