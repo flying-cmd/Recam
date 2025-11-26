@@ -168,6 +168,36 @@ public class ListingCaseService : IListingCaseService
         return _mapper.Map<ListingCaseDetailResponseDto>(listingCase);
     }
 
+    public async Task<IEnumerable<CaseContactDto>> GetListingCaseContactByListingCaseIdAsync(int listingCaseId, string userId, string userRole)
+    {
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Check if the user is the owner of the listing case (PhotographyCompany)
+        if (userRole == RoleNames.PhotographyCompany && listingCase.UserId != userId)
+        {
+            throw new UnauthorizedException(
+                message: $"User {userId} cannot access this listing case because the user is not the owner of this listing case",
+                title: "You cannot access this listing case because you are not the owner of this listing case"
+                );
+        }
+
+        // Check if the user is the assigned agent
+        if (userRole == RoleNames.Agent && listingCase.AgentListingCases.Any(x => x.AgentId != userId))
+        {
+            throw new UnauthorizedException(
+                message: $"User {userId} cannot access this listing case because the user is not the assigned agent of this listing case",
+                title: "You cannot access this listing case because you are not the assigned agent of this listing case"
+                );
+        }
+
+        return _mapper.Map<IEnumerable<CaseContactDto>>(listingCase.CaseContacts);
+    }
+
     public async Task<IEnumerable<MediaAssetDto>> GetListingCaseMediaByListingCaseIdAsync(int listingCaseId, string userId, string userRole)
     {
         // Check if the listing case exists

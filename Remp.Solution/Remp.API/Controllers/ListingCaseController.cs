@@ -284,5 +284,43 @@ namespace Remp.API.Controllers
             var result = await _listingCaseService.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Get all contact information of a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <returns>
+        /// Returns a list of contact information
+        /// </returns>
+        /// <response code="200">Returns a list of contact information</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to get contact information</response>
+        /// <remarks>
+        /// This endpoint is restricted to the phtography companiey who created the listing case and the agent who is assigned the listing case.
+        /// </remarks>
+        [HttpGet("{listingCaseId:int}/contact")]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        public async Task<ActionResult<IEnumerable<CaseContactDto>>> GetListingCaseContactByListingCaseIdAsync(int listingCaseId)
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            // Get current user role
+            var currentUserRole = currentUser.FindFirstValue("scopes");
+            if (currentUserRole == null)
+            {
+                return Forbid();
+            }
+
+            var result = await _listingCaseService.GetListingCaseContactByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole);
+            return Ok(result);
+        }
     }
 }
