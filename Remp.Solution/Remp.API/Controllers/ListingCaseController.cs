@@ -246,5 +246,43 @@ namespace Remp.API.Controllers
             await _listingCaseService.UpdateListingCaseStatusAsync(listingCaseId, currentUserId);
             return NoContent();
         }
+
+        /// <summary>
+        /// Get all media assets of a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <returns>
+        /// Returns a list of media assets
+        /// </returns>
+        /// <response code="200">Returns a list of media assets</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to get media assets</response>
+        /// <remarks>
+        /// This endpoint is restricted to the phtography companiey who created the listing case and the agent who is assigned the listing case.
+        /// </remarks>
+        [HttpGet("{listingCaseId:int}/media")]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        public async Task<ActionResult<IEnumerable<MediaAssetDto>>> GetListingCaseMediaByListingCaseIdAsync(int listingCaseId)
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            // Get current user role
+            var currentUserRole = currentUser.FindFirstValue("scopes");
+            if (currentUserRole == null)
+            {
+                return Forbid();
+            }
+
+            var result = await _listingCaseService.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole);
+            return Ok(result);
+        }
     }
 }
