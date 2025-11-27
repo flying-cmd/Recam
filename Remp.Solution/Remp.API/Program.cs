@@ -8,6 +8,7 @@ using Remp.API.Middleware;
 using Remp.DataAccess.Data;
 using Remp.Models.Constants;
 using Remp.Models.Entities;
+using Remp.Models.Settings;
 using Remp.Repository.Interfaces;
 using Remp.Repository.Repositories;
 using Remp.Service.Interfaces;
@@ -98,6 +99,9 @@ builder.Services.AddAutoMapper(cfg =>
 }, 
 typeof(AgentProfile).Assembly);
 
+// Email
+builder.Services.Configure<EmailSetting>(builder.Configuration.GetSection("EmailSettings"));
+
 // Validation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDtoValidator>();
 
@@ -112,6 +116,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IListingCaseService, ListingCaseService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

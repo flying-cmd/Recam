@@ -1,6 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Remp.Common.Exceptions;
 using Remp.Common.Helpers;
+using Remp.DataAccess.Data;
+using Remp.Models.Constants;
+using Remp.Models.Entities;
 using Remp.Repository.Interfaces;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
@@ -11,11 +15,22 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
+    private readonly UserManager<User> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly AppDbContext _appDbContext;
 
-    public UserService(IUserRepository userRepository, IMapper mapper)
+    public UserService(
+        IUserRepository userRepository,
+        IMapper mapper,
+        UserManager<User> userManager,
+        RoleManager<IdentityRole> roleManager,
+        AppDbContext appDbContext)
     {
         _userRepository = userRepository;
         _mapper = mapper;
+        _userManager = userManager;
+        _roleManager = roleManager;
+        _appDbContext = appDbContext;
     }
 
     public async Task<bool> AddAgentByIdAsync(string agentId, string photographyCompanyId)
@@ -36,6 +51,104 @@ public class UserService : IUserService
         await _userRepository.AddAgentToPhotographyCompanyAsync(agentId, photographyCompanyId);
 
         return true;
+    }
+
+    public async Task<AgentResponseDto?> CreateAgentAccountAsync(CreateAgentAccountRequestDto createAgentAccountRequestDto, string photographyCompanyId)
+    {
+        // Check if the email already exists
+        var emailExists = await _userRepository.FindByEmailAsync(createAgentAccountRequestDto.Email);
+        if (emailExists != null)
+        {
+            // Log
+            UserActivityLog.LogCreateAgentAccount(
+                photographyCompanyId: photographyCompanyId,
+                createdAgentId: null,
+                createdAgentEmail: createAgentAccountRequestDto.Email,
+                description: "Failed to create agent account because the email already exists"
+                );
+
+            throw new RegisterException(message: "Email already exists", title: "Email already exists");
+        }
+
+        // Generate random password
+        var password = PasswordHelper.GenerateRandomPassword();
+
+        // Create agent account
+        var user = new User
+        {
+            Email = createAgentAccountRequestDto.Email,
+            UserName = createAgentAccountRequestDto.Email
+        };
+
+        await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+
+        try
+        {
+            var result = await _userManager.CreateAsync(user, password);
+
+            // Add user to User table
+            if (!result.Succeeded)
+            {
+                var errors = string.Join("| ", result.Errors.Select(x => x.Description));
+
+                // Log
+                UserActivityLog.LogCreateAgentAccount(
+                    photographyCompanyId: photographyCompanyId,
+                    createdAgentId: null,
+                    createdAgentEmail: createAgentAccountRequestDto.Email,
+                    description: $"Failed to create agent account with errors: {errors}"
+                    );
+
+                throw new RegisterException(
+                    message: $"Failed to create Identity user with errors: {errors}",
+                    title: "Failed to create agent account");
+            }
+
+            // Add role to Role table
+            var roleResult = await _userManager.AddToRoleAsync(user, RoleNames.Agent);
+            if (!roleResult.Succeeded)
+            {
+                var errors = string.Join("| ", roleResult.Errors.Select(x => x.Description));
+
+                // Log
+                UserActivityLog.LogCreateAgentAccount(
+                    photographyCompanyId: photographyCompanyId,
+                    createdAgentId: null,
+                    createdAgentEmail: createAgentAccountRequestDto.Email,
+                    description: $"Failed to assign {RoleNames.Agent} role to Identity user with errors: {errors}"
+                    );
+
+                throw new RegisterException(
+                    message: $"Failed to assign {RoleNames.Agent} role to Identity user with errors: {errors}",
+                    title: "Failed to create agent account");
+            }
+
+            // Add agent to Agent table
+            var agent = new Agent
+            {
+                Id = user.Id,
+            };
+
+            await _userRepository.AddAgentAsync(agent);
+
+            // Commit transaction
+            await transaction.CommitAsync();
+
+            // Log
+            UserActivityLog.LogCreateAgentAccount(
+                photographyCompanyId: photographyCompanyId,
+                createdAgentId: user.Id.ToString(),
+                createdAgentEmail: user.Email
+            );
+
+            return new AgentResponseDto(user.Id, createAgentAccountRequestDto.Email, password);
+        }
+        catch (Exception)
+        {
+            // Rollback transaction
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task<PagedResult<AgentResponseDto>> GetAgentsAsync(int pageNumber, int pageSize)

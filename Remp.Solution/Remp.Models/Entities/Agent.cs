@@ -5,10 +5,10 @@ public class Agent
     // Primary Key (also foreign key)
     public string Id { get; set; } = null!;
 
-    public string AgentFirstName { get; set; } = null!;
-    public string AgentLastName { get; set; } = null!;
-    public string AvataUrl { get; set; } = null!;
-    public string CompanyName { get; set; } = null!;
+    public string AgentFirstName { get; set; } = string.Empty;
+    public string AgentLastName { get; set; } = string.Empty;
+    public string AvataUrl { get; set; } = string.Empty;
+    public string CompanyName { get; set; } = string.Empty;
     
     // Navigation Properties
     public User User { get; set; } = null!;

@@ -14,6 +14,12 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
+    public async Task AddAgentAsync(Agent agent)
+    {
+        await _context.Agents.AddAsync(agent);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task AddAgentToPhotographyCompanyAsync(string agentId, string photographyCompanyId)
     {
         await _context.AgentPhotographyCompanies
@@ -27,6 +33,13 @@ public class UserRepository : IUserRepository
         return await _context.Agents
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == agentId);
+    }
+
+    public async Task<User?> FindByEmailAsync(string email)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public async Task<IEnumerable<Agent>> GetAgentsAsync(int pageNumber, int pageSize)

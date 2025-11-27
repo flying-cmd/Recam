@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Remp.Common.Helpers;
 using Remp.Models.Constants;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
+using Remp.Service.Services;
 using System.Security.Claims;
 
 namespace Remp.API.Controllers
@@ -119,6 +121,56 @@ namespace Remp.API.Controllers
             }
 
             return Ok();
+        }
+
+
+        [HttpPost("agent")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        public async Task<IActionResult> CreateAgentAccountAsync(
+            [FromBody] CreateAgentAccountRequestDto createAgentAccountRequestDto,
+            IValidator<CreateAgentAccountRequestDto> validator,
+            [FromServices] IEmailService emailService,
+            [FromServices] IConfiguration configuration)
+        {
+            // Validate
+            var validationResult = await validator.ValidateAsync(createAgentAccountRequestDto);
+            if (!validationResult.IsValid)
+            {
+                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
+                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+
+                return ValidationProblem(problemDetails);
+            }
+
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            var result = await _userService.CreateAgentAccountAsync(createAgentAccountRequestDto, currentUserId);
+
+            if (result != null)
+            {
+                // Send email
+                var emailBody = EmailTemplates.CreateAccountEmail(
+                    result.Password,
+                    result.Email,
+                    configuration["Url:LoginUrl"]!
+                    );
+
+                await emailService.SendEmailAsync(
+                    createAgentAccountRequestDto.Email,
+                    "Account created successfully",
+                    emailBody
+                );
+
+                return Ok(new { message = "Account created successfully! Please notify the agent to check the email to login." });
+            }
+
+            return BadRequest();
         }
     }
 }

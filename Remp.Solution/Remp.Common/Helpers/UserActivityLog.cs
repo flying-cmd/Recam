@@ -21,4 +21,15 @@ public static class UserActivityLog
             .ForContext("UserId", userId)
             .Information(description);
     }
+
+    public static void LogCreateAgentAccount(string photographyCompanyId, string? createdAgentId, string createdAgentEmail, string? description = null)
+    {
+        string details = $"PhotographyCompany {photographyCompanyId} created agent account with id {createdAgentId} and email {createdAgentEmail}";
+        Log.ForContext("LogType", "UserActivity")
+            .ForContext("EventType", "PhotographyCompanyCreateAgentAccount")
+            .ForContext("PhotographyCompanyId", photographyCompanyId)
+            .ForContext("CreatedAgentId", createdAgentId)
+            .ForContext("CreatedAgentEmail", createdAgentEmail)
+            .Information(description ?? details);
+    }
 }
