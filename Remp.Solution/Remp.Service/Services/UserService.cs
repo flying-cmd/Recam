@@ -53,7 +53,7 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<AgentResponseDto?> CreateAgentAccountAsync(CreateAgentAccountRequestDto createAgentAccountRequestDto, string photographyCompanyId)
+    public async Task<CreateAgentAccountResponseDto?> CreateAgentAccountAsync(CreateAgentAccountRequestDto createAgentAccountRequestDto, string photographyCompanyId)
     {
         // Check if the email already exists
         var emailExists = await _userRepository.FindByEmailAsync(createAgentAccountRequestDto.Email);
@@ -141,7 +141,7 @@ public class UserService : IUserService
                 createdAgentEmail: user.Email
             );
 
-            return new AgentResponseDto(user.Id, createAgentAccountRequestDto.Email, password);
+            return new CreateAgentAccountResponseDto(user.Id, createAgentAccountRequestDto.Email, password);
         }
         catch (Exception)
         {
@@ -151,7 +151,13 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<PagedResult<AgentResponseDto>> GetAgentsAsync(int pageNumber, int pageSize)
+    public async Task<SearchAgentResponseDto?> GetAgentByEmailAsync(string email)
+    {
+        var agent = await _userRepository.GetAgentByEmailAsync(email);
+        return _mapper.Map<SearchAgentResponseDto>(agent);
+    }
+
+    public async Task<PagedResult<CreateAgentAccountResponseDto>> GetAgentsAsync(int pageNumber, int pageSize)
     {
         if (pageNumber <= 0 || pageSize <= 0)
         {
@@ -167,9 +173,9 @@ public class UserService : IUserService
             throw new NotFoundException(message: $"No agents found. Page number: {pageNumber}, Page size: {pageSize}", title: "No agents found.");
         }
 
-        var agentsDto = _mapper.Map<IEnumerable<AgentResponseDto>>(agents);
+        var agentsDto = _mapper.Map<IEnumerable<CreateAgentAccountResponseDto>>(agents);
 
-        return new PagedResult<AgentResponseDto>(pageNumber, pageSize, totalCount, agentsDto);
+        return new PagedResult<CreateAgentAccountResponseDto>(pageNumber, pageSize, totalCount, agentsDto);
     }
 
     public async Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId)

@@ -8,6 +8,9 @@ public class AgentProfile : Profile
 {
     public AgentProfile()
     {
-        CreateMap<Agent, AgentResponseDto>();
+        CreateMap<Agent, CreateAgentAccountResponseDto>();
+
+        CreateMap<Agent, SearchAgentResponseDto>()
+            .ForMember(d => d.Email, opt => opt.MapFrom(src => src.User.Email));
     }
 }

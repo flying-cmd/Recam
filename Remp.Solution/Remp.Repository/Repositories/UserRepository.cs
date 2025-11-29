@@ -42,6 +42,14 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
+    public async Task<Agent?> GetAgentByEmailAsync(string email)
+    {
+        return await _context.Agents
+            .AsNoTracking()
+            .Include(a => a.User)
+            .FirstOrDefaultAsync(a => a.User.Email == email);
+    }
+
     public async Task<IEnumerable<Agent>> GetAgentsAsync(int pageNumber, int pageSize)
     {
         return await _context.Agents

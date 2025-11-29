@@ -41,7 +41,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpGet]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<ActionResult<PagedResult<AgentResponseDto>>> GetAgentsAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
+        public async Task<ActionResult<PagedResult<CreateAgentAccountResponseDto>>> GetAgentsAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
         {
             var result = await _userService.GetAgentsAsync(pageNumer, pageSize);
             return Ok(result);
@@ -123,7 +123,23 @@ namespace Remp.API.Controllers
             return Ok();
         }
 
-
+        /// <summary>
+        /// Photography company creates an agent account.
+        /// </summary>
+        /// <param name="createAgentAccountRequestDto">
+        /// The payload containing the details (The email) of the agent to create.</param>
+        /// <param name="validator"></param>
+        /// <param name="emailService"></param>
+        /// <param name="configuration"></param>
+        /// <returns>
+        /// If success, returns status code 200 and a message indicating that the agent account has been created.
+        /// </returns>
+        /// <response code="200">Agent account created</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to create agent account</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
         [HttpPost("agent")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
         public async Task<IActionResult> CreateAgentAccountAsync(
@@ -171,6 +187,32 @@ namespace Remp.API.Controllers
             }
 
             return BadRequest();
+        }
+
+
+        [HttpGet("agent/search")]
+        public async Task<ActionResult<SearchAgentResponseDto>> GetAgentByEmailAsync(
+            [FromQuery] SearchAgentRequestDto searchAgentRequestDto,
+            IValidator<SearchAgentRequestDto> validator)
+        {
+            // Validate
+            var validationResult = await validator.ValidateAsync(searchAgentRequestDto);
+            if (!validationResult.IsValid)
+            {
+                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
+                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+
+                return ValidationProblem(problemDetails);
+            }
+
+            var result = await _userService.GetAgentByEmailAsync(searchAgentRequestDto.Email);
+            
+            if (result != null)
+            {
+                return Ok(result);
+            }
+
+            return NotFound(new { message = "Agent not found" });
         }
     }
 }

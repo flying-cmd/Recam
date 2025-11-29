@@ -1,13 +1,13 @@
 ﻿namespace Remp.Service.DTOs;
 
 // Used as Response
-public class AgentResponseDto
+public class CreateAgentAccountResponseDto
 {
     public string Id { get; set; } = null!;
     public string Email { get; set; } = null!;
     public string Password { get; private set; } = null!;
 
-    public AgentResponseDto(string id, string email, string password)
+    public CreateAgentAccountResponseDto(string id, string email, string password)
     {
         Id = id;
         Email = email;
