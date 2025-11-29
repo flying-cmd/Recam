@@ -224,5 +224,31 @@ namespace Remp.API.Controllers
 
             return NotFound(new { message = "Agent not found" });
         }
+
+
+        /// <summary>
+        /// Get agents under photography company
+        /// </summary>
+        /// <returns>
+        /// Returns a list of agents under the photography company
+        /// </returns>
+        /// <response code="200">Returns a list of agents under the photography company</response>
+        /// <response code="401">Unauthorized</response>
+        [HttpGet("agentlists")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        public async Task<ActionResult<IEnumerable<SearchAgentResponseDto>>> GetAgentsUnderPhotographyCompanyAsync()
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            var result = await _userService.GetAgentsUnderPhotographyCompanyAsync(currentUserId);
+
+            return Ok(result);
+        }
     }
 }

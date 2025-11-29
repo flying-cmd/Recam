@@ -42,6 +42,13 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
+    public async Task<PhotographyCompany?> FindPhotographyCompanyByIdAsync(string photographyCompanyId)
+    {
+        return await _context.PhotographyCompanies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(pc => pc.Id == photographyCompanyId);
+    }
+
     public async Task<Agent?> GetAgentByEmailAsync(string email)
     {
         return await _context.Agents
@@ -57,6 +64,15 @@ public class UserRepository : IUserRepository
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .OrderBy(a => a.AgentFirstName)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Agent>> GetAgentsUnderPhotographyCompanyAsync(string photographyCompanyId)
+    {
+        return await _context.Agents
+            .AsNoTracking()
+            .Include(a => a.User)
+            .Where(a => a.AgentPhotographyCompanies.Any(apc => apc.PhotographyCompanyId == photographyCompanyId))
             .ToListAsync();
     }
 

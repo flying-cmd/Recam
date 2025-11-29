@@ -9,5 +9,6 @@ public interface IUserService
     Task<CreateAgentAccountResponseDto?> CreateAgentAccountAsync(CreateAgentAccountRequestDto createAgentAccountRequestDto, string photographyCompanyId);
     Task<SearchAgentResponseDto?> GetAgentByEmailAsync(string email);
     Task<PagedResult<CreateAgentAccountResponseDto>> GetAgentsAsync(int pageNumber, int pageSize);
+    Task<IEnumerable<SearchAgentResponseDto>> GetAgentsUnderPhotographyCompanyAsync(string photographyCompanyId);
     Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId);
 }

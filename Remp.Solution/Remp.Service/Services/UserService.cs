@@ -178,6 +178,20 @@ public class UserService : IUserService
         return new PagedResult<CreateAgentAccountResponseDto>(pageNumber, pageSize, totalCount, agentsDto);
     }
 
+    public async Task<IEnumerable<SearchAgentResponseDto>> GetAgentsUnderPhotographyCompanyAsync(string photographyCompanyId)
+    {
+        // Check if the photography company exists
+        var photographyCompany = await _userRepository.FindPhotographyCompanyByIdAsync(photographyCompanyId);
+        if (photographyCompany is null)
+        {
+            throw new NotFoundException(message: $"Photography company {photographyCompanyId} does not exist", title: "Photography company does not exist");
+        }
+
+        var agents = await _userRepository.GetAgentsUnderPhotographyCompanyAsync(photographyCompanyId);
+
+        return _mapper.Map<IEnumerable<SearchAgentResponseDto>>(agents);
+    }
+
     public async Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId)
     {
         return await _userRepository.GetUserListingCaseIdsAsync(currentUserId);
