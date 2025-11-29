@@ -189,7 +189,17 @@ namespace Remp.API.Controllers
             return BadRequest();
         }
 
-
+        /// <summary>
+        /// Search agent by email.
+        /// </summary>
+        /// <param name="searchAgentRequestDto"></param>
+        /// <param name="validator"></param>
+        /// <returns>
+        /// Returns the agent.
+        /// </returns>
+        /// <response code="200">Returns details information of the agent</response>
+        /// <response code="404">Not found the agent</response>
+        /// <response code="400">Invalid email</response>
         [HttpGet("agent/search")]
         public async Task<ActionResult<SearchAgentResponseDto>> GetAgentByEmailAsync(
             [FromQuery] SearchAgentRequestDto searchAgentRequestDto,
