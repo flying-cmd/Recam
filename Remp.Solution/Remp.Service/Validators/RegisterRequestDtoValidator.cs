@@ -5,7 +5,7 @@ namespace Remp.Service.Validators;
 
 public class RegisterRequestDtoValidator : AbstractValidator<RegisterRequestDto>
 {
-    private static readonly string[] AllowedFileTypes = { "image/jpeg", "image/png" };
+    private static readonly string[] AllowedFileTypes = { "image/jpeg", "image/jpg", "image/png" };
     public RegisterRequestDtoValidator()
     {
         RuleFor(x => x.Email)
@@ -38,6 +38,6 @@ public class RegisterRequestDtoValidator : AbstractValidator<RegisterRequestDto>
 
         RuleFor(x => x.Avatar)
             .NotNull().WithMessage("Avatar is required.")
-            .Must(f => AllowedFileTypes.Contains(f.ContentType)).WithMessage("Avatar must be a JPEG or PNG image.");        
+            .Must(f => AllowedFileTypes.Contains(f.ContentType)).WithMessage("Avatar must be a JPEG, JPG or PNG image.");
     }
 }

@@ -1,3 +1,4 @@
+using Azure.Storage.Blobs;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -102,6 +103,9 @@ typeof(AgentProfile).Assembly);
 // Email
 builder.Services.Configure<EmailSetting>(builder.Configuration.GetSection("EmailSettings"));
 
+// Blob Storage
+builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.GetSection("AzureBlobStorage")["ConnectionString"]));
+
 // Validation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDtoValidator>();
 
@@ -117,6 +121,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IListingCaseService, ListingCaseService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

@@ -59,6 +59,7 @@ namespace Remp.API.Controllers
         /// <param name="registerRequest">
         /// The payload containing the details of the user to register.
         /// </param>
+        /// <param name="blobStorageService"></param>
         /// <param name="validator"></param>
         /// <returns>
         /// Returns the jwt token.
@@ -66,7 +67,9 @@ namespace Remp.API.Controllers
         /// <response code="200">User registered.</response>
         /// <response code="400">Request validation failed.</response>
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromForm] RegisterRequestDto registerRequest, IValidator<RegisterRequestDto> validator)
+        public async Task<IActionResult> Register([FromForm] RegisterRequestDto registerRequest, 
+            [FromServices] IBlobStorageService blobStorageService,
+            [FromServices] IValidator<RegisterRequestDto> validator)
         {
             // Validate
             var validationResult = await validator.ValidateAsync(registerRequest);
@@ -83,7 +86,8 @@ namespace Remp.API.Controllers
                 return ValidationProblem(problemDetails);
             }
 
-            // TODO: Save avatar and return string path
+            // Upload avatar to Azure blob storage
+            var avatarUrl = await blobStorageService.UploadFileAsync(registerRequest.Avatar);
 
             var registerUser = new RegisterUserDto
             (
@@ -93,7 +97,7 @@ namespace Remp.API.Controllers
                 firstName: registerRequest.FirstName,
                 lastName: registerRequest.LastName,
                 companyName: registerRequest.CompanyName,
-                avatarUrl: "http://test.com/avatar.jpg" // TODO: hardcode for test now, need to be changed later
+                avatarUrl: avatarUrl
             );
 
             var result = await _authService.RegisterAsync(registerUser);
