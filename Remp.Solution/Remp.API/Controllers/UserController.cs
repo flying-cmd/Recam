@@ -250,5 +250,64 @@ namespace Remp.API.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Update password
+        /// </summary>
+        /// <param name="updatePasswordRequestDto">
+        /// The payload containing the old password, new password and confirm password of the user.
+        /// </param>
+        /// <param name="validator"></param>
+        /// <returns>
+        /// Returns a message indicating whether the password is updated successfully or not.
+        /// </returns>
+        /// <response code="200">Returns a message indicating the password is updated successfully</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to update password</response>
+        [HttpPut("password")]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        public async Task<ActionResult<UpdatePasswordResponseDto>> UpdatePasswordAsync([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto, IValidator<UpdatePasswordRequestDto> validator)
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            // Validate
+            var validationResult = await validator.ValidateAsync(updatePasswordRequestDto);
+            if (!validationResult.IsValid)
+            {
+                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
+                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+
+                // Log
+                UserActivityLog.LogUpdatePassword(
+                    userId: currentUserId,
+                    description: $"User {currentUserId} failed to update password because of the errors: {errors}");
+
+                return ValidationProblem(problemDetails);
+            }
+
+            var result = await _userService.UpdatePasswordAsync(updatePasswordRequestDto, currentUserId);
+            
+            if (result.Success)
+            {
+                // Log
+                UserActivityLog.LogUpdatePassword(
+                    userId: currentUserId);
+
+                return Ok(result);
+            }
+
+            // Log
+            UserActivityLog.LogUpdatePassword(
+                userId: currentUserId,
+                description: $"User {currentUserId} failed to update password because of the errors: {result.Error}");
+
+            return BadRequest(result);
+        }
     }
 }

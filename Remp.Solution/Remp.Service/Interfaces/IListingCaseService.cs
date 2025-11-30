@@ -5,6 +5,7 @@ namespace Remp.Service.Interfaces;
 
 public interface IListingCaseService
 {
+    Task<CaseContactDto> CreateCaseContactByListingCaseIdAsync(int listingCaseId, CreateCaseContactRequestDto createCaseContactRequest);
     Task<ListingCaseResponseDto> CreateListingCaseAsync(CreateListingCaseRequestDto createListingCaseRequestDto);
     Task<DeleteListingCaseResponseDto> DeleteListingCaseByListingCaseIdAsync(int listingCaseId, string currentUserId);
     Task<PagedResult<ListingCaseResponseDto>> GetAllListingCasesAsync(int pageNumer, int pageSize, string currentUserId, string currrentUserRole);

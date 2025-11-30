@@ -196,4 +196,30 @@ public class UserService : IUserService
     {
         return await _userRepository.GetUserListingCaseIdsAsync(currentUserId);
     }
+
+    public async Task<UpdatePasswordResponseDto> UpdatePasswordAsync(UpdatePasswordRequestDto updatePasswordRequestDto, string userId)
+    {
+        // Check if the user exists
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            throw new NotFoundException(message: $"User {userId} does not exist", title: "User does not exist");
+        }
+
+        // Update password
+        var result = await _userManager.ChangePasswordAsync(user, updatePasswordRequestDto.OldPassword, updatePasswordRequestDto.NewPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("| ", result.Errors.Select(x => x.Description));
+
+            return new UpdatePasswordResponseDto(
+                false,
+                message: "Failed to update password.",
+                errors);
+        }
+
+        return new UpdatePasswordResponseDto(
+            true,
+            message: "Password updated successfully.");
+    }
 }

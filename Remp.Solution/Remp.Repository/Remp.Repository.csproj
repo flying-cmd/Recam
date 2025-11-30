@@ -11,8 +11,4 @@
     <ProjectReference Include="..\Remp.DataAccess\Remp.DataAccess.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DTOs\" />
-  </ItemGroup>
-
 </Project>

@@ -21,6 +21,23 @@ public class ListingCaseService : IListingCaseService
         _mapper = mapper;
     }
 
+    public async Task<CaseContactDto> CreateCaseContactByListingCaseIdAsync(int listingCaseId, CreateCaseContactRequestDto createCaseContactRequest)
+    {
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        var caseContact = _mapper.Map<CaseContact>(createCaseContactRequest);
+        caseContact.ListingCaseId = listingCaseId;
+
+        var createdCaseContact = await _listingCaseRepository.AddCaseContactAsync(caseContact);
+
+        return _mapper.Map<CaseContactDto>(createdCaseContact);
+    }
+
     public async Task<ListingCaseResponseDto> CreateListingCaseAsync(CreateListingCaseRequestDto createListingCaseRequestDto)
     {
         // Check if the user exists

@@ -300,7 +300,7 @@ namespace Remp.API.Controllers
         /// <remarks>
         /// This endpoint is restricted to the phtography companiey who created the listing case and the agent who is assigned the listing case.
         /// </remarks>
-        [HttpGet("{listingCaseId:int}/contact")]
+        [HttpGet("{listingCaseId:int}/contact", Name = "GetListingCaseContactByListingCaseIdAsync")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
         public async Task<ActionResult<IEnumerable<CaseContactDto>>> GetListingCaseContactByListingCaseIdAsync(int listingCaseId)
         {
@@ -321,6 +321,47 @@ namespace Remp.API.Controllers
 
             var result = await _listingCaseService.GetListingCaseContactByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole);
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Create contact information of a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <param name="createCaseContactRequest">
+        /// The payload containing the contact information
+        /// </param>
+        /// <param name="validator"></param>
+        /// <returns>
+        /// Returns the created contact information
+        /// </returns>
+        /// <response code="201">Returns the created contact information</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to create contact information</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>Agent</c> role.
+        /// </remarks>
+        [HttpPost("{listingCaseId:int}/contact")]
+        [Authorize(Roles = RoleNames.Agent)]
+        public async Task<ActionResult<CaseContactDto>> CreateCaseContactByListingCaseIdAsync(
+            int listingCaseId, 
+            [FromBody] CreateCaseContactRequestDto createCaseContactRequest,
+            IValidator<CreateCaseContactRequestDto> validator)
+        {
+            // Validate
+            var validationResult = await validator.ValidateAsync(createCaseContactRequest);
+            if (!validationResult.IsValid)
+            {
+                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
+                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                
+                return ValidationProblem(problemDetails);
+            }
+
+            var result = await _listingCaseService.CreateCaseContactByListingCaseIdAsync(listingCaseId, createCaseContactRequest);
+            
+            return CreatedAtRoute(nameof(GetListingCaseContactByListingCaseIdAsync), new { listingCaseId }, result);
         }
     }
 }

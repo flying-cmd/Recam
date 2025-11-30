@@ -9,5 +9,7 @@ public class CaseContactProfile : Profile
     public CaseContactProfile()
     {
         CreateMap<CaseContact, CaseContactDto>();
+
+        CreateMap<CreateCaseContactRequestDto, CaseContact>();
     }
 }

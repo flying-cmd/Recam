@@ -32,4 +32,13 @@ public static class UserActivityLog
             .ForContext("CreatedAgentEmail", createdAgentEmail)
             .Information(description ?? details);
     }
+
+    public static void LogUpdatePassword(string userId, string? description = null)
+    {
+        string details = $"User {userId} updated password successfully";
+        Log.ForContext("LogType", "UserActivity")
+            .ForContext("EventType", "UpdatePassword")
+            .ForContext("UserId", userId)
+            .Information(description ?? details);
+    }
 }

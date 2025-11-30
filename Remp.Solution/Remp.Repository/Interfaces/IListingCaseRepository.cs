@@ -4,6 +4,7 @@ namespace Remp.Repository.Interfaces;
 
 public interface IListingCaseRepository
 {
+    Task<CaseContact> AddCaseContactAsync(CaseContact caseContact);
     Task<ListingCase> AddListingCaseAsync(ListingCase listingCase);
     Task<int> CountListingCasesByAgentIdAsync(string currentUserId);
     Task<int> CountListingCasesByPhotographyCompanyIdAsync(string currentUserId);

@@ -15,6 +15,14 @@ public class ListingCaseRepository : IListingCaseRepository
         _dbContext = dbcontext;
     }
 
+    public async Task<CaseContact> AddCaseContactAsync(CaseContact caseContact)
+    {
+        await _dbContext.CaseContacts.AddAsync(caseContact);
+        await _dbContext.SaveChangesAsync();
+
+        return caseContact;
+    }
+
     public async Task<ListingCase> AddListingCaseAsync(ListingCase listingCase)
     {
         await _dbContext.ListingCases.AddAsync(listingCase);
