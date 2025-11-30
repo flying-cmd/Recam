@@ -9,10 +9,12 @@ namespace Remp.Service.Services;
 public class MediaService : IMediaService
 {
     private readonly IMediaRepository _mediaRepository;
+    private readonly IBlobStorageService _blobStorageService;
 
-    public MediaService(IMediaRepository mediaRepository)
+    public MediaService(IMediaRepository mediaRepository, IBlobStorageService blobStorageService)
     {
         _mediaRepository = mediaRepository;
+        _blobStorageService = blobStorageService;
     }
 
     public async Task<DeleteMediaResponseDto> DeleteMediaByIdAsync(int mediaId, string userId)
@@ -53,5 +55,19 @@ public class MediaService : IMediaService
         CaseHistoryLog.LogDeleteMedia(mediaId.ToString(), userId);
 
         return new DeleteMediaResponseDto();
+    }
+
+    public async Task<(Stream FileStream, string ContentType, string FileName)> DownloadMediaByIdAsync(int mediaAssetId)
+    {
+        // Check if the media asset exists
+        var mediaAsset = await _mediaRepository.FindMediaByIdAsync(mediaAssetId);
+        if (mediaAsset is null)
+        {
+            throw new NotFoundException(message: $"Media asset {mediaAssetId} does not exist", title: "Media asset does not exist");
+        }
+
+        var mediaUrl = mediaAsset.MediaUrl;
+
+        return await _blobStorageService.DownloadFileAsync(mediaUrl);
     }
 }

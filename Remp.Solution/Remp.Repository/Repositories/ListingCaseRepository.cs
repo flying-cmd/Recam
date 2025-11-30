@@ -31,6 +31,14 @@ public class ListingCaseRepository : IListingCaseRepository
         return listingCase;
     }
 
+    public async Task<IEnumerable<MediaAsset>> AddMediaAssetAsync(IEnumerable<MediaAsset> mediaAssets)
+    {
+        await _dbContext.MediaAssets.AddRangeAsync(mediaAssets);
+        await _dbContext.SaveChangesAsync();
+
+        return mediaAssets;
+    }
+
     public Task<int> CountListingCasesByAgentIdAsync(string currentUserId)
     {
         return _dbContext.ListingCases

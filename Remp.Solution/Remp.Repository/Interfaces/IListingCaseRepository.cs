@@ -6,6 +6,7 @@ public interface IListingCaseRepository
 {
     Task<CaseContact> AddCaseContactAsync(CaseContact caseContact);
     Task<ListingCase> AddListingCaseAsync(ListingCase listingCase);
+    Task<IEnumerable<MediaAsset>> AddMediaAssetAsync(IEnumerable<MediaAsset> mediaAssets);
     Task<int> CountListingCasesByAgentIdAsync(string currentUserId);
     Task<int> CountListingCasesByPhotographyCompanyIdAsync(string currentUserId);
     Task DeleteListingCaseAsync(ListingCase listingCase);

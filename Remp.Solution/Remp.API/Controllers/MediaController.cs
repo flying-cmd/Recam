@@ -47,5 +47,22 @@ namespace Remp.API.Controllers
 
             return await _mediaService.DeleteMediaByIdAsync(id, currentUserId);
         }
+
+        /// <summary>
+        /// Download media by id
+        /// </summary>
+        /// <param name="mediaAssetId">
+        /// The id of the media
+        /// </param>
+        /// <returns>
+        /// The media file
+        /// </returns>
+        [HttpGet("download/{mediaAssetId:int}")]
+        public async Task<IActionResult> DownloadMediaById(int mediaAssetId)
+        {
+            var (fileStream, contentType, fileName) = await _mediaService.DownloadMediaByIdAsync(mediaAssetId);
+            
+            return File(fileStream, contentType, fileName);
+        }
     }
 }

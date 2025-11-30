@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Remp.Common.Exceptions;
 using Remp.Common.Helpers;
 using Remp.Models.Constants;
@@ -14,11 +15,13 @@ public class ListingCaseService : IListingCaseService
 {
     private readonly IListingCaseRepository _listingCaseRepository;
     private readonly IMapper _mapper;
+    private readonly IBlobStorageService _blobStorageService;
 
-    public ListingCaseService(IListingCaseRepository listingCaseRepository, IMapper mapper)
+    public ListingCaseService(IListingCaseRepository listingCaseRepository, IMapper mapper, IBlobStorageService blobStorageService)
     {
         _listingCaseRepository = listingCaseRepository;
         _mapper = mapper;
+        _blobStorageService = blobStorageService;
     }
 
     public async Task<CaseContactDto> CreateCaseContactByListingCaseIdAsync(int listingCaseId, CreateCaseContactRequestDto createCaseContactRequest)
@@ -62,6 +65,60 @@ public class ListingCaseService : IListingCaseService
         );
     
         return _mapper.Map<ListingCaseResponseDto>(createdListingCase);
+    }
+
+    public async Task<IEnumerable<MediaAssetDto>> CreateMediaByListingCaseIdAsync(IEnumerable<IFormFile> files, MediaType mediaType, int listingCaseId, string userId)
+    {
+        // Check the quantity of files
+        // Only pictures allows multiple
+        if (mediaType != MediaType.Photo && files.Count() > 1)
+        {
+            throw new ArgumentErrorException(message: "Only picture type allow multiple file upload", title: "Only picture type allow multiple file upload");
+        }
+
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Check if the user is the owner of the listing case (PhotographyCompany)
+        if (listingCase.UserId != userId)
+        {
+            throw new UnauthorizedException(
+                message: $"User {userId} cannot access this listing case because the user is not the owner of this listing case",
+                title: "You cannot access this listing case because you are not the owner of this listing case"
+                );
+        }
+
+        var createdMediaAssets = new List<MediaAsset>();
+
+        // Upload files to the blob storage
+        foreach (var file in files)
+        {
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+
+            var blobUrl = await _blobStorageService.UploadFileAsync(file);
+
+            // Create media asset and save it to the database
+            var mediaAssets = new MediaAsset
+            {
+                MediaType = mediaType,
+                MediaUrl = blobUrl,
+                UploadedAt = DateTime.UtcNow,
+                IsSelect = false,
+                IsHero = false,
+                ListingCaseId = listingCaseId,
+                UserId = userId
+            };
+
+            createdMediaAssets.Add(mediaAssets);
+        }
+
+        var result = await _listingCaseRepository.AddMediaAssetAsync(createdMediaAssets);
+
+        return _mapper.Map<IEnumerable<MediaAssetDto>>(result);
     }
 
     public async Task<DeleteListingCaseResponseDto> DeleteListingCaseByListingCaseIdAsync(int listingCaseId, string currentUserId)

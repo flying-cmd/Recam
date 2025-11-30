@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Remp.Common.Helpers;
 using Remp.Models.Constants;
+using Remp.Models.Enums;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using System.Security.Claims;
@@ -262,7 +263,7 @@ namespace Remp.API.Controllers
         /// <remarks>
         /// This endpoint is restricted to the phtography companiey who created the listing case and the agent who is assigned the listing case.
         /// </remarks>
-        [HttpGet("{listingCaseId:int}/media")]
+        [HttpGet("{listingCaseId:int}/media", Name = "GetListingCaseMediaByListingCaseIdAsync")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
         public async Task<ActionResult<IEnumerable<MediaAssetDto>>> GetListingCaseMediaByListingCaseIdAsync(int listingCaseId)
         {
@@ -362,6 +363,54 @@ namespace Remp.API.Controllers
             var result = await _listingCaseService.CreateCaseContactByListingCaseIdAsync(listingCaseId, createCaseContactRequest);
             
             return CreatedAtRoute(nameof(GetListingCaseContactByListingCaseIdAsync), new { listingCaseId }, result);
+        }
+
+        /// <summary>
+        /// Upload media to a listing case
+        /// </summary>
+        /// <param name="createMediaRequestDto">
+        /// The payload containing the media and the media type
+        /// </param>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <param name="validator"></param>
+        /// <returns>
+        /// Returns the created media
+        /// </returns>
+        /// <response code="201">Returns the created media</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to create media</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
+        [HttpPost("{listingCaseId:int}/media")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        public async Task<ActionResult<MediaAssetDto>> CreateMediaByListingCaseIdAsync(
+            [FromForm] CreateMediaRequestDto createMediaRequestDto,
+            int listingCaseId,
+            IValidator<CreateMediaRequestDto> validator)
+        {
+            // Validate
+            var validationResult = await validator.ValidateAsync(createMediaRequestDto);
+            if (!validationResult.IsValid)
+            {
+                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
+                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+
+                return ValidationProblem(problemDetails);
+            }
+
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            var result = await _listingCaseService.CreateMediaByListingCaseIdAsync(createMediaRequestDto.MediaFiles, (MediaType)Enum.Parse(typeof(MediaType), createMediaRequestDto.MediaType), listingCaseId, currentUserId);
+            return CreatedAtRoute(nameof(GetListingCaseMediaByListingCaseIdAsync), new { listingCaseId }, result);
         }
     }
 }
