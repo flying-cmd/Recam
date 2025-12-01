@@ -72,6 +72,7 @@ public class ListingCaseRepository : IListingCaseRepository
     public async Task<ListingCase?> FindListingCaseByListingCaseIdAsync(int id)
     {
         return await _dbContext.ListingCases
+            .AsNoTracking()
             .Where(lc => lc.Id == id)
             .Include(lc => lc.MediaAssets)
             .Include(lc => lc.CaseContacts)

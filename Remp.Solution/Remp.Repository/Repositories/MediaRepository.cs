@@ -1,4 +1,5 @@
-﻿using Remp.DataAccess.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using Remp.DataAccess.Data;
 using Remp.Models.Entities;
 using Remp.Repository.Interfaces;
 
@@ -15,7 +16,10 @@ public class MediaRepository : IMediaRepository
 
     public async Task<MediaAsset?> FindMediaByIdAsync(int id)
     {
-        return await _dbContext.MediaAssets.FindAsync(id);
+        return await _dbContext.MediaAssets
+            .AsNoTracking()
+            .Where(m => m.Id == id)
+            .FirstOrDefaultAsync();
     }
 
     public async Task DeleteMediaByIdAsync(MediaAsset mediaAsset)
@@ -28,5 +32,13 @@ public class MediaRepository : IMediaRepository
     {
         _dbContext.MediaAssets.UpdateRange(MediaAssets);
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<MediaAsset>> FindMediaByIdsAsync(IEnumerable<int> mediaIds)
+    {
+        return await _dbContext.MediaAssets
+            .AsNoTracking()
+            .Where(m => mediaIds.Contains(m.Id))
+            .ToListAsync();
     }
 }

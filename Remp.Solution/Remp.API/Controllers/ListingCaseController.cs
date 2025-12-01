@@ -497,5 +497,58 @@ namespace Remp.API.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Select some media files for final property display.
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <param name="setSelectedMediaRequestDto">
+        /// The payload containing the list of Ids of selected media assets.
+        /// </param>
+        /// <param name="validator"></param>
+        /// <returns>
+        /// Returns status code 204 if success
+        /// </returns>
+        /// <response code="204">Update successfully</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to set selected media</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>Agent</c> role.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPut("{listingCaseId}/selected-media")]
+        [Authorize(Roles = RoleNames.Agent)]
+        public async Task<IActionResult> SetSelectedMediaByListingCaseIdAsync(
+            int listingCaseId, 
+            [FromBody] SetSelectedMediaRequestDto setSelectedMediaRequestDto,
+            IValidator<SetSelectedMediaRequestDto> validator)
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            // Validate
+            var validationResult = await validator.ValidateAsync(setSelectedMediaRequestDto);
+            if (!validationResult.IsValid)
+            {
+                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
+                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+
+                return ValidationProblem(problemDetails);
+            }
+
+            await _listingCaseService.SetSelectedMediaByListingCaseIdAsync(listingCaseId, setSelectedMediaRequestDto.MediaIds, currentUserId);
+        
+            return NoContent();
+        }
     }
 }

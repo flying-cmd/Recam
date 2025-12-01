@@ -56,4 +56,15 @@ public static class CaseHistoryLog
             .ForContext("UserId", userId)
             .Information(description ?? details);
     }
+
+    public static void LogSelectMedia(string? listingCaseId, IEnumerable<int> mediaIds, string userId, string? description = null)
+    {
+        var details = $"User {userId} selected media {string.Join(", ", mediaIds)} for listing case {listingCaseId}";
+        Log.ForContext("LogType", "CaseHistory")
+            .ForContext("EventType", "SelectMedia")
+            .ForContext("UserId", userId)
+            .ForContext("ListingCaseId", listingCaseId)
+            .ForContext("MediaId", string.Join(", ", mediaIds))
+            .Information(description ?? details);
+    }
 }
