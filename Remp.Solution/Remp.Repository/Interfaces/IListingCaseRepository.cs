@@ -17,6 +17,7 @@ public interface IListingCaseRepository
     Task<IEnumerable<MediaAsset>> FindMediaAssetsByListingCaseIdAsync(int listingCaseId);
     Task<MediaAsset?> FindMediaByIdAsync(int mediaAssetId);
     Task<User?> FindUserByIdAsync(string userId);
+    Task<IEnumerable<MediaAsset>> GetFinalSelectionByListingCaseIdAsync(int listingCaseId);
     Task UpdateListingCaseAsync(ListingCase newListingCase);
     Task UpdateListingCaseStatusAsync(ListingCase newListingCase);
 }

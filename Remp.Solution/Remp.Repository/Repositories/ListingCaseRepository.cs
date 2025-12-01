@@ -115,6 +115,14 @@ public class ListingCaseRepository : IListingCaseRepository
         return await _dbContext.Users.FindAsync(userId);
     }
 
+    public async Task<IEnumerable<MediaAsset>> GetFinalSelectionByListingCaseIdAsync(int listingCaseId)
+    {
+        return await _dbContext.MediaAssets
+            .AsNoTracking()
+            .Where(m => m.ListingCaseId == listingCaseId && m.IsSelect == true)
+            .ToListAsync();
+    }
+
     public async Task UpdateListingCaseAsync(ListingCase newListingCase)
     {
         _dbContext.ListingCases.Update(newListingCase);

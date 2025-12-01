@@ -239,8 +239,29 @@ public class ListingCaseService : IListingCaseService
             totalCount = await _listingCaseRepository.CountListingCasesByAgentIdAsync(currentUserId);
         }
 
-        var temp = _mapper.Map<IEnumerable<ListingCaseResponseDto>>(listingCases);
         return new PagedResult<ListingCaseResponseDto>(pageNumber, pageSize, totalCount, _mapper.Map<IEnumerable<ListingCaseResponseDto>>(listingCases));
+    }
+
+    public async Task<IEnumerable<MediaAssetDto>> GetFinalSelectionByListingCaseIdAsync(int listingCaseId)
+    {
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Check the status of the listing case
+        if (listingCase.ListingCaseStatus != ListingCaseStatus.Delivered)
+        {
+            throw new InvalidException(
+                message: $"Listing case {listingCaseId} is not delivered, so you cannot get the final selection", 
+                title: "Listing case is not delivered, so you cannot get the final selection");
+        }
+
+        var mediaAsset = await _listingCaseRepository.GetFinalSelectionByListingCaseIdAsync(listingCaseId);
+
+        return _mapper.Map<IEnumerable<MediaAssetDto>>(mediaAsset);
     }
 
     public async Task<ListingCaseDetailResponseDto> GetListingCaseByListingCaseIdAsync(int listingCaseId, string userId, string userRole)
@@ -368,6 +389,7 @@ public class ListingCaseService : IListingCaseService
             // Change the cover image to the current media asset
             existingCoverImage.IsHero = false;
             mediaAsset.IsHero = true;
+            mediaAsset.IsSelect = true;
 
             var updatedMediaAssets = new List<MediaAsset> { existingCoverImage, mediaAsset };
             await _mediaRepository.UpdateMediaAssetsAsync(updatedMediaAssets);

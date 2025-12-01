@@ -469,5 +469,33 @@ namespace Remp.API.Controllers
             
             return NoContent();
         }
+
+        /// <summary>
+        /// Get the final selected media assets of a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <returns>
+        /// Returns a list of final selected media assets
+        /// </returns>
+        /// <response code="200">Returns a list of final selected media assets</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to get final selected media assets</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> and <c>Agent</c> role.
+        /// </remarks>
+        [HttpGet("{listingCaseId:int}/final-selection")]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<MediaAssetDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<MediaAssetDto>>> GetFinalSelectionByListingCaseIdAsync(int listingCaseId)
+        {
+            var result = await _listingCaseService.GetFinalSelectionByListingCaseIdAsync(listingCaseId);
+
+            return Ok(result);
+        }
     }
 }
