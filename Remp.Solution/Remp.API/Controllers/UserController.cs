@@ -266,7 +266,7 @@ namespace Remp.API.Controllers
         /// <response code="400">Failed to update password</response>
         [HttpPut("password")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
-        public async Task<ActionResult<UpdatePasswordResponseDto>> UpdatePasswordAsync([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto, IValidator<UpdatePasswordRequestDto> validator)
+        public async Task<ActionResult<UpdateApiResponse>> UpdatePasswordAsync([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto, IValidator<UpdatePasswordRequestDto> validator)
         {
             // Get current user id
             var currentUser = HttpContext.User;

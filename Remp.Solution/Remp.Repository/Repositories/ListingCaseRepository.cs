@@ -61,6 +61,14 @@ public class ListingCaseRepository : IListingCaseRepository
         await _dbContext.SaveChangesAsync();
     }
 
+    public async Task<MediaAsset?> FindCoverImageByListingCaseIdAsync(int listingCaseId)
+    {
+        return await _dbContext.MediaAssets
+            .AsNoTracking()
+            .Where(m => m.ListingCaseId == listingCaseId && m.IsHero == true)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<ListingCase?> FindListingCaseByListingCaseIdAsync(int id)
     {
         return await _dbContext.ListingCases
@@ -95,6 +103,11 @@ public class ListingCaseRepository : IListingCaseRepository
             .AsNoTracking()
             .Where(m => m.ListingCaseId == listingCaseId)
             .ToListAsync();
+    }
+
+    public async Task<MediaAsset?> FindMediaByIdAsync(int mediaAssetId)
+    {
+        return await _dbContext.MediaAssets.FindAsync(mediaAssetId);
     }
 
     public async Task<User?> FindUserByIdAsync(string userId)

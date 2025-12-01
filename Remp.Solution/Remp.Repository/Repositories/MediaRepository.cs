@@ -23,4 +23,10 @@ public class MediaRepository : IMediaRepository
         _dbContext.MediaAssets.Remove(mediaAsset);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task UpdateMediaAssetsAsync(IEnumerable<MediaAsset> MediaAssets)
+    {
+        _dbContext.MediaAssets.UpdateRange(MediaAssets);
+        await _dbContext.SaveChangesAsync();
+    }
 }

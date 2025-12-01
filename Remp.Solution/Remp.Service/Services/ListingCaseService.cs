@@ -17,12 +17,18 @@ public class ListingCaseService : IListingCaseService
     private readonly IListingCaseRepository _listingCaseRepository;
     private readonly IMapper _mapper;
     private readonly IBlobStorageService _blobStorageService;
+    private readonly IMediaRepository _mediaRepository;
 
-    public ListingCaseService(IListingCaseRepository listingCaseRepository, IMapper mapper, IBlobStorageService blobStorageService)
+    public ListingCaseService(
+        IListingCaseRepository listingCaseRepository, 
+        IMapper mapper, 
+        IBlobStorageService blobStorageService,
+        IMediaRepository mediaRepository)
     {
         _listingCaseRepository = listingCaseRepository;
         _mapper = mapper;
         _blobStorageService = blobStorageService;
+        _mediaRepository = mediaRepository;
     }
 
     public async Task<CaseContactDto> CreateCaseContactByListingCaseIdAsync(int listingCaseId, CreateCaseContactRequestDto createCaseContactRequest)
@@ -325,6 +331,51 @@ public class ListingCaseService : IListingCaseService
         }
 
         return _mapper.Map<IEnumerable<MediaAssetDto>>(listingCase.MediaAssets);
+    }
+
+    public async Task SetCoverImageByListingCaseIdAsync(int listingCaseId, int mediaAssetId)
+    {
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Check if the media asset exists
+        var mediaAsset = await _listingCaseRepository.FindMediaByIdAsync(mediaAssetId);
+        if (mediaAsset is null)
+        {
+            throw new NotFoundException(message: $"Media asset {mediaAssetId} does not exist", title: "Media asset does not exist");
+        }
+
+        // Check if the media asset is a picture
+        if (mediaAsset.MediaType != MediaType.Photo)
+        {
+            throw new ArgumentErrorException(message: $"Media asset {mediaAssetId} is not a picture", title: "Media asset is not a picture");
+        }
+
+        // Check if the media asset belongs to the listing case
+        if (mediaAsset.ListingCaseId != listingCaseId)
+        {
+            throw new ArgumentErrorException(message: $"Media asset {mediaAssetId} does not belong to this listing case", title: "Media asset does not belong to this listing case");
+        }
+
+        // Check if the listing case already has a cover image
+        var existingCoverImage = await _listingCaseRepository.FindCoverImageByListingCaseIdAsync(listingCaseId);
+        if (existingCoverImage is not null)
+        {
+            // Change the cover image to the current media asset
+            existingCoverImage.IsHero = false;
+            mediaAsset.IsHero = true;
+
+            var updatedMediaAssets = new List<MediaAsset> { existingCoverImage, mediaAsset };
+            await _mediaRepository.UpdateMediaAssetsAsync(updatedMediaAssets);
+        }
+
+        // Set the media asset as the cover image
+        mediaAsset.IsHero = true;
+        await _mediaRepository.UpdateMediaAssetsAsync(new List<MediaAsset> { mediaAsset });
     }
 
     public async Task UpdateListingCaseAsync(int listingCaseId, UpdateListingCaseRequestDto updateListingCaseRequest, string userId)

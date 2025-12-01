@@ -197,7 +197,7 @@ public class UserService : IUserService
         return await _userRepository.GetUserListingCaseIdsAsync(currentUserId);
     }
 
-    public async Task<UpdatePasswordResponseDto> UpdatePasswordAsync(UpdatePasswordRequestDto updatePasswordRequestDto, string userId)
+    public async Task<UpdateApiResponse> UpdatePasswordAsync(UpdatePasswordRequestDto updatePasswordRequestDto, string userId)
     {
         // Check if the user exists
         var user = await _userManager.FindByIdAsync(userId);
@@ -212,13 +212,13 @@ public class UserService : IUserService
         {
             var errors = string.Join("| ", result.Errors.Select(x => x.Description));
 
-            return new UpdatePasswordResponseDto(
+            return new UpdateApiResponse(
                 false,
                 message: "Failed to update password.",
                 errors);
         }
 
-        return new UpdatePasswordResponseDto(
+        return new UpdateApiResponse(
             true,
             message: "Password updated successfully.");
     }

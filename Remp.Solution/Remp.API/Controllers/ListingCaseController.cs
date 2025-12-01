@@ -438,5 +438,36 @@ namespace Remp.API.Controllers
 
             return File(zipStream, contentType, fileName);
         }
+
+        /// <summary>
+        /// Set the cover image of a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <param name="mediaAssetId">
+        /// The ID of the media asset
+        /// </param>
+        /// <returns>
+        /// Returns status code 204 if success
+        /// </returns>
+        /// <response code="204">Update successfully</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to update cover image</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>Agent</c> role.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPut("{listingCaseId:int}/cover-image")]
+        [Authorize(Roles = RoleNames.Agent)]
+        public async Task<IActionResult> SetCoverImageByListingCaseIdAsync(int listingCaseId, [FromQuery] int mediaAssetId)
+        {
+            await _listingCaseService.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+            
+            return NoContent();
+        }
     }
 }
