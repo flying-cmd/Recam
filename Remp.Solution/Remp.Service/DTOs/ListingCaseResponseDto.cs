@@ -23,4 +23,5 @@ public class ListingCaseResponseDto
     public string PropertyType { get; set; } = null!;
     public string SaleCategory { get; set; } = null!;
     public string ListingCaseStatus { get; set; } = null!;
+    public string sharedUrl { get; set; } = string.Empty;
 }

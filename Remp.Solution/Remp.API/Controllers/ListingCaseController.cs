@@ -550,5 +550,14 @@ namespace Remp.API.Controllers
         
             return NoContent();
         }
+
+
+        [HttpPost("{listingCaseId:int}/publish")]
+        public async Task<ActionResult<string>> GenerateSharedUrlAsync(int listingCaseId)
+        {
+            var result = await _listingCaseService.GenerateSharedUrlAsync(listingCaseId);
+
+            return Ok(result);
+        }
     }
 }

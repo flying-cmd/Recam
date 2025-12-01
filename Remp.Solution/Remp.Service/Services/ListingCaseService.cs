@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Remp.Common.Exceptions;
 using Remp.Common.Helpers;
 using Remp.Models.Constants;
@@ -18,17 +19,20 @@ public class ListingCaseService : IListingCaseService
     private readonly IMapper _mapper;
     private readonly IBlobStorageService _blobStorageService;
     private readonly IMediaRepository _mediaRepository;
+    private readonly IConfiguration _configuration;
 
     public ListingCaseService(
         IListingCaseRepository listingCaseRepository, 
         IMapper mapper, 
         IBlobStorageService blobStorageService,
-        IMediaRepository mediaRepository)
+        IMediaRepository mediaRepository,
+        IConfiguration configuration)
     {
         _listingCaseRepository = listingCaseRepository;
         _mapper = mapper;
         _blobStorageService = blobStorageService;
         _mediaRepository = mediaRepository;
+        _configuration = configuration;
     }
 
     public async Task<CaseContactDto> CreateCaseContactByListingCaseIdAsync(int listingCaseId, CreateCaseContactRequestDto createCaseContactRequest)
@@ -194,6 +198,26 @@ public class ListingCaseService : IListingCaseService
         var zipContentType = "application/zip";
 
         return (zipStream.ToArray(), zipContentType, $"listingcase_{listingCaseId}_media.zip");
+    }
+
+    public async Task<string> GenerateSharedUrlAsync(int listingCaseId)
+    {
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        var baseUrl = _configuration["Url:BaseUrl"];
+        var randomUrl = Guid.NewGuid().ToString("N"); // "N" format removes hyphens
+        var sharedUrl = $"{baseUrl}/{randomUrl}";
+
+        listingCase.SharedUrl = sharedUrl;
+
+        await _listingCaseRepository.UpdateListingCaseAsync(listingCase);
+    
+        return sharedUrl;
     }
 
     public async Task<PagedResult<ListingCaseResponseDto>> GetAllListingCasesAsync(int pageNumber, int pageSize, string currentUserId, string currrentUserRole)

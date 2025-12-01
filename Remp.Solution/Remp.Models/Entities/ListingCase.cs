@@ -23,6 +23,7 @@ public class ListingCase
     public PropertyType PropertyType { get; set; }
     public SaleCategory SaleCategory { get; set; }
     public ListingCaseStatus ListingCaseStatus { get; set; }
+    public string SharedUrl { get; set; } = string.Empty;
 
     // Foreign key
     public string UserId { get; set; } = null!;
