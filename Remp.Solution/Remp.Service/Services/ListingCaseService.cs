@@ -530,7 +530,7 @@ public class ListingCaseService : IListingCaseService
 
         var newStatus = (ListingCaseStatus)((int)listingCase.ListingCaseStatus + 1);
         listingCase.ListingCaseStatus = newStatus;
-        await _listingCaseRepository.UpdateListingCaseStatusAsync(listingCase);
+        await _listingCaseRepository.UpdateListingCaseAsync(listingCase);
 
         // Log
         CaseHistoryLog.LogUpdateListingCaseStatus(

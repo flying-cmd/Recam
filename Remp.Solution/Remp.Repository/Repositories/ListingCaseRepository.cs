@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Remp.DataAccess.Data;
 using Remp.Models.Entities;
-using Remp.Models.Enums;
 using Remp.Repository.Interfaces;
 
 namespace Remp.Repository.Repositories;
@@ -83,6 +82,7 @@ public class ListingCaseRepository : IListingCaseRepository
     public async Task<IEnumerable<ListingCase>> FindListingCasesByAgentIdAsync(int pageNumber, int pageSize, string currentUserId)
     {
         return await _dbContext.ListingCases
+            .AsNoTracking()
             .Where(lc => lc.AgentListingCases.Any(alc => alc.AgentId == currentUserId))
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -92,6 +92,7 @@ public class ListingCaseRepository : IListingCaseRepository
     public async Task<IEnumerable<ListingCase>> FindListingCasesByPhotographyCompanyIdAsync(int pageNumber, int pageSize, string currentUserId)
     {
         return await _dbContext.ListingCases
+            .AsNoTracking()
             .Where(lc => lc.UserId == currentUserId)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -108,12 +109,16 @@ public class ListingCaseRepository : IListingCaseRepository
 
     public async Task<MediaAsset?> FindMediaByIdAsync(int mediaAssetId)
     {
-        return await _dbContext.MediaAssets.FindAsync(mediaAssetId);
+        return await _dbContext.MediaAssets
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == mediaAssetId);
     }
 
     public async Task<User?> FindUserByIdAsync(string userId)
     {
-        return await _dbContext.Users.FindAsync(userId);
+        return await _dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
     public async Task<IEnumerable<MediaAsset>> GetFinalSelectionByListingCaseIdAsync(int listingCaseId)
@@ -128,10 +133,5 @@ public class ListingCaseRepository : IListingCaseRepository
     {
         _dbContext.ListingCases.Update(newListingCase);
         await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task UpdateListingCaseStatusAsync(ListingCase newListingCase)
-    {
-        await UpdateListingCaseAsync(newListingCase);
     }
 }

@@ -78,12 +78,15 @@ public class UserRepository : IUserRepository
 
     public async Task<int> GetTotalCountAsync()
     {
-        return await _context.Agents.AsNoTracking().CountAsync();
+        return await _context.Agents
+            .AsNoTracking()
+            .CountAsync();
     }
 
     public async Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId)
     {
         return await _context.AgentListingCases
+            .AsNoTracking()
             .Where(alc => alc.AgentId == currentUserId)
             .Select(alc => alc.ListingCaseId)
             .ToListAsync();
@@ -92,6 +95,7 @@ public class UserRepository : IUserRepository
     public async Task<bool> IsAgentAddedToPhotographyCompanyAsync(string agentId, string photographyCompanyId)
     {
         return await _context.AgentPhotographyCompanies
+            .AsNoTracking()
             .AnyAsync(apc => apc.AgentId == agentId && apc.PhotographyCompanyId == photographyCompanyId);
     }
 }
