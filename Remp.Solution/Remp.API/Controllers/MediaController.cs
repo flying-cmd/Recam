@@ -58,6 +58,7 @@ namespace Remp.API.Controllers
         /// The media file
         /// </returns>
         [HttpGet("download/{mediaAssetId:int}")]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
         public async Task<IActionResult> DownloadMediaById(int mediaAssetId)
         {
             var (fileStream, contentType, fileName) = await _mediaService.DownloadMediaByIdAsync(mediaAssetId);

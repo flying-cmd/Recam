@@ -412,5 +412,31 @@ namespace Remp.API.Controllers
             var result = await _listingCaseService.CreateMediaByListingCaseIdAsync(createMediaRequestDto.MediaFiles, (MediaType)Enum.Parse(typeof(MediaType), createMediaRequestDto.MediaType), listingCaseId, currentUserId);
             return CreatedAtRoute(nameof(GetListingCaseMediaByListingCaseIdAsync), new { listingCaseId }, result);
         }
+
+        /// <summary>
+        /// Download all media assets of a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <returns>
+        /// Returns the zip file containing all media assets
+        /// </returns>
+        /// <response code="200">Returns the zip file containing all media assets</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to download media assets</response>
+        [HttpGet("{listingCaseId:int}/download")]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        [Produces("application/zip")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DownloadAllMediaByListingCaseIdAsync(int listingCaseId)
+        {
+            var (zipStream, contentType, fileName) = await _listingCaseService.DownloadAllMediaByListingCaseIdAsync(listingCaseId);
+
+            return File(zipStream, contentType, fileName);
+        }
     }
 }

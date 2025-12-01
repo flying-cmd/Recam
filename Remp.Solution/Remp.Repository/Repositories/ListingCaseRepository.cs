@@ -89,6 +89,14 @@ public class ListingCaseRepository : IListingCaseRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<MediaAsset>> FindMediaAssetsByListingCaseIdAsync(int listingCaseId)
+    {
+        return await _dbContext.MediaAssets
+            .AsNoTracking()
+            .Where(m => m.ListingCaseId == listingCaseId)
+            .ToListAsync();
+    }
+
     public async Task<User?> FindUserByIdAsync(string userId)
     {
         return await _dbContext.Users.FindAsync(userId);

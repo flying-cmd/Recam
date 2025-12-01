@@ -8,6 +8,7 @@ using Remp.Models.Enums;
 using Remp.Repository.Interfaces;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
+using System.IO.Compression;
 
 namespace Remp.Service.Services;
 
@@ -149,6 +150,44 @@ public class ListingCaseService : IListingCaseService
         );
 
         return new DeleteListingCaseResponseDto();
+    }
+
+    public async Task<(byte[] ZipContent, string ContentType, string ZipFileName)> DownloadAllMediaByListingCaseIdAsync(int listingCaseId)
+    {
+        // Get all media assets by listing case id
+        var mediaAssets = await _listingCaseRepository.FindMediaAssetsByListingCaseIdAsync(listingCaseId);
+    
+        if (mediaAssets == null || !mediaAssets.Any())
+        {
+            throw new NotFoundException(message: $"No media assets found for listing case {listingCaseId}", title: "No media assets found");
+        }
+
+        // ZIP the media assets
+        var zipStream = new MemoryStream();
+
+        using (var zip = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var media in mediaAssets)
+            {
+                // Download the media file from Azure Blob
+                var (content, contentType, fileName) = await _blobStorageService.DownloadFileAsync(media.MediaUrl);
+
+                // Create a new entry in the zip archive
+                var zipEntry = zip.CreateEntry(fileName);
+
+                // Copy the media file content to the zip entry
+                using var zipStreamEntry = zipEntry.Open();
+
+                await content.CopyToAsync(zipStreamEntry);
+            }
+        }
+
+        // Reset the position to the beginning of the stream
+        zipStream.Position = 0;
+
+        var zipContentType = "application/zip";
+
+        return (zipStream.ToArray(), zipContentType, $"listingcase_{listingCaseId}_media.zip");
     }
 
     public async Task<PagedResult<ListingCaseResponseDto>> GetAllListingCasesAsync(int pageNumber, int pageSize, string currentUserId, string currrentUserRole)
