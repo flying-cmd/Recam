@@ -211,7 +211,7 @@ public class ListingCaseService : IListingCaseService
 
         var baseUrl = _configuration["Url:BaseUrl"];
         var randomUrl = Guid.NewGuid().ToString("N"); // "N" format removes hyphens
-        var sharedUrl = $"{baseUrl}/{randomUrl}";
+        var sharedUrl = $"{baseUrl}/listings/share/{randomUrl}";
 
         listingCase.SharedUrl = sharedUrl;
 
