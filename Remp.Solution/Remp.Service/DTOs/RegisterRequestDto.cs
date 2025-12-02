@@ -11,6 +11,4 @@ public class RegisterRequestDto
     public string LastName { get; set; } = null!;
     public string CompanyName { get; set; } = null!;
     public IFormFile Avatar { get; set; } = null!;
-
-    // TODO: add more fields
 }

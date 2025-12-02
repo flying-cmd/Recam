@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Remp.Common.Helpers.ApiResponse;
 using Remp.Models.Constants;
-using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using System.Security.Claims;
 
@@ -35,7 +35,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpDelete("{id:int}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<ActionResult<DeleteMediaResponseDto>> DeleteMediaByIdAsync(int id)
+        public async Task<ActionResult<DeleteResponse>> DeleteMediaByIdAsync(int id)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -45,7 +45,8 @@ namespace Remp.API.Controllers
                 return Forbid();
             }
 
-            return await _mediaService.DeleteMediaByIdAsync(id, currentUserId);
+            await _mediaService.DeleteMediaByIdAsync(id, currentUserId);
+            return Ok(new DeleteResponse(true));
         }
 
         /// <summary>

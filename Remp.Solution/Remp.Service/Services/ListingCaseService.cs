@@ -132,7 +132,7 @@ public class ListingCaseService : IListingCaseService
         return _mapper.Map<IEnumerable<MediaAssetDto>>(result);
     }
 
-    public async Task<DeleteListingCaseResponseDto> DeleteListingCaseByListingCaseIdAsync(int listingCaseId, string currentUserId)
+    public async Task DeleteListingCaseByListingCaseIdAsync(int listingCaseId, string currentUserId)
     {
         // Check if the listing case exists
         var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
@@ -158,8 +158,6 @@ public class ListingCaseService : IListingCaseService
             listingCaseId: listingCase.Id.ToString(),
             userId: currentUserId
         );
-
-        return new DeleteListingCaseResponseDto();
     }
 
     public async Task<(byte[] ZipContent, string ContentType, string ZipFileName)> DownloadAllMediaByListingCaseIdAsync(int listingCaseId)

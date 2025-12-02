@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Remp.Common.Helpers;
+using Remp.Common.Helpers.ApiResponse;
 using Remp.Models.Constants;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
@@ -41,10 +42,10 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpGet]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<ActionResult<PagedResult<CreateAgentAccountResponseDto>>> GetAgentsAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
+        public async Task<ActionResult<GetResponse<PagedResult<CreateAgentAccountResponseDto>>>> GetAgentsAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
         {
             var result = await _userService.GetAgentsAsync(pageNumer, pageSize);
-            return Ok(result);
+            return Ok(new GetResponse<PagedResult<CreateAgentAccountResponseDto>>(true, result));
         }
 
         /// <summary>
@@ -60,7 +61,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpGet("~/api/users/me")]
         [Authorize(Roles = RoleNames.Agent)]
-        public async Task<ActionResult<UserInfoResponseDto>> GetCurrentUserInfoAsync()
+        public async Task<ActionResult<GetResponse<UserInfoResponseDto>>> GetCurrentUserInfoAsync()
         {
             // Get current user
             var currentUser = HttpContext.User;
@@ -83,7 +84,7 @@ namespace Remp.API.Controllers
             var userListingCaseIds = await _userService.GetUserListingCaseIdsAsync(currentUserId);
             userInfoResponseDto.ListingCaseIds = userListingCaseIds;
 
-            return Ok(userInfoResponseDto);
+            return Ok(new GetResponse<UserInfoResponseDto>(true, userInfoResponseDto));
         }
 
         /// <summary>
@@ -101,9 +102,9 @@ namespace Remp.API.Controllers
         /// <remarks>
         /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
         /// </remarks>
-        [HttpPost("add-agent/{agentId}")]
+        [HttpPut("photography-company/agent/{agentId}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<IActionResult> AddAgentByIdAsync(string agentId)
+        public async Task<ActionResult<PutResponse>> AddAgentByIdAsync(string agentId)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -115,12 +116,12 @@ namespace Remp.API.Controllers
 
             var result = await _userService.AddAgentByIdAsync(agentId, currentUserId);
 
-            if (!result)
+            if (result == null)
             {
                 return BadRequest();
             }
 
-            return Ok();
+            return Ok(new PutResponse(true));
         }
 
         /// <summary>
@@ -142,7 +143,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPost("agent")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<IActionResult> CreateAgentAccountAsync(
+        public async Task<ActionResult<PostResponse<string>>> CreateAgentAccountAsync(
             [FromBody] CreateAgentAccountRequestDto createAgentAccountRequestDto,
             IValidator<CreateAgentAccountRequestDto> validator,
             [FromServices] IEmailService emailService,
@@ -183,7 +184,7 @@ namespace Remp.API.Controllers
                     emailBody
                 );
 
-                return Ok(new { message = "Account created successfully! Please notify the agent to check the email to login." });
+                return Ok(new PostResponse<string>(true, result.Email));
             }
 
             return BadRequest();
@@ -201,7 +202,7 @@ namespace Remp.API.Controllers
         /// <response code="404">Not found the agent</response>
         /// <response code="400">Invalid email</response>
         [HttpGet("agent/search")]
-        public async Task<ActionResult<SearchAgentResponseDto>> GetAgentByEmailAsync(
+        public async Task<ActionResult<GetResponse<SearchAgentResponseDto>>> GetAgentByEmailAsync(
             [FromQuery] SearchAgentRequestDto searchAgentRequestDto,
             IValidator<SearchAgentRequestDto> validator)
         {
@@ -219,10 +220,10 @@ namespace Remp.API.Controllers
             
             if (result != null)
             {
-                return Ok(result);
+                return Ok(new GetResponse<SearchAgentResponseDto>(true, result));
             }
 
-            return NotFound(new { message = "Agent not found" });
+            return NotFound();
         }
 
 
@@ -236,7 +237,7 @@ namespace Remp.API.Controllers
         /// <response code="401">Unauthorized</response>
         [HttpGet("agentlists")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<ActionResult<IEnumerable<SearchAgentResponseDto>>> GetAgentsUnderPhotographyCompanyAsync()
+        public async Task<ActionResult<GetResponse<IEnumerable<SearchAgentResponseDto>>>> GetAgentsUnderPhotographyCompanyAsync()
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -248,7 +249,7 @@ namespace Remp.API.Controllers
 
             var result = await _userService.GetAgentsUnderPhotographyCompanyAsync(currentUserId);
 
-            return Ok(result);
+            return Ok(new GetResponse<IEnumerable<SearchAgentResponseDto>>(true, result));
         }
 
         /// <summary>
@@ -299,7 +300,7 @@ namespace Remp.API.Controllers
                 UserActivityLog.LogUpdatePassword(
                     userId: currentUserId);
 
-                return Ok(result);
+                return Ok(new PutResponse(true));
             }
 
             // Log
@@ -307,7 +308,7 @@ namespace Remp.API.Controllers
                 userId: currentUserId,
                 description: $"User {currentUserId} failed to update password because of the errors: {result.Error}");
 
-            return BadRequest(result);
+            return BadRequest();
         }
     }
 }

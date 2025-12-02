@@ -1,6 +1,4 @@
-﻿using Remp.Models.Entities;
-
-namespace Remp.Service.DTOs;
+﻿namespace Remp.Service.DTOs;
 
 public class CaseContactDto
 {

@@ -17,7 +17,7 @@ public class MediaService : IMediaService
         _blobStorageService = blobStorageService;
     }
 
-    public async Task<DeleteMediaResponseDto> DeleteMediaByIdAsync(int mediaId, string userId)
+    public async Task DeleteMediaByIdAsync(int mediaId, string userId)
     {
         // Check if the media exists
         var media = await _mediaRepository.FindMediaByIdAsync(mediaId);
@@ -53,8 +53,6 @@ public class MediaService : IMediaService
 
         // Log
         CaseHistoryLog.LogDeleteMedia(mediaId.ToString(), userId);
-
-        return new DeleteMediaResponseDto();
     }
 
     public async Task<(Stream FileStream, string ContentType, string FileName)> DownloadMediaByIdAsync(int mediaAssetId)

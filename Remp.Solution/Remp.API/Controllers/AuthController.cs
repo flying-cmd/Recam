@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Remp.Common.Helpers.ApiResponse;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using Remp.Service.Services;
@@ -32,7 +33,7 @@ namespace Remp.API.Controllers
         /// <response code="200">User logged in</response>
         /// <response code="400">Email or password is invalid</response>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest, IValidator<LoginRequestDto> validator)
+        public async Task<ActionResult<PostResponse<string>>> Login([FromBody] LoginRequestDto loginRequest, IValidator<LoginRequestDto> validator)
         {
             // Validate
             var validationResult = await validator.ValidateAsync(loginRequest);
@@ -50,7 +51,7 @@ namespace Remp.API.Controllers
             }
 
             var result = await _authService.LoginAsync(loginRequest);
-            return Ok(result);
+            return Ok(new PostResponse<string>(true, result, "Login successfully"));
         }
 
         /// <summary>
@@ -67,7 +68,8 @@ namespace Remp.API.Controllers
         /// <response code="200">User registered.</response>
         /// <response code="400">Request validation failed.</response>
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromForm] RegisterRequestDto registerRequest, 
+        public async Task<ActionResult<PostResponse<string>>> Register(
+            [FromForm] RegisterRequestDto registerRequest, 
             [FromServices] IBlobStorageService blobStorageService,
             [FromServices] IValidator<RegisterRequestDto> validator)
         {
@@ -101,7 +103,8 @@ namespace Remp.API.Controllers
             );
 
             var result = await _authService.RegisterAsync(registerUser);
-            return Ok(result);
+            
+            return Ok(new PostResponse<string>(true, result, "Registered successfully"));
         }
     }
 }

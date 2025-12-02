@@ -33,7 +33,7 @@ public class UserService : IUserService
         _appDbContext = appDbContext;
     }
 
-    public async Task<bool> AddAgentByIdAsync(string agentId, string photographyCompanyId)
+    public async Task<Agent?> AddAgentByIdAsync(string agentId, string photographyCompanyId)
     {
         // Check if the agent exists
         var agent = await _userRepository.FindAgentByIdAsync(agentId);
@@ -45,12 +45,14 @@ public class UserService : IUserService
         // Check if the photography company already added the agent
         if (await _userRepository.IsAgentAddedToPhotographyCompanyAsync(agentId, photographyCompanyId))
         {
-            return false;
+            return null;
         }
 
-        await _userRepository.AddAgentToPhotographyCompanyAsync(agentId, photographyCompanyId);
+        // Add agent to photography company
+        AgentPhotographyCompany agentPhotographyCompany = new AgentPhotographyCompany() { AgentId = agentId, PhotographyCompanyId = photographyCompanyId };
+        var addedAgent = await _userRepository.AddAgentToPhotographyCompanyAsync(agentPhotographyCompany);
 
-        return true;
+        return addedAgent;
     }
 
     public async Task<CreateAgentAccountResponseDto?> CreateAgentAccountAsync(CreateAgentAccountRequestDto createAgentAccountRequestDto, string photographyCompanyId)

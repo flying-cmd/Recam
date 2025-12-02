@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace Remp.Service.DTOs;
+﻿namespace Remp.Service.DTOs;
 
 public class RegisterUserDto
 {

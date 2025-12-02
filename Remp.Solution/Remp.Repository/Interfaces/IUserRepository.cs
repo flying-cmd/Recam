@@ -5,7 +5,7 @@ namespace Remp.Repository.Interfaces;
 public interface IUserRepository
 {
     Task AddAgentAsync(Agent agent);
-    Task AddAgentToPhotographyCompanyAsync(string agentId, string photographyCompanyId);
+    Task<Agent?> AddAgentToPhotographyCompanyAsync(AgentPhotographyCompany agentPhotographyCompany);
     Task<Agent?> FindAgentByIdAsync(string agentId);
     Task<User?> FindByEmailAsync(string email);
     Task<PhotographyCompany?> FindPhotographyCompanyByIdAsync(string photographyCompanyId);

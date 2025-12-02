@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Remp.Common.Helpers;
+using Remp.Common.Helpers.ApiResponse;
 using Remp.Models.Constants;
 using Remp.Models.Enums;
 using Remp.Service.DTOs;
@@ -39,7 +40,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpGet("{listingCaseId:int}", Name = "GetListingCaseByListingCaseIdAsync")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
-        public async Task<ActionResult<ListingCaseResponseDto>> GetListingCaseByListingCaseIdAsync(int listingCaseId)
+        public async Task<ActionResult<GetResponse<ListingCaseDetailResponseDto>>> GetListingCaseByListingCaseIdAsync(int listingCaseId)
         {
             var currentUser = HttpContext.User;
             var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -55,7 +56,12 @@ namespace Remp.API.Controllers
             }
 
             var result = await _listingCaseService.GetListingCaseByListingCaseIdAsync(listingCaseId, currentUserId, currrentUserRole);
-            return Ok(result);
+            if (result != null)
+            {
+                return Ok(new GetResponse<ListingCaseDetailResponseDto>(true, result));
+            }
+            
+            return NotFound();
         }
 
         /// <summary>
@@ -76,7 +82,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPost]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<ActionResult<ListingCaseResponseDto>> CreateListingCase(
+        public async Task<ActionResult<PostResponse<ListingCaseResponseDto>>> CreateListingCase(
             [FromBody] CreateListingCaseRequestDto createListingCaseRequest, 
             IValidator<CreateListingCaseRequestDto> validator)
         {
@@ -99,7 +105,11 @@ namespace Remp.API.Controllers
 
             var result = await _listingCaseService.CreateListingCaseAsync(createListingCaseRequest);
             
-            return CreatedAtRoute(nameof(GetListingCaseByListingCaseIdAsync), new { listingCaseId = result.Id }, result);
+            return CreatedAtRoute(
+                nameof(GetListingCaseByListingCaseIdAsync), 
+                new { listingCaseId = result.Id }, 
+                new PostResponse<ListingCaseResponseDto>(true, result)
+                );
         }
 
         /// <summary>
@@ -120,7 +130,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpGet]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
-        public async Task<ActionResult<IEnumerable<ListingCaseResponseDto>>> GetAllListingCasesAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
+        public async Task<ActionResult<GetResponse<PagedResult<ListingCaseResponseDto>>>> GetAllListingCasesAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
         {
             var currentUser = HttpContext.User;
             var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -137,7 +147,12 @@ namespace Remp.API.Controllers
 
             var result = await _listingCaseService.GetAllListingCasesAsync(pageNumer, pageSize, currentUserId, currrentUserRole);
 
-            return Ok(result);
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new GetResponse<PagedResult<ListingCaseResponseDto>>(true, result));
         }
 
         /// <summary>
@@ -151,7 +166,7 @@ namespace Remp.API.Controllers
         /// </param>
         /// <param name="validator"></param>
         /// <returns></returns>
-        /// <response code="204">Listing case updated.</response>
+        /// <response code="200">Listing case updated.</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Request validation failed.</response>
         /// <remarks>
@@ -159,7 +174,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPut("{listingCaseId}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<IActionResult> UpdateListingCaseAsync(int listingCaseId, [FromBody] UpdateListingCaseRequestDto updateListingCaseRequest, IValidator<UpdateListingCaseRequestDto> validator)
+        public async Task<ActionResult<PutResponse>> UpdateListingCaseAsync(int listingCaseId, [FromBody] UpdateListingCaseRequestDto updateListingCaseRequest, IValidator<UpdateListingCaseRequestDto> validator)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -188,7 +203,8 @@ namespace Remp.API.Controllers
             }
 
             await _listingCaseService.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, currentUserId);
-            return NoContent();
+            
+            return Ok(new PutResponse(true));
         }
 
         /// <summary>
@@ -197,7 +213,7 @@ namespace Remp.API.Controllers
         /// <param name="listingCaseId">
         /// The ID of the listing case to delete
         /// </param>
-        /// <returns>If success, returns a message "Listing case deleted successfully."</returns>
+        /// <returns>If success, returns a message "Deleted successfully."</returns>
         /// <response code="200">Listing case deleted</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to delete listing case</response>
@@ -206,7 +222,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpDelete("{listingCaseId:int}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<ActionResult<DeleteListingCaseResponseDto>> DeleteListingCaseByListingCaseIdAsync(int listingCaseId)
+        public async Task<ActionResult<DeleteResponse>> DeleteListingCaseByListingCaseIdAsync(int listingCaseId)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -216,9 +232,9 @@ namespace Remp.API.Controllers
                 return Forbid();
             }
 
-            var result = await _listingCaseService.DeleteListingCaseByListingCaseIdAsync(listingCaseId, currentUserId);
+            await _listingCaseService.DeleteListingCaseByListingCaseIdAsync(listingCaseId, currentUserId);
 
-            return Ok(result);
+            return Ok(new DeleteResponse(true));
         }
 
         /// <summary>
@@ -227,14 +243,14 @@ namespace Remp.API.Controllers
         /// <param name="listingCaseId">
         /// The ID of the listing case
         /// </param>
-        /// <returns></returns>
-        /// <response code="204">Listing case status updated</response>
+        /// <returns>If success, returns a message "Updated successfully."</returns>
+        /// <response code="200">Listing case status updated</response>
         /// <response code="400">Failed to update listing case status</response>
         /// <remarks>
         /// Updating listing case status must follow the workflow of the listing case (Created -> Pending -> Delivered).
         /// </remarks>
         [HttpPatch("{listingCaseId:int}/status")]
-        public async Task<IActionResult> UpdateListingCaseStatusAsync(int listingCaseId)
+        public async Task<ActionResult<PutResponse>> UpdateListingCaseStatusAsync(int listingCaseId)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -245,7 +261,8 @@ namespace Remp.API.Controllers
             }
 
             await _listingCaseService.UpdateListingCaseStatusAsync(listingCaseId, currentUserId);
-            return NoContent();
+
+            return Ok(new PutResponse(true));
         }
 
         /// <summary>
@@ -265,7 +282,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpGet("{listingCaseId:int}/media", Name = "GetListingCaseMediaByListingCaseIdAsync")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
-        public async Task<ActionResult<IEnumerable<MediaAssetDto>>> GetListingCaseMediaByListingCaseIdAsync(int listingCaseId)
+        public async Task<ActionResult<GetResponse<IEnumerable<MediaAssetDto>>>> GetListingCaseMediaByListingCaseIdAsync(int listingCaseId)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -283,7 +300,13 @@ namespace Remp.API.Controllers
             }
 
             var result = await _listingCaseService.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole);
-            return Ok(result);
+            
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new GetResponse<IEnumerable<MediaAssetDto>>(true, result));
         }
 
         /// <summary>
@@ -303,7 +326,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpGet("{listingCaseId:int}/contact", Name = "GetListingCaseContactByListingCaseIdAsync")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
-        public async Task<ActionResult<IEnumerable<CaseContactDto>>> GetListingCaseContactByListingCaseIdAsync(int listingCaseId)
+        public async Task<ActionResult<GetResponse<IEnumerable<CaseContactDto>>>> GetListingCaseContactByListingCaseIdAsync(int listingCaseId)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -321,7 +344,12 @@ namespace Remp.API.Controllers
             }
 
             var result = await _listingCaseService.GetListingCaseContactByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole);
-            return Ok(result);
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new GetResponse<IEnumerable<CaseContactDto>>(true, result));
         }
 
         /// <summary>
@@ -345,7 +373,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPost("{listingCaseId:int}/contact")]
         [Authorize(Roles = RoleNames.Agent)]
-        public async Task<ActionResult<CaseContactDto>> CreateCaseContactByListingCaseIdAsync(
+        public async Task<ActionResult<PostResponse<CaseContactDto>>> CreateCaseContactByListingCaseIdAsync(
             int listingCaseId, 
             [FromBody] CreateCaseContactRequestDto createCaseContactRequest,
             IValidator<CreateCaseContactRequestDto> validator)
@@ -362,7 +390,10 @@ namespace Remp.API.Controllers
 
             var result = await _listingCaseService.CreateCaseContactByListingCaseIdAsync(listingCaseId, createCaseContactRequest);
             
-            return CreatedAtRoute(nameof(GetListingCaseContactByListingCaseIdAsync), new { listingCaseId }, result);
+            return CreatedAtRoute(
+                nameof(GetListingCaseContactByListingCaseIdAsync), 
+                new { listingCaseId }, 
+                new PostResponse<CaseContactDto>(true, result));
         }
 
         /// <summary>
@@ -386,7 +417,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPost("{listingCaseId:int}/media")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        public async Task<ActionResult<MediaAssetDto>> CreateMediaByListingCaseIdAsync(
+        public async Task<ActionResult<PostResponse<IEnumerable<MediaAssetDto>>>> CreateMediaByListingCaseIdAsync(
             [FromForm] CreateMediaRequestDto createMediaRequestDto,
             int listingCaseId,
             IValidator<CreateMediaRequestDto> validator)
@@ -410,7 +441,15 @@ namespace Remp.API.Controllers
             }
 
             var result = await _listingCaseService.CreateMediaByListingCaseIdAsync(createMediaRequestDto.MediaFiles, (MediaType)Enum.Parse(typeof(MediaType), createMediaRequestDto.MediaType), listingCaseId, currentUserId);
-            return CreatedAtRoute(nameof(GetListingCaseMediaByListingCaseIdAsync), new { listingCaseId }, result);
+            
+            if (result == null)
+            {
+                return BadRequest();
+            }
+            return CreatedAtRoute(
+                nameof(GetListingCaseMediaByListingCaseIdAsync), 
+                new { listingCaseId }, 
+                new PostResponse<IEnumerable<MediaAssetDto>>(true, result));
         }
 
         /// <summary>
@@ -449,9 +488,9 @@ namespace Remp.API.Controllers
         /// The ID of the media asset
         /// </param>
         /// <returns>
-        /// Returns status code 204 if success
+        /// Returns status code 200 if success
         /// </returns>
-        /// <response code="204">Update successfully</response>
+        /// <response code="200">Update successfully</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to update cover image</response>
         /// <remarks>
@@ -463,11 +502,11 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPut("{listingCaseId:int}/cover-image")]
         [Authorize(Roles = RoleNames.Agent)]
-        public async Task<IActionResult> SetCoverImageByListingCaseIdAsync(int listingCaseId, [FromQuery] int mediaAssetId)
+        public async Task<ActionResult<PutResponse>> SetCoverImageByListingCaseIdAsync(int listingCaseId, [FromQuery] int mediaAssetId)
         {
             await _listingCaseService.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
             
-            return NoContent();
+            return Ok(new PutResponse(true));
         }
 
         /// <summary>
@@ -491,11 +530,11 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<MediaAssetDto>>> GetFinalSelectionByListingCaseIdAsync(int listingCaseId)
+        public async Task<ActionResult<GetResponse<IEnumerable<MediaAssetDto>>>> GetFinalSelectionByListingCaseIdAsync(int listingCaseId)
         {
             var result = await _listingCaseService.GetFinalSelectionByListingCaseIdAsync(listingCaseId);
 
-            return Ok(result);
+            return Ok(new GetResponse<IEnumerable<MediaAssetDto>>(true, result));
         }
 
         /// <summary>
@@ -509,9 +548,9 @@ namespace Remp.API.Controllers
         /// </param>
         /// <param name="validator"></param>
         /// <returns>
-        /// Returns status code 204 if success
+        /// Returns status code 200 if success
         /// </returns>
-        /// <response code="204">Update successfully</response>
+        /// <response code="200">Update successfully</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to set selected media</response>
         /// <remarks>
@@ -523,7 +562,7 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPut("{listingCaseId}/selected-media")]
         [Authorize(Roles = RoleNames.Agent)]
-        public async Task<IActionResult> SetSelectedMediaByListingCaseIdAsync(
+        public async Task<ActionResult<PutResponse>> SetSelectedMediaByListingCaseIdAsync(
             int listingCaseId, 
             [FromBody] SetSelectedMediaRequestDto setSelectedMediaRequestDto,
             IValidator<SetSelectedMediaRequestDto> validator)
@@ -548,16 +587,16 @@ namespace Remp.API.Controllers
 
             await _listingCaseService.SetSelectedMediaByListingCaseIdAsync(listingCaseId, setSelectedMediaRequestDto.MediaIds, currentUserId);
         
-            return NoContent();
+            return Ok(new PutResponse(true));
         }
 
 
         [HttpPost("{listingCaseId:int}/publish")]
-        public async Task<ActionResult<string>> GenerateSharedUrlAsync(int listingCaseId)
+        public async Task<ActionResult<PostResponse<string>>> GenerateSharedUrlAsync(int listingCaseId)
         {
             var result = await _listingCaseService.GenerateSharedUrlAsync(listingCaseId);
 
-            return Ok(result);
+            return Ok(new PostResponse<string>(true, result));
         }
     }
 }
