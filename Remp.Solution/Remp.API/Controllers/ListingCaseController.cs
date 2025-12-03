@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Remp.Common.Helpers;
 using Remp.Common.Helpers.ApiResponse;
+using Remp.Common.Utilities;
 using Remp.Models.Constants;
 using Remp.Models.Enums;
 using Remp.Service.DTOs;
@@ -97,8 +98,8 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(createListingCaseRequest);
             if (!validationResult.IsValid)
             {
-                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
-                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                validationResult.AddToModelState(ModelState);
+                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
                 // Log
                 CaseHistoryLog.LogCreateListingCase(
@@ -107,7 +108,7 @@ namespace Remp.API.Controllers
                     description: $"User failed to create listing case with erros: {errors}"
                 );
 
-                return ValidationProblem(problemDetails);
+                return ValidationProblem(ModelState);
             }
 
             var result = await _listingCaseService.CreateListingCaseAsync(createListingCaseRequest);
@@ -203,8 +204,8 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(updateListingCaseRequest);
             if (!validationResult.IsValid)
             {
-                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
-                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                validationResult.AddToModelState(ModelState);
+                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
                 // Log
                 CaseHistoryLog.LogUpdateListingCase(
@@ -214,7 +215,7 @@ namespace Remp.API.Controllers
                     description: $"User failed to update listing case with erros: {errors}"
                 );
 
-                return ValidationProblem(problemDetails);
+                return ValidationProblem(ModelState);
             }
 
             await _listingCaseService.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, currentUserId);
@@ -415,10 +416,10 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(createCaseContactRequest);
             if (!validationResult.IsValid)
             {
-                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
-                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                validationResult.AddToModelState(ModelState);
+                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
                 
-                return ValidationProblem(problemDetails);
+                return ValidationProblem(ModelState);
             }
 
             var result = await _listingCaseService.CreateCaseContactByListingCaseIdAsync(listingCaseId, createCaseContactRequest);
@@ -462,10 +463,10 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(createMediaRequestDto);
             if (!validationResult.IsValid)
             {
-                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
-                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                validationResult.AddToModelState(ModelState);
+                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
-                return ValidationProblem(problemDetails);
+                return ValidationProblem(ModelState);
             }
 
             // Get current user id
@@ -617,10 +618,10 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(setSelectedMediaRequestDto);
             if (!validationResult.IsValid)
             {
-                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
-                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                validationResult.AddToModelState(ModelState);
+                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
-                return ValidationProblem(problemDetails);
+                return ValidationProblem(ModelState);
             }
 
             await _listingCaseService.SetSelectedMediaByListingCaseIdAsync(listingCaseId, setSelectedMediaRequestDto.MediaIds, currentUserId);

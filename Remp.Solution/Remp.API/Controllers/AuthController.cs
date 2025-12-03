@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Remp.Common.Helpers.ApiResponse;
+using Remp.Common.Utilities;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using Remp.Service.Services;
@@ -41,15 +42,16 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(loginRequest);
             if (!validationResult.IsValid)
             {
-                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
-                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                validationResult.AddToModelState(ModelState);
+                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
                 UserActivityLog.LogLogin(
                     email: loginRequest.Email,
                     userId: null,
                     description: $"User failed to login with erros: {errors}"
                 );
-                return ValidationProblem(problemDetails);
+
+                return ValidationProblem(ModelState);
             }
 
             var result = await _authService.LoginAsync(loginRequest);
@@ -81,19 +83,15 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(registerRequest);
             if (!validationResult.IsValid)
             {
-                foreach(var error in validationResult.Errors)
-                {
-                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
-                }
-
-                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
-                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                validationResult.AddToModelState(ModelState);
+                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
                 UserActivityLog.LogRegister(
                     email: registerRequest.Email,
                     userId: null,
                     description: $"User failed to register with erros: {errors}"
                 );
+
                 return ValidationProblem(ModelState);
             }
 

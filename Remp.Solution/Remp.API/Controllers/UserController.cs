@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Remp.Common.Helpers;
 using Remp.Common.Helpers.ApiResponse;
+using Remp.Common.Utilities;
 using Remp.Models.Constants;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
@@ -166,10 +167,10 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(createAgentAccountRequestDto);
             if (!validationResult.IsValid)
             {
-                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
-                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                validationResult.AddToModelState(ModelState);
+                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
-                return ValidationProblem(problemDetails);
+                return ValidationProblem(ModelState);
             }
 
             // Get current user id
@@ -226,10 +227,10 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(searchAgentRequestDto);
             if (!validationResult.IsValid)
             {
-                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
-                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                validationResult.AddToModelState(ModelState);
+                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
-                return ValidationProblem(problemDetails);
+                return ValidationProblem(ModelState);
             }
 
             var result = await _userService.GetAgentByEmailAsync(searchAgentRequestDto.Email);
@@ -304,15 +305,15 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(updatePasswordRequestDto);
             if (!validationResult.IsValid)
             {
-                var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
-                string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
+                validationResult.AddToModelState(ModelState);
+                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
                 // Log
                 UserActivityLog.LogUpdatePassword(
                     userId: currentUserId,
                     description: $"User {currentUserId} failed to update password because of the errors: {errors}");
 
-                return ValidationProblem(problemDetails);
+                return ValidationProblem(ModelState);
             }
 
             var result = await _userService.UpdatePasswordAsync(updatePasswordRequestDto, currentUserId);
