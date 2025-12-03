@@ -81,6 +81,11 @@ namespace Remp.API.Controllers
             var validationResult = await validator.ValidateAsync(registerRequest);
             if (!validationResult.IsValid)
             {
+                foreach(var error in validationResult.Errors)
+                {
+                    ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+                }
+
                 var problemDetails = new ValidationProblemDetails(validationResult.ToDictionary());
                 string errors = string.Join("| ", problemDetails.Errors.Select(e => $"{e.Key}: {string.Join(" ", e.Value)}"));
 
@@ -89,7 +94,7 @@ namespace Remp.API.Controllers
                     userId: null,
                     description: $"User failed to register with erros: {errors}"
                 );
-                return ValidationProblem(problemDetails);
+                return ValidationProblem(ModelState);
             }
 
             // Upload avatar to Azure blob storage
