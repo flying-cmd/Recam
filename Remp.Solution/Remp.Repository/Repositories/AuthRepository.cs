@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Remp.DataAccess.Data;
 using Remp.Models.Entities;
 using Remp.Repository.Interfaces;
@@ -27,9 +28,23 @@ public class AuthRepository : IAuthRepository
 
         try
         {
-            await _userManager.CreateAsync(user, password);
+            var createdUser = await _userManager.CreateAsync(user, password);
+            if (!createdUser.Succeeded)
+            {
+                await transaction.RollbackAsync();
 
-            await _userManager.AddToRoleAsync(user, role);
+                var errors = string.Join("; ", createdUser.Errors.Select(e => e.Description));
+                throw new Exception($"Failed to create user: {errors}");
+            }
+
+            var roleResult = await _userManager.AddToRoleAsync(user, role);
+            if (!roleResult.Succeeded)
+            {
+                await transaction.RollbackAsync();
+
+                var errors = string.Join("; ", roleResult.Errors.Select(e => e.Description));
+                throw new Exception($"Failed to add role to user: {errors}");
+            }
 
             _dbContext.Agents.Add(agent);
             await _dbContext.SaveChangesAsync();
@@ -39,7 +54,7 @@ public class AuthRepository : IAuthRepository
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            throw new Exception(ex.Message);
+            throw;
         }
     }
 
