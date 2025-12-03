@@ -100,11 +100,6 @@ public class AuthControllerTests
             Avatar = avatarFile.Object
         };
 
-        var blobStorageServiceMock = new Mock<IBlobStorageService>();
-        blobStorageServiceMock
-            .Setup(b => b.UploadFileAsync(request.Avatar))
-            .ReturnsAsync("https://avatar_url");
-
         var validatorMock = new Mock<IValidator<RegisterRequestDto>>();
         validatorMock
             .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
@@ -112,7 +107,7 @@ public class AuthControllerTests
 
         _authServiceMock
             .Setup(s => s.RegisterAsync(
-                It.Is<RegisterUserDto>(
+                It.Is<RegisterRequestDto>(
                     u => u.Email == request.Email &&
                     u.Password == request.Password &&
                     u.ConfirmPassword == request.ConfirmPassword &&
@@ -124,7 +119,7 @@ public class AuthControllerTests
             .ReturnsAsync("jwt-token");
     
         // Act
-        var result = await _authController.Register(request, blobStorageServiceMock.Object, validatorMock.Object);
+        var result = await _authController.Register(request, validatorMock.Object);
     
         // Assert
         var okResult = result.Result as ObjectResult;
@@ -137,10 +132,9 @@ public class AuthControllerTests
         response.Message.Should().Be("Registered successfully");
 
         validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
-        blobStorageServiceMock.Verify(b => b.UploadFileAsync(request.Avatar), Times.Once);
         _authServiceMock
             .Verify(a => a.RegisterAsync(
-                It.Is<RegisterUserDto>(
+                It.Is<RegisterRequestDto>(
                     u => u.Email == request.Email &&
                     u.Password == request.Password &&
                     u.ConfirmPassword == request.ConfirmPassword &&
@@ -166,11 +160,6 @@ public class AuthControllerTests
             Avatar = avatarFile.Object
         };
 
-        var blobStorageServiceMock = new Mock<IBlobStorageService>();
-        blobStorageServiceMock
-            .Setup(b => b.UploadFileAsync(request.Avatar))
-            .ReturnsAsync("https://avatar_url");
-
         var validatorMock = new Mock<IValidator<RegisterRequestDto>>();
         var emailFailure = new ValidationFailure("Email", "Invalid email address");
         var firtNameFailure = new ValidationFailure("FirstName", "First name is required");
@@ -181,7 +170,7 @@ public class AuthControllerTests
             .ReturnsAsync(new ValidationResult(new [] { emailFailure, firtNameFailure, lastNameFailure }));
 
         // Act
-        var result = await _authController.Register(request, blobStorageServiceMock.Object, validatorMock.Object);
+        var result = await _authController.Register(request, validatorMock.Object);
     
         // Assert
         var badRequestResult = result.Result as ObjectResult;
@@ -195,10 +184,9 @@ public class AuthControllerTests
         problem.Errors.Should().ContainKey("LastName");
 
         validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
-        blobStorageServiceMock.Verify(b => b.UploadFileAsync(request.Avatar), Times.Never);
         _authServiceMock
             .Verify(a => a.RegisterAsync(
-                It.IsAny<RegisterUserDto>()), 
+                It.IsAny<RegisterRequestDto>()), 
                 Times.Never);
     }
 }
