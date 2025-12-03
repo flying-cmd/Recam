@@ -35,6 +35,9 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpDelete("{id:int}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeleteResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<DeleteResponse>> DeleteMediaByIdAsync(int id)
         {
             // Get current user id
@@ -58,8 +61,17 @@ namespace Remp.API.Controllers
         /// <returns>
         /// The media file
         /// </returns>
+        /// <response code="200">Returns the media file</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to download media</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> or <c>Agent</c> role.
+        /// </remarks>
         [HttpGet("download/{mediaAssetId:int}")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<IActionResult> DownloadMediaById(int mediaAssetId)
         {
             var (fileStream, contentType, fileName) = await _mediaService.DownloadMediaByIdAsync(mediaAssetId);

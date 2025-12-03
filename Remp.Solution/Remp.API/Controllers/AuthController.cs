@@ -33,6 +33,8 @@ namespace Remp.API.Controllers
         /// <response code="200">User logged in</response>
         /// <response code="400">Email or password is invalid</response>
         [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostResponse<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> Login([FromBody] LoginRequestDto loginRequest, IValidator<LoginRequestDto> validator)
         {
             // Validate
@@ -68,6 +70,8 @@ namespace Remp.API.Controllers
         /// <response code="200">User registered.</response>
         /// <response code="400">Request validation failed.</response>
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostResponse<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> Register(
             [FromForm] RegisterRequestDto registerRequest, 
             [FromServices] IBlobStorageService blobStorageService,

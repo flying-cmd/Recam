@@ -42,6 +42,9 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpGet]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<PagedResult<CreateAgentAccountResponseDto>>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<GetResponse<PagedResult<CreateAgentAccountResponseDto>>>> GetAgentsAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
         {
             var result = await _userService.GetAgentsAsync(pageNumer, pageSize);
@@ -56,11 +59,15 @@ namespace Remp.API.Controllers
         /// </returns>
         /// <response code="200">Returns current user information including user Id, role and listing case Ids which the user has.</response>
         /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to get current user information</response>
         /// <remarks>
         /// This endpoint is restricted to users in the <c>Agent</c> role.
         /// </remarks>
         [HttpGet("~/api/users/me")]
         [Authorize(Roles = RoleNames.Agent)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<UserInfoResponseDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<GetResponse<UserInfoResponseDto>>> GetCurrentUserInfoAsync()
         {
             // Get current user
@@ -104,6 +111,9 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPut("photography-company/agent/{agentId}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> AddAgentByIdAsync(string agentId)
         {
             // Get current user id
@@ -143,6 +153,9 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPost("agent")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostResponse<string>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> CreateAgentAccountAsync(
             [FromBody] CreateAgentAccountRequestDto createAgentAccountRequestDto,
             IValidator<CreateAgentAccountRequestDto> validator,
@@ -202,6 +215,9 @@ namespace Remp.API.Controllers
         /// <response code="404">Not found the agent</response>
         /// <response code="400">Invalid email</response>
         [HttpGet("agent/search")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<SearchAgentResponseDto>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<GetResponse<SearchAgentResponseDto>>> GetAgentByEmailAsync(
             [FromQuery] SearchAgentRequestDto searchAgentRequestDto,
             IValidator<SearchAgentRequestDto> validator)
@@ -235,8 +251,12 @@ namespace Remp.API.Controllers
         /// </returns>
         /// <response code="200">Returns a list of agents under the photography company</response>
         /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to get agents under photography company</response>
         [HttpGet("agentlists")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<IEnumerable<SearchAgentResponseDto>>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<GetResponse<IEnumerable<SearchAgentResponseDto>>>> GetAgentsUnderPhotographyCompanyAsync()
         {
             // Get current user id
@@ -267,6 +287,9 @@ namespace Remp.API.Controllers
         /// <response code="400">Failed to update password</response>
         [HttpPut("password")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UpdateApiResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<UpdateApiResponse>> UpdatePasswordAsync([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto, IValidator<UpdatePasswordRequestDto> validator)
         {
             // Get current user id

@@ -40,6 +40,10 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpGet("{listingCaseId:int}", Name = "GetListingCaseByListingCaseIdAsync")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<ListingCaseDetailResponseDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GetResponse<ListingCaseDetailResponseDto>>> GetListingCaseByListingCaseIdAsync(int listingCaseId)
         {
             var currentUser = HttpContext.User;
@@ -82,6 +86,9 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPost]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PostResponse<ListingCaseResponseDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<PostResponse<ListingCaseResponseDto>>> CreateListingCase(
             [FromBody] CreateListingCaseRequestDto createListingCaseRequest, 
             IValidator<CreateListingCaseRequestDto> validator)
@@ -125,11 +132,16 @@ namespace Remp.API.Controllers
         /// <response code="200">Returns a list of listing cases, current page number, page size, total pages and total count</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Invalid page number or page size</response>
+        /// <response code="404">No listing cases found</response>
         /// <remarks>
         /// This endpoint is restricted to users in the <c>PhotographyCompany</c> or <c>Agent</c> roles.
         /// </remarks>
         [HttpGet]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<PagedResult<ListingCaseResponseDto>>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GetResponse<PagedResult<ListingCaseResponseDto>>>> GetAllListingCasesAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
         {
             var currentUser = HttpContext.User;
@@ -174,6 +186,9 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPut("{listingCaseId}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> UpdateListingCaseAsync(int listingCaseId, [FromBody] UpdateListingCaseRequestDto updateListingCaseRequest, IValidator<UpdateListingCaseRequestDto> validator)
         {
             // Get current user id
@@ -222,6 +237,9 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpDelete("{listingCaseId:int}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeleteResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<DeleteResponse>> DeleteListingCaseByListingCaseIdAsync(int listingCaseId)
         {
             // Get current user id
@@ -250,6 +268,8 @@ namespace Remp.API.Controllers
         /// Updating listing case status must follow the workflow of the listing case (Created -> Pending -> Delivered).
         /// </remarks>
         [HttpPatch("{listingCaseId:int}/status")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> UpdateListingCaseStatusAsync(int listingCaseId)
         {
             // Get current user id
@@ -277,11 +297,16 @@ namespace Remp.API.Controllers
         /// <response code="200">Returns a list of media assets</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to get media assets</response>
+        /// <response code="404">Media assets not found</response>
         /// <remarks>
         /// This endpoint is restricted to the phtography companiey who created the listing case and the agent who is assigned the listing case.
         /// </remarks>
         [HttpGet("{listingCaseId:int}/media", Name = "GetListingCaseMediaByListingCaseIdAsync")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<IEnumerable<MediaAssetDto>>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GetResponse<IEnumerable<MediaAssetDto>>>> GetListingCaseMediaByListingCaseIdAsync(int listingCaseId)
         {
             // Get current user id
@@ -321,11 +346,16 @@ namespace Remp.API.Controllers
         /// <response code="200">Returns a list of contact information</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to get contact information</response>
+        /// <response code="404">Contact not found</response>
         /// <remarks>
         /// This endpoint is restricted to the phtography companiey who created the listing case and the agent who is assigned the listing case.
         /// </remarks>
         [HttpGet("{listingCaseId:int}/contact", Name = "GetListingCaseContactByListingCaseIdAsync")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<IEnumerable<CaseContactDto>>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GetResponse<IEnumerable<CaseContactDto>>>> GetListingCaseContactByListingCaseIdAsync(int listingCaseId)
         {
             // Get current user id
@@ -373,6 +403,9 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPost("{listingCaseId:int}/contact")]
         [Authorize(Roles = RoleNames.Agent)]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PostResponse<CaseContactDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<CaseContactDto>>> CreateCaseContactByListingCaseIdAsync(
             int listingCaseId, 
             [FromBody] CreateCaseContactRequestDto createCaseContactRequest,
@@ -417,6 +450,9 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPost("{listingCaseId:int}/media")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PostResponse<IEnumerable<MediaAssetDto>>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<IEnumerable<MediaAssetDto>>>> CreateMediaByListingCaseIdAsync(
             [FromForm] CreateMediaRequestDto createMediaRequestDto,
             int listingCaseId,
@@ -469,8 +505,7 @@ namespace Remp.API.Controllers
         [Produces("application/zip")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<IActionResult> DownloadAllMediaByListingCaseIdAsync(int listingCaseId)
         {
             var (zipStream, contentType, fileName) = await _listingCaseService.DownloadAllMediaByListingCaseIdAsync(listingCaseId);
@@ -496,12 +531,11 @@ namespace Remp.API.Controllers
         /// <remarks>
         /// This endpoint is restricted to users in the <c>Agent</c> role.
         /// </remarks>
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPut("{listingCaseId:int}/cover-image")]
         [Authorize(Roles = RoleNames.Agent)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> SetCoverImageByListingCaseIdAsync(int listingCaseId, [FromQuery] int mediaAssetId)
         {
             await _listingCaseService.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
@@ -521,19 +555,24 @@ namespace Remp.API.Controllers
         /// <response code="200">Returns a list of final selected media assets</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to get final selected media assets</response>
+        /// <response code="404">Final selected media assets not found</response>
         /// <remarks>
         /// This endpoint is restricted to users in the <c>PhotographyCompany</c> and <c>Agent</c> role.
         /// </remarks>
         [HttpGet("{listingCaseId:int}/final-selection")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<MediaAssetDto>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<IEnumerable<MediaAssetDto>>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GetResponse<IEnumerable<MediaAssetDto>>>> GetFinalSelectionByListingCaseIdAsync(int listingCaseId)
         {
             var result = await _listingCaseService.GetFinalSelectionByListingCaseIdAsync(listingCaseId);
 
+            if (result == null)
+            {
+                return NotFound();
+            }
             return Ok(new GetResponse<IEnumerable<MediaAssetDto>>(true, result));
         }
 
@@ -556,12 +595,11 @@ namespace Remp.API.Controllers
         /// <remarks>
         /// This endpoint is restricted to users in the <c>Agent</c> role.
         /// </remarks>
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPut("{listingCaseId}/selected-media")]
         [Authorize(Roles = RoleNames.Agent)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> SetSelectedMediaByListingCaseIdAsync(
             int listingCaseId, 
             [FromBody] SetSelectedMediaRequestDto setSelectedMediaRequestDto,
@@ -590,8 +628,20 @@ namespace Remp.API.Controllers
             return Ok(new PutResponse(true));
         }
 
-
+        /// <summary>
+        /// Generate shared url for a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <returns>
+        /// Returns the shared url
+        /// </returns>
+        /// <response code="200">Returns the shared url</response>
+        /// <response code="400">Failed to generate shared url</response>
         [HttpPost("{listingCaseId:int}/publish")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostResponse<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> GenerateSharedUrlAsync(int listingCaseId)
         {
             var result = await _listingCaseService.GenerateSharedUrlAsync(listingCaseId);
