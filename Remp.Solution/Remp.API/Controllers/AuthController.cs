@@ -75,8 +75,7 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostResponse<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> Register(
-            [FromForm] RegisterRequestDto registerRequest, 
-            [FromServices] IBlobStorageService blobStorageService,
+            [FromForm] RegisterRequestDto registerRequest,
             [FromServices] IValidator<RegisterRequestDto> validator)
         {
             // Validate
@@ -95,21 +94,7 @@ namespace Remp.API.Controllers
                 return ValidationProblem(ModelState);
             }
 
-            // Upload avatar to Azure blob storage
-            var avatarUrl = await blobStorageService.UploadFileAsync(registerRequest.Avatar);
-
-            var registerUser = new RegisterUserDto
-            (
-                email: registerRequest.Email,
-                password: registerRequest.Password,
-                confirmPassword: registerRequest.ConfirmPassword,
-                firstName: registerRequest.FirstName,
-                lastName: registerRequest.LastName,
-                companyName: registerRequest.CompanyName,
-                avatarUrl: avatarUrl
-            );
-
-            var result = await _authService.RegisterAsync(registerUser);
+            var result = await _authService.RegisterAsync(registerRequest);
             
             return Ok(new PostResponse<string>(true, result, "Registered successfully"));
         }

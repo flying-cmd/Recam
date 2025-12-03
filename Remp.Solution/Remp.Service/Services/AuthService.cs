@@ -11,11 +11,13 @@ public class AuthService : IAuthService
 {
     private readonly IAuthRepository _authRepository;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IBlobStorageService _blobStorageService;
 
-    public AuthService(IAuthRepository authRepository, IJwtTokenService jwtTokenService)
+    public AuthService(IAuthRepository authRepository, IJwtTokenService jwtTokenService, IBlobStorageService blobStorageService)
     {
         _authRepository = authRepository;
         _jwtTokenService = jwtTokenService;
+        _blobStorageService = blobStorageService;
     }
 
     public async Task<string> LoginAsync(LoginRequestDto loginRequest)
@@ -54,8 +56,9 @@ public class AuthService : IAuthService
         return token;
     }
 
-    public async Task<string> RegisterAsync(RegisterUserDto registerUser)
+    public async Task<string> RegisterAsync(RegisterRequestDto registerUser)
     {
+        // Check if the email already exists
         var emailExists = await _authRepository.FindByEmailAsync(registerUser.Email);
         
         if (emailExists != null)
@@ -67,6 +70,9 @@ public class AuthService : IAuthService
             );
             throw new RegisterException(message: "Email already exists", title: "Email already exists");
         }
+
+        // Upload avatar to blob storage
+        var avatarUrl = await _blobStorageService.UploadFileAsync(registerUser.Avatar);
 
         var user = new User()
         {
@@ -80,7 +86,7 @@ public class AuthService : IAuthService
             AgentFirstName = registerUser.FirstName,
             AgentLastName = registerUser.LastName,
             CompanyName = registerUser.CompanyName,
-            AvataUrl = registerUser.AvatarUrl,
+            AvataUrl = avatarUrl
         };
 
         // Create Agent
