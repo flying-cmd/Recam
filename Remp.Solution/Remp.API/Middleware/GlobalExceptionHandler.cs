@@ -46,7 +46,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             ArgumentErrorException ae => (ae.StatusCode, ae.Title),
             NotFoundException ne => (ne.StatusCode, ne.Title),
             UnauthorizedException ue => (ue.StatusCode, ue.Title),
-            RegisterException re => (re.StatusCode, re.Title),
+            InvalidException re => (re.StatusCode, re.Title),
+            DbErrorException de => (de.StatusCode, de.Title),
             _ => (HttpStatusCode.InternalServerError, "Internal Server Error")
         };
     }

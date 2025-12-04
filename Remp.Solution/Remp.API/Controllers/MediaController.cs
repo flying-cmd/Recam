@@ -27,7 +27,7 @@ namespace Remp.API.Controllers
         /// <returns>
         /// If success, returns a message "Media deleted successfully."
         /// </returns>
-        /// <response code="200">Media deleted</response>
+        /// <response code="204">Media deleted</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to delete media</response>
         /// <remarks>
@@ -35,7 +35,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpDelete("{id:int}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeleteResponse))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(DeleteResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<DeleteResponse>> DeleteMediaByIdAsync(int id)
@@ -49,7 +49,7 @@ namespace Remp.API.Controllers
             }
 
             await _mediaService.DeleteMediaByIdAsync(id, currentUserId);
-            return Ok(new DeleteResponse(true));
+            return StatusCode(204, new DeleteResponse(true));
         }
 
         /// <summary>

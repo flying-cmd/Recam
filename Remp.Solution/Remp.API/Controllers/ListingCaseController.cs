@@ -170,7 +170,7 @@ namespace Remp.API.Controllers
         /// </param>
         /// <param name="validator"></param>
         /// <returns></returns>
-        /// <response code="200">Listing case updated.</response>
+        /// <response code="204">Listing case updated.</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Request validation failed.</response>
         /// <remarks>
@@ -178,7 +178,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPut("{listingCaseId}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> UpdateListingCaseAsync(int listingCaseId, [FromBody] UpdateListingCaseRequestDto updateListingCaseRequest, IValidator<UpdateListingCaseRequestDto> validator)
@@ -211,7 +211,7 @@ namespace Remp.API.Controllers
 
             await _listingCaseService.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, currentUserId);
             
-            return Ok(new PutResponse(true));
+            return StatusCode(204, new PutResponse(true));
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace Remp.API.Controllers
         /// The ID of the listing case to delete
         /// </param>
         /// <returns>If success, returns a message "Deleted successfully."</returns>
-        /// <response code="200">Listing case deleted</response>
+        /// <response code="204">Listing case deleted</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to delete listing case</response>
         /// <remarks>
@@ -229,7 +229,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpDelete("{listingCaseId:int}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeleteResponse))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(DeleteResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<DeleteResponse>> DeleteListingCaseByListingCaseIdAsync(int listingCaseId)
@@ -244,7 +244,7 @@ namespace Remp.API.Controllers
 
             await _listingCaseService.DeleteListingCaseByListingCaseIdAsync(listingCaseId, currentUserId);
 
-            return Ok(new DeleteResponse(true));
+            return StatusCode(204, new DeleteResponse(true));
         }
 
         /// <summary>
@@ -254,14 +254,14 @@ namespace Remp.API.Controllers
         /// The ID of the listing case
         /// </param>
         /// <returns>If success, returns a message "Updated successfully."</returns>
-        /// <response code="200">Listing case status updated</response>
+        /// <response code="204">Listing case status updated</response>
         /// <response code="400">Failed to update listing case status</response>
         /// <remarks>
         /// Updating listing case status must follow the workflow of the listing case (Created -> Pending -> Delivered).
         /// </remarks>
         [HttpPatch("{listingCaseId:int}/status")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> UpdateListingCaseStatusAsync(int listingCaseId)
         {
@@ -275,7 +275,7 @@ namespace Remp.API.Controllers
 
             await _listingCaseService.UpdateListingCaseStatusAsync(listingCaseId, currentUserId);
 
-            return Ok(new PutResponse(true));
+            return StatusCode(204, new PutResponse(true));
         }
 
         /// <summary>
@@ -505,7 +505,7 @@ namespace Remp.API.Controllers
         /// <returns>
         /// Returns status code 200 if success
         /// </returns>
-        /// <response code="200">Update successfully</response>
+        /// <response code="204">Update successfully</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to update cover image</response>
         /// <remarks>
@@ -513,14 +513,14 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPut("{listingCaseId:int}/cover-image")]
         [Authorize(Roles = RoleNames.Agent)]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> SetCoverImageByListingCaseIdAsync(int listingCaseId, [FromQuery] int mediaAssetId)
         {
             await _listingCaseService.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
             
-            return Ok(new PutResponse(true));
+            return StatusCode(204, new PutResponse(true));
         }
 
         /// <summary>
@@ -565,7 +565,7 @@ namespace Remp.API.Controllers
         /// <returns>
         /// Returns status code 200 if success
         /// </returns>
-        /// <response code="200">Update successfully</response>
+        /// <response code="204">Update successfully</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to set selected media</response>
         /// <remarks>
@@ -573,7 +573,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPut("{listingCaseId}/selected-media")]
         [Authorize(Roles = RoleNames.Agent)]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> SetSelectedMediaByListingCaseIdAsync(
@@ -601,7 +601,7 @@ namespace Remp.API.Controllers
 
             await _listingCaseService.SetSelectedMediaByListingCaseIdAsync(listingCaseId, setSelectedMediaRequestDto.MediaIds, currentUserId);
         
-            return Ok(new PutResponse(true));
+            return StatusCode(204, new PutResponse(true));
         }
 
         /// <summary>

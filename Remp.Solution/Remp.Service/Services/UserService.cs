@@ -69,7 +69,7 @@ public class UserService : IUserService
                 description: "Failed to create agent account because the email already exists"
                 );
 
-            throw new RegisterException(message: "Email already exists", title: "Email already exists");
+            throw new ArgumentErrorException(message: "Email already exists", title: "Email already exists");
         }
 
         // Generate random password
@@ -101,7 +101,7 @@ public class UserService : IUserService
                     description: $"Failed to create agent account with errors: {errors}"
                     );
 
-                throw new RegisterException(
+                throw new DbErrorException(
                     message: $"Failed to create Identity user with errors: {errors}",
                     title: "Failed to create agent account");
             }
@@ -120,7 +120,7 @@ public class UserService : IUserService
                     description: $"Failed to assign {RoleNames.Agent} role to Identity user with errors: {errors}"
                     );
 
-                throw new RegisterException(
+                throw new DbErrorException(
                     message: $"Failed to assign {RoleNames.Agent} role to Identity user with errors: {errors}",
                     title: "Failed to create agent account");
             }
@@ -199,7 +199,7 @@ public class UserService : IUserService
         return await _userRepository.GetUserListingCaseIdsAsync(currentUserId);
     }
 
-    public async Task<UpdateApiResponse> UpdatePasswordAsync(UpdatePasswordRequestDto updatePasswordRequestDto, string userId)
+    public async Task UpdatePasswordAsync(UpdatePasswordRequestDto updatePasswordRequestDto, string userId)
     {
         // Check if the user exists
         var user = await _userManager.FindByIdAsync(userId);
@@ -208,20 +208,20 @@ public class UserService : IUserService
             throw new NotFoundException(message: $"User {userId} does not exist", title: "User does not exist");
         }
 
+        // Check if the old password is correct
+        var checkPasswordResult = await _userManager.CheckPasswordAsync(user, updatePasswordRequestDto.OldPassword);
+        if (!checkPasswordResult)
+        {
+            throw new UnauthorizedException(message: $"Old password is incorrect", title: "Old password is incorrect");
+        }
+
         // Update password
         var result = await _userManager.ChangePasswordAsync(user, updatePasswordRequestDto.OldPassword, updatePasswordRequestDto.NewPassword);
         if (!result.Succeeded)
         {
             var errors = string.Join("| ", result.Errors.Select(x => x.Description));
 
-            return new UpdateApiResponse(
-                false,
-                message: "Failed to update password.",
-                errors);
+            throw new DbErrorException(message: $"Failed to update password with errors: {errors}", title: "Failed to update password");
         }
-
-        return new UpdateApiResponse(
-            true,
-            message: "Password updated successfully.");
     }
 }

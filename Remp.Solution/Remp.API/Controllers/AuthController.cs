@@ -64,15 +64,14 @@ namespace Remp.API.Controllers
         /// <param name="registerRequest">
         /// The payload containing the details of the user to register.
         /// </param>
-        /// <param name="blobStorageService"></param>
         /// <param name="validator"></param>
         /// <returns>
         /// Returns the jwt token.
         /// </returns>
-        /// <response code="200">User registered.</response>
+        /// <response code="201">User registered.</response>
         /// <response code="400">Request validation failed.</response>
         [HttpPost("register")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostResponse<string>))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PostResponse<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> Register(
             [FromForm] RegisterRequestDto registerRequest,
@@ -96,7 +95,7 @@ namespace Remp.API.Controllers
 
             var result = await _authService.RegisterAsync(registerRequest);
             
-            return Ok(new PostResponse<string>(true, result, "Registered successfully"));
+            return StatusCode(201, new PostResponse<string>(true, result, "Registered successfully"));
         }
     }
 }

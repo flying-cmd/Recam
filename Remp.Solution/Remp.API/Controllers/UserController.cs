@@ -104,7 +104,7 @@ namespace Remp.API.Controllers
         /// <returns>
         /// Returns status code 200 if success. Returns status code 400 if failed.
         /// </returns>
-        /// <response code="200">Agent added</response>
+        /// <response code="204">Agent added</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to add agent or agent has already been added</response>
         /// <remarks>
@@ -112,7 +112,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPut("photography-company/agent/{agentId}")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> AddAgentByIdAsync(string agentId)
@@ -132,7 +132,7 @@ namespace Remp.API.Controllers
                 return BadRequest();
             }
 
-            return Ok(new PutResponse(true));
+            return StatusCode(204, new PutResponse(true));
         }
 
         /// <summary>
@@ -283,15 +283,15 @@ namespace Remp.API.Controllers
         /// <returns>
         /// Returns a message indicating whether the password is updated successfully or not.
         /// </returns>
-        /// <response code="200">Returns a message indicating the password is updated successfully</response>
+        /// <response code="204">Returns a message indicating the password is updated successfully</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to update password</response>
         [HttpPut("password")]
         [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UpdateApiResponse))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-        public async Task<ActionResult<UpdateApiResponse>> UpdatePasswordAsync([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto, IValidator<UpdatePasswordRequestDto> validator)
+        public async Task<ActionResult<PutResponse>> UpdatePasswordAsync([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto, IValidator<UpdatePasswordRequestDto> validator)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -316,23 +316,13 @@ namespace Remp.API.Controllers
                 return ValidationProblem(ModelState);
             }
 
-            var result = await _userService.UpdatePasswordAsync(updatePasswordRequestDto, currentUserId);
+            await _userService.UpdatePasswordAsync(updatePasswordRequestDto, currentUserId);
             
-            if (result.Success)
-            {
-                // Log
-                UserActivityLog.LogUpdatePassword(
-                    userId: currentUserId);
-
-                return Ok(new PutResponse(true));
-            }
-
             // Log
             UserActivityLog.LogUpdatePassword(
-                userId: currentUserId,
-                description: $"User {currentUserId} failed to update password because of the errors: {result.Error}");
+                userId: currentUserId);
 
-            return BadRequest();
+            return StatusCode(204, new PutResponse(true));
         }
     }
 }

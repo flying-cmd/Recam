@@ -68,7 +68,7 @@ public class AuthService : IAuthService
                 userId: null,
                 description: "User failed to register because email already exists"
             );
-            throw new RegisterException(message: "Email already exists", title: "Email already exists");
+            throw new ArgumentErrorException(message: "Email already exists", title: "Email already exists");
         }
 
         // Upload avatar to blob storage
