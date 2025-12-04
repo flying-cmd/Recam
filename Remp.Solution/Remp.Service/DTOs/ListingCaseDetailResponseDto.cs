@@ -25,6 +25,6 @@ public class ListingCaseDetailResponseDto
     public string SaleCategory { get; set; } = null!;
     public string ListingCaseStatus { get; set; } = null!;
     public string UserId { get; set; } = null!;
-    public IEnumerable<MediaAsset> MediaAssets { get; set; } = new List<MediaAsset>();
-    public IEnumerable<CaseContact> CaseContacts { get; set; } = new List<CaseContact>();
+    public IEnumerable<MediaAssetDto> MediaAssets { get; set; } = new List<MediaAssetDto>();
+    public IEnumerable<CaseContactDto> CaseContacts { get; set; } = new List<CaseContactDto>();
 }
