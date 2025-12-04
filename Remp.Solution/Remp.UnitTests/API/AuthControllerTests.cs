@@ -123,7 +123,7 @@ public class AuthControllerTests
         // Assert
         var okResult = result.Result as ObjectResult;
         okResult.Should().NotBeNull();
-        okResult.StatusCode.Should().Be(200);
+        okResult.StatusCode.Should().Be(201);
     
         var response = okResult.Value as PostResponse<string>;
         response!.Success.Should().BeTrue();

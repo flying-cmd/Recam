@@ -387,8 +387,9 @@ public class ListingCaseControllerTests
 
         // Assert
         result.Result.Should().NotBeNull();
-        var updatedResult = Assert.IsType<OkObjectResult>(result.Result);
-        var response = Assert.IsType<PutResponse>(updatedResult.Value);
+        var requestResult = Assert.IsType<ObjectResult>(result.Result);
+        requestResult.StatusCode.Should().Be(204);
+        var response = Assert.IsType<PutResponse>(requestResult.Value);
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Updated successfully");
         validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
@@ -422,8 +423,9 @@ public class ListingCaseControllerTests
         var result = await controller.DeleteListingCaseByListingCaseIdAsync(listingCaseId);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var response = Assert.IsType<DeleteResponse>(okResult.Value);
+        var requestResult = Assert.IsType<ObjectResult>(result.Result);
+        requestResult.StatusCode.Should().Be(204);
+        var response = Assert.IsType<DeleteResponse>(requestResult.Value);
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Deleted successfully");
 
@@ -457,8 +459,9 @@ public class ListingCaseControllerTests
         var result = await controller.UpdateListingCaseStatusAsync(listingCaseId);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var response = Assert.IsType<PutResponse>(okResult.Value);
+        var requestResult = Assert.IsType<ObjectResult>(result.Result);
+        requestResult.StatusCode.Should().Be(204);
+        var response = Assert.IsType<PutResponse>(requestResult.Value);
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Updated successfully");
 
@@ -702,8 +705,9 @@ public class ListingCaseControllerTests
         var result = await controller.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
     
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var response = Assert.IsType<PutResponse>(okResult.Value);
+        var requestResult = Assert.IsType<ObjectResult>(result.Result);
+        requestResult.StatusCode.Should().Be(204);
+        var response = Assert.IsType<PutResponse>(requestResult.Value);
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Updated successfully");
 
@@ -810,8 +814,9 @@ public class ListingCaseControllerTests
         var result = await controller.SetSelectedMediaByListingCaseIdAsync(listingCaseId, request, validatorMock.Object);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var response = Assert.IsType<PutResponse>(okResult.Value);
+        var requestResult = Assert.IsType<ObjectResult>(result.Result);
+        requestResult.StatusCode.Should().Be(204);
+        var response = Assert.IsType<PutResponse>(requestResult.Value);
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Updated successfully");
 

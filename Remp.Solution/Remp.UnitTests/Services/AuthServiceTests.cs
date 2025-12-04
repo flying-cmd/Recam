@@ -80,7 +80,7 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task RegisterAsync_WhenEmailAlreadyExists_ShouldThrowConflictException()
+    public async Task RegisterAsync_WhenEmailAlreadyExists_ShouldThrowArgumentErrorException()
     {
         // Arrange
         var avatarFile = new Mock<IFormFile>();
@@ -105,7 +105,7 @@ public class AuthServiceTests
         var act = async () => await _authService.RegisterAsync(registerRequest);
 
         // Assert
-        await act.Should().ThrowAsync<RegisterException>();
+        await act.Should().ThrowAsync<ArgumentErrorException>();
         _authRepositoryMock.Verify(r => r.FindByEmailAsync(registerRequest.Email), Times.Once);
         _blobStorageServiceMock.Verify(b => b.UploadFileAsync(registerRequest.Avatar), Times.Never);
     }
