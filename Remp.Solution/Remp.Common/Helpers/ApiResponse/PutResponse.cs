@@ -2,7 +2,7 @@
 
 public class PutResponse : BaseApiResponse
 {
-    string Message { get; set; } = null!;
+    public string Message { get; set; } = null!;
 
     public PutResponse(bool success, string message = "Updated successfully") : base(success)
     {

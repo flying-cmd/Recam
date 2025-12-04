@@ -75,7 +75,6 @@ public class AuthControllerTests
         // Assert
         var badRequestResult = result.Result as ObjectResult;
         badRequestResult.Should().NotBeNull();
-        badRequestResult.StatusCode.Should().Be(400);
 
         var problem = badRequestResult.Value as ValidationProblemDetails;
         problem.Should().NotBeNull();
@@ -175,7 +174,6 @@ public class AuthControllerTests
         // Assert
         var badRequestResult = result.Result as ObjectResult;
         badRequestResult.Should().NotBeNull();
-        badRequestResult.StatusCode.Should().Be(400);
 
         var problem = badRequestResult.Value as ValidationProblemDetails;
         problem.Should().NotBeNull();

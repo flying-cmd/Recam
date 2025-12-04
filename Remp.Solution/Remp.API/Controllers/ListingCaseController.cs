@@ -61,12 +61,8 @@ namespace Remp.API.Controllers
             }
 
             var result = await _listingCaseService.GetListingCaseByListingCaseIdAsync(listingCaseId, currentUserId, currrentUserRole);
-            if (result != null)
-            {
-                return Ok(new GetResponse<ListingCaseDetailResponseDto>(true, result));
-            }
             
-            return NotFound();
+            return Ok(new GetResponse<ListingCaseDetailResponseDto>(true, result));
         }
 
         /// <summary>
@@ -159,11 +155,6 @@ namespace Remp.API.Controllers
             }
 
             var result = await _listingCaseService.GetAllListingCasesAsync(pageNumer, pageSize, currentUserId, currrentUserRole);
-
-            if (result == null)
-            {
-                return NotFound();
-            }
 
             return Ok(new GetResponse<PagedResult<ListingCaseResponseDto>>(true, result));
         }
@@ -269,6 +260,7 @@ namespace Remp.API.Controllers
         /// Updating listing case status must follow the workflow of the listing case (Created -> Pending -> Delivered).
         /// </remarks>
         [HttpPatch("{listingCaseId:int}/status")]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> UpdateListingCaseStatusAsync(int listingCaseId)
@@ -326,11 +318,6 @@ namespace Remp.API.Controllers
             }
 
             var result = await _listingCaseService.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole);
-            
-            if (result == null)
-            {
-                return NotFound();
-            }
 
             return Ok(new GetResponse<IEnumerable<MediaAssetDto>>(true, result));
         }
@@ -375,10 +362,6 @@ namespace Remp.API.Controllers
             }
 
             var result = await _listingCaseService.GetListingCaseContactByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole);
-            if (result == null)
-            {
-                return NotFound();
-            }
 
             return Ok(new GetResponse<IEnumerable<CaseContactDto>>(true, result));
         }
@@ -479,10 +462,6 @@ namespace Remp.API.Controllers
 
             var result = await _listingCaseService.CreateMediaByListingCaseIdAsync(createMediaRequestDto.MediaFiles, (MediaType)Enum.Parse(typeof(MediaType), createMediaRequestDto.MediaType), listingCaseId, currentUserId);
             
-            if (result == null)
-            {
-                return BadRequest();
-            }
             return CreatedAtRoute(
                 nameof(GetListingCaseMediaByListingCaseIdAsync), 
                 new { listingCaseId }, 
@@ -570,10 +549,6 @@ namespace Remp.API.Controllers
         {
             var result = await _listingCaseService.GetFinalSelectionByListingCaseIdAsync(listingCaseId);
 
-            if (result == null)
-            {
-                return NotFound();
-            }
             return Ok(new GetResponse<IEnumerable<MediaAssetDto>>(true, result));
         }
 
