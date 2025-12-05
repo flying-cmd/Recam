@@ -15,10 +15,12 @@ namespace Remp.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ILoggerService _loggerService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ILoggerService loggerService)
         {
             _authService = authService;
+            _loggerService = loggerService;
         }
         
         /// <summary>
@@ -45,11 +47,12 @@ namespace Remp.API.Controllers
                 validationResult.AddToModelState(ModelState);
                 string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
-                UserActivityLog.LogLogin(
+                // Log
+                await _loggerService.LogLogin(
                     email: loginRequest.Email,
                     userId: null,
-                    description: $"User failed to login with erros: {errors}"
-                );
+                    error: errors
+                    );
 
                 return ValidationProblem(ModelState);
             }
@@ -84,10 +87,10 @@ namespace Remp.API.Controllers
                 validationResult.AddToModelState(ModelState);
                 string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
-                UserActivityLog.LogRegister(
+                await _loggerService.LogRegister(
                     email: registerRequest.Email,
                     userId: null,
-                    description: $"User failed to register with erros: {errors}"
+                    error: errors
                 );
 
                 return ValidationProblem(ModelState);

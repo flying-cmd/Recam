@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Remp.Common\Remp.Common.csproj" />
     <ProjectReference Include="..\Remp.Models\Remp.Models.csproj" />
   </ItemGroup>
 

@@ -17,10 +17,12 @@ namespace Remp.API.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ILoggerService _loggerService;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, ILoggerService loggerService)
         {
             _userService = userService;
+            _loggerService = loggerService;
         }
 
         /// <summary>
@@ -309,9 +311,9 @@ namespace Remp.API.Controllers
                 string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
                 // Log
-                UserActivityLog.LogUpdatePassword(
+                await _loggerService.LogUpdatePassword(
                     userId: currentUserId,
-                    description: $"User {currentUserId} failed to update password because of the errors: {errors}");
+                    error: errors);
 
                 return ValidationProblem(ModelState);
             }
@@ -319,7 +321,7 @@ namespace Remp.API.Controllers
             await _userService.UpdatePasswordAsync(updatePasswordRequestDto, currentUserId);
             
             // Log
-            UserActivityLog.LogUpdatePassword(
+            await _loggerService.LogUpdatePassword(
                 userId: currentUserId);
 
             return StatusCode(204, new PutResponse(true));

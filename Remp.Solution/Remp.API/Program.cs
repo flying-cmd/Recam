@@ -28,32 +28,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// SQL Server
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// MongoDB
+builder.Services.Configure<MongoDbSetting>(builder.Configuration.GetSection("MongoDb"));
+builder.Services.AddSingleton<MongoDbContext>();
+
 // Serilog
-var mongoDbConnectionString = builder.Configuration.GetConnectionString("MongoDb");
-builder.Host.UseSerilog((ctx, services, lc) =>
-{
-    lc.MinimumLevel.Information()
-      .Enrich.FromLogContext()
-      .WriteTo.Console()
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
 
-      // UserActivityLog
-      .WriteTo.Logger(lc2 => lc2
-          .Filter.ByIncludingOnly($"LogType = 'UserActivity'")
-          .WriteTo.MongoDB(
-              mongoDbConnectionString!,
-              collectionName: "UserActivityLog"))
-
-      // CaseHistoryLog
-      .WriteTo.Logger(lc2 => lc2
-          .Filter.ByIncludingOnly($"LogType = 'CaseHistory'")
-          .WriteTo.MongoDB(
-              mongoDbConnectionString!,
-              collectionName: "CaseHistoryLog"));
-});
-
+builder.Host.UseSerilog();
 
 // Exception Handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -112,12 +100,14 @@ builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.G
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDtoValidator>();
 
 // Repositories
+builder.Services.AddScoped<ILoggerRepository, LoggerRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IListingCaseRepository, ListingCaseRepository>();
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 
 // Services
+builder.Services.AddScoped<ILoggerService, LoggerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IListingCaseService, ListingCaseService>();

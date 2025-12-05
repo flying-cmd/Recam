@@ -17,10 +17,12 @@ namespace Remp.API.Controllers
     public class ListingCaseController : ControllerBase
     {
         private readonly IListingCaseService _listingCaseService;
+        private readonly ILoggerService _loggerService;
 
-        public ListingCaseController(IListingCaseService listingCaseService)
+        public ListingCaseController(IListingCaseService listingCaseService, ILoggerService loggerService)
         {
             _listingCaseService = listingCaseService;
+            _loggerService = loggerService;
         }
 
         /// <summary>
@@ -98,10 +100,10 @@ namespace Remp.API.Controllers
                 string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
                 // Log
-                CaseHistoryLog.LogCreateListingCase(
+                await _loggerService.LogCreateListingCase(
                     listingCaseId: null,
                     userId: createListingCaseRequest.UserId,
-                    description: $"User failed to create listing case with erros: {errors}"
+                    error: errors
                 );
 
                 return ValidationProblem(ModelState);
@@ -199,11 +201,11 @@ namespace Remp.API.Controllers
                 string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
                 // Log
-                CaseHistoryLog.LogUpdateListingCase(
+                await _loggerService.LogUpdateListingCase(
                     listingCaseId: listingCaseId.ToString(),
                     userId: currentUserId,
                     updatedFields: null,
-                    description: $"User failed to update listing case with erros: {errors}"
+                    error: errors
                 );
 
                 return ValidationProblem(ModelState);

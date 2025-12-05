@@ -12,12 +12,18 @@ public class AuthService : IAuthService
     private readonly IAuthRepository _authRepository;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IBlobStorageService _blobStorageService;
+    private readonly ILoggerService _loggerService;
 
-    public AuthService(IAuthRepository authRepository, IJwtTokenService jwtTokenService, IBlobStorageService blobStorageService)
+    public AuthService(
+        IAuthRepository authRepository, 
+        IJwtTokenService jwtTokenService, 
+        IBlobStorageService blobStorageService,
+        ILoggerService loggerService)
     {
         _authRepository = authRepository;
         _jwtTokenService = jwtTokenService;
         _blobStorageService = blobStorageService;
+        _loggerService = loggerService;
     }
 
     public async Task<string> LoginAsync(LoginRequestDto loginRequest)
@@ -26,32 +32,31 @@ public class AuthService : IAuthService
         
         if (user is null)
         {
-            UserActivityLog.LogLogin(
+            await _loggerService.LogLogin(
                 email: loginRequest.Email,
                 userId: null,
-                description: "User failed to login because email is not found"
+                error: "Email does not exist"
             );
-            throw new UnauthorizedException(message: "Email is not found", title: "Email is incorrect");
+            throw new UnauthorizedException(message: "Email does not exist", title: "Email does not exist");
         }
 
         var passwordCheck = await _authRepository.CheckPasswordAsync(user, loginRequest.Password);
 
         if (!passwordCheck)
         {
-            UserActivityLog.LogLogin(
+            await _loggerService.LogLogin(
                 email: loginRequest.Email,
                 userId: user.Id.ToString(),
-                description: "User try to login but password is incorrect"
+                error: "Password is incorrect"
             );
             throw new UnauthorizedException(message: "Password is incorrect", title: "Password is incorrect");
         }
 
         var token = await _jwtTokenService.CreateTokenAsync(user);
 
-        UserActivityLog.LogLogin(
+        await _loggerService.LogLogin(
             email: loginRequest.Email,
-            userId: user.Id.ToString(),
-            description: "User logged in"
+            userId: user.Id.ToString()
         );
         return token;
     }
@@ -63,10 +68,10 @@ public class AuthService : IAuthService
         
         if (emailExists != null)
         {
-            UserActivityLog.LogRegister(
+            await _loggerService.LogRegister(
                 email: registerUser.Email,
                 userId: null,
-                description: "User failed to register because email already exists"
+                error: "Email already exists"
             );
             throw new ArgumentErrorException(message: "Email already exists", title: "Email already exists");
         }
@@ -92,11 +97,12 @@ public class AuthService : IAuthService
         // Create Agent
         await _authRepository.CreateAgentAsync(user, agent, registerUser.Password, RoleNames.Agent);
         
-        UserActivityLog.LogRegister(
+        // Log
+        await _loggerService.LogRegister(
             email: registerUser.Email,
-            userId: user.Id.ToString(),
-            description: $"User registered and is given {RoleNames.Agent} role"
+            userId: user.Id.ToString()
         );
+
         var token = await _jwtTokenService.CreateTokenAsync(user);
         return token;
     }

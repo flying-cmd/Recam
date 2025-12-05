@@ -10,6 +10,7 @@ using Remp.Repository.Interfaces;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using System.IO.Compression;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Remp.Service.Services;
 
@@ -20,19 +21,22 @@ public class ListingCaseService : IListingCaseService
     private readonly IBlobStorageService _blobStorageService;
     private readonly IMediaRepository _mediaRepository;
     private readonly IConfiguration _configuration;
+    private readonly ILoggerService _loggerService;
 
     public ListingCaseService(
         IListingCaseRepository listingCaseRepository, 
         IMapper mapper, 
         IBlobStorageService blobStorageService,
         IMediaRepository mediaRepository,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILoggerService loggerService)
     {
         _listingCaseRepository = listingCaseRepository;
         _mapper = mapper;
         _blobStorageService = blobStorageService;
         _mediaRepository = mediaRepository;
         _configuration = configuration;
+        _loggerService = loggerService;
     }
 
     public async Task<CaseContactDto> CreateCaseContactByListingCaseIdAsync(int listingCaseId, CreateCaseContactRequestDto createCaseContactRequest)
@@ -70,7 +74,7 @@ public class ListingCaseService : IListingCaseService
         var createdListingCase = await _listingCaseRepository.AddListingCaseAsync(listingCase);
 
         // Log
-        CaseHistoryLog.LogCreateListingCase(
+        await _loggerService.LogCreateListingCase(
             listingCaseId: createdListingCase.Id.ToString(),
             userId: createdListingCase.UserId
         );
@@ -154,7 +158,7 @@ public class ListingCaseService : IListingCaseService
         await _listingCaseRepository.DeleteListingCaseAsync(listingCase);
 
         // Log
-        CaseHistoryLog.LogDeleteListingCase(
+        await _loggerService.LogDeleteListingCase(
             listingCaseId: listingCase.Id.ToString(),
             userId: currentUserId
         );
@@ -461,7 +465,7 @@ public class ListingCaseService : IListingCaseService
         await _mediaRepository.UpdateMediaAssetsAsync(mediaAssets);
 
         // Log
-        CaseHistoryLog.LogSelectMedia(
+        await _loggerService.LogSelectMedia(
             listingCaseId.ToString(),
             mediaIds,
             userId
@@ -493,7 +497,7 @@ public class ListingCaseService : IListingCaseService
         if (fieldChanges.Count == 0)
         {
             // Log
-            CaseHistoryLog.LogUpdateListingCase(
+            await _loggerService.LogUpdateListingCase(
                 listingCase.Id.ToString(),
                 listingCase.UserId.ToString(),
                 fieldChanges
@@ -506,7 +510,7 @@ public class ListingCaseService : IListingCaseService
         await _listingCaseRepository.UpdateListingCaseAsync(listingCase);
 
         // Log
-        CaseHistoryLog.LogUpdateListingCase(
+        await _loggerService.LogUpdateListingCase(
             listingCase.Id.ToString(),
             listingCase.UserId.ToString(),
             fieldChanges
@@ -521,12 +525,12 @@ public class ListingCaseService : IListingCaseService
         if (listingCase is null)
         {
             // Log
-            CaseHistoryLog.LogUpdateListingCaseStatus(
+            await _loggerService.LogUpdateListingCaseStatus(
                 listingCaseId.ToString(),
                 currentUserId,
                 null,
                 null,
-                $"User {currentUserId} failed to update the status of listing case {listingCaseId} because the it does not exist"
+                error: $"Listing case {listingCaseId} does not exist"
                 );
 
             throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
@@ -539,12 +543,12 @@ public class ListingCaseService : IListingCaseService
         if (oldStatus == ListingCaseStatus.Delivered)
         {
             // Log
-            CaseHistoryLog.LogUpdateListingCaseStatus(
-                listingCaseId.ToString(),
-                currentUserId,
-                oldStatus.ToString(),
-                oldStatus.ToString(),
-                $"User {currentUserId} failed to update the status of listing case {listingCaseId} because the it is already delivered"
+            await _loggerService.LogUpdateListingCaseStatus(
+                listingCaseId: listingCaseId.ToString(),
+                userId: currentUserId,
+                oldStatus: oldStatus.ToString(),
+                newStatus: oldStatus.ToString(),
+                error: $"Status is already Delivered"
                 );
 
             throw new ArgumentErrorException(message: $"Listing case {listingCaseId} cannot be updated because it is already delivered", title: "Listing case cannot be updated because it is already delivered");
@@ -555,7 +559,7 @@ public class ListingCaseService : IListingCaseService
         await _listingCaseRepository.UpdateListingCaseAsync(listingCase);
 
         // Log
-        CaseHistoryLog.LogUpdateListingCaseStatus(
+        await _loggerService.LogUpdateListingCaseStatus(
             listingCase.Id.ToString(),
             currentUserId,
             oldStatus.ToString(),

@@ -16,21 +16,21 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly UserManager<User> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly AppDbContext _appDbContext;
+    private readonly ILoggerService _loggerService;
 
     public UserService(
         IUserRepository userRepository,
         IMapper mapper,
         UserManager<User> userManager,
-        RoleManager<IdentityRole> roleManager,
-        AppDbContext appDbContext)
+        AppDbContext appDbContext,
+        ILoggerService loggerService)
     {
         _userRepository = userRepository;
         _mapper = mapper;
         _userManager = userManager;
-        _roleManager = roleManager;
         _appDbContext = appDbContext;
+        _loggerService = loggerService;
     }
 
     public async Task<Agent?> AddAgentByIdAsync(string agentId, string photographyCompanyId)
@@ -62,11 +62,11 @@ public class UserService : IUserService
         if (emailExists != null)
         {
             // Log
-            UserActivityLog.LogCreateAgentAccount(
+            await _loggerService.LogCreateAgentAccount(
                 photographyCompanyId: photographyCompanyId,
                 createdAgentId: null,
                 createdAgentEmail: createAgentAccountRequestDto.Email,
-                description: "Failed to create agent account because the email already exists"
+                error: "Email already exists"
                 );
 
             throw new ArgumentErrorException(message: "Email already exists", title: "Email already exists");
@@ -94,11 +94,11 @@ public class UserService : IUserService
                 var errors = string.Join("| ", result.Errors.Select(x => x.Description));
 
                 // Log
-                UserActivityLog.LogCreateAgentAccount(
+                await _loggerService.LogCreateAgentAccount(
                     photographyCompanyId: photographyCompanyId,
                     createdAgentId: null,
                     createdAgentEmail: createAgentAccountRequestDto.Email,
-                    description: $"Failed to create agent account with errors: {errors}"
+                    error: errors
                     );
 
                 throw new DbErrorException(
@@ -113,11 +113,11 @@ public class UserService : IUserService
                 var errors = string.Join("| ", roleResult.Errors.Select(x => x.Description));
 
                 // Log
-                UserActivityLog.LogCreateAgentAccount(
+                await _loggerService.LogCreateAgentAccount(
                     photographyCompanyId: photographyCompanyId,
                     createdAgentId: null,
                     createdAgentEmail: createAgentAccountRequestDto.Email,
-                    description: $"Failed to assign {RoleNames.Agent} role to Identity user with errors: {errors}"
+                    error: errors
                     );
 
                 throw new DbErrorException(
@@ -137,7 +137,7 @@ public class UserService : IUserService
             await transaction.CommitAsync();
 
             // Log
-            UserActivityLog.LogCreateAgentAccount(
+            await _loggerService.LogCreateAgentAccount(
                 photographyCompanyId: photographyCompanyId,
                 createdAgentId: user.Id.ToString(),
                 createdAgentEmail: user.Email
