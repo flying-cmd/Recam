@@ -8,7 +8,6 @@ public class SetSelectedMediaRequestDtoValidator : AbstractValidator<SetSelected
     public SetSelectedMediaRequestDtoValidator()
     {
         RuleFor(x => x.MediaIds)
-            .NotEmpty().WithMessage("Media ID is required.")
-            .Must(x => x.Count() <= 10).WithMessage("A maximum of 10 media files can be selected.");
+            .NotEmpty().WithMessage("Media ID is required.");
     }
 }

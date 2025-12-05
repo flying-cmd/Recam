@@ -444,25 +444,27 @@ public class ListingCaseService : IListingCaseService
                 );
         }
 
-        // Check if all media assets belong to the listing case
+        // If selected media assets contains photots, the maximum number of photos is 10
         var mediaAssets = await _mediaRepository.FindMediaByIdsAsync(mediaIds);
+        if (mediaAssets.Count(x => x.MediaType == MediaType.Photo) > 10)
+        {
+            throw new ArgumentErrorException(message: $"You can only select up to 10 photos", title: "You can only select up to 10 photos");
+        }
+
+        // Check if all media assets belong to the listing case
         if (mediaAssets.Any(x => x.ListingCaseId != listingCaseId))
         {
             throw new ArgumentErrorException(message: $"All media assets must belong to this listing case", title: "All media assets must belong to this listing case");
         }
 
-        // Only phtotos can be selected
-        if (mediaAssets.Any(x => x.MediaType != MediaType.Photo))
+        // Set the media assets as selected and other media assets as not selected
+        var idSet = new HashSet<int>(mediaIds);
+        foreach (var media in listingCase.MediaAssets)
         {
-            throw new ArgumentErrorException(message: $"All selected media assets must be photos", title: "All selected media assets must be photos");
+            media.IsSelect = idSet.Contains(media.Id);
         }
 
-        // Set the media assets as selected
-        foreach (var media in mediaAssets)
-        {
-            media.IsSelect = true;
-        }
-        await _mediaRepository.UpdateMediaAssetsAsync(mediaAssets);
+        await _mediaRepository.UpdateMediaAssetsAsync(listingCase.MediaAssets);
 
         // Log
         await _loggerService.LogSelectMedia(
