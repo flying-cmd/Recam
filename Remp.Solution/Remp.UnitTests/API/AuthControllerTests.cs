@@ -14,12 +14,14 @@ namespace Remp.UnitTests.API;
 public class AuthControllerTests
 {
     private readonly Mock<IAuthService> _authServiceMock;
+    private readonly Mock<ILoggerService> _loggerServiceMock;
     private readonly AuthController _authController;
 
     public AuthControllerTests()
     {
         _authServiceMock = new Mock<IAuthService>();
-        _authController = new AuthController(_authServiceMock.Object);
+        _loggerServiceMock = new Mock<ILoggerService>();
+        _authController = new AuthController(_authServiceMock.Object, _loggerServiceMock.Object);
     }
 
     [Fact]
@@ -36,6 +38,9 @@ public class AuthControllerTests
             .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
 
+        _loggerServiceMock.Setup(l => l.LogLogin(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), null, null))
+            .Returns(Task.CompletedTask);
+
         _authServiceMock.Setup(s => s.LoginAsync(request)).ReturnsAsync("jwt-token");
 
         // Act
@@ -51,6 +56,7 @@ public class AuthControllerTests
         response.Data.Should().Be("jwt-token");
         response.Message.Should().Be("Login successfully");
         validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogLogin(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Never);
         _authServiceMock.Verify(a => a.LoginAsync(request), Times.Once);
     }
 
@@ -68,7 +74,10 @@ public class AuthControllerTests
         validatorMock
             .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult(new [] { validationFailure }));
-    
+
+        _loggerServiceMock.Setup(l => l.LogLogin(It.IsAny<string>(), null, It.IsAny<string>(), null, It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
         // Act
         var result = await _authController.Login(request, validatorMock.Object);
     
@@ -81,6 +90,7 @@ public class AuthControllerTests
         problem.Errors.Should().ContainKey("Email");
 
         validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogLogin(It.IsAny<string>(), null, It.IsAny<string>(), null, It.IsAny<string>()), Times.Once);
         _authServiceMock.Verify(a => a.LoginAsync(request), Times.Never);
     }
 
@@ -103,6 +113,9 @@ public class AuthControllerTests
         validatorMock
             .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
+
+        _loggerServiceMock.Setup(l => l.LogRegister(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), null, null))
+            .Returns(Task.CompletedTask);
 
         _authServiceMock
             .Setup(s => s.RegisterAsync(
@@ -131,6 +144,7 @@ public class AuthControllerTests
         response.Message.Should().Be("Registered successfully");
 
         validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogRegister(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Never);
         _authServiceMock
             .Verify(a => a.RegisterAsync(
                 It.Is<RegisterRequestDto>(
@@ -168,6 +182,9 @@ public class AuthControllerTests
             .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult(new [] { emailFailure, firtNameFailure, lastNameFailure }));
 
+        _loggerServiceMock.Setup(l => l.LogRegister(It.IsAny<string>(), null, It.IsAny<string>(), null, It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
         // Act
         var result = await _authController.Register(request, validatorMock.Object);
     
@@ -182,6 +199,7 @@ public class AuthControllerTests
         problem.Errors.Should().ContainKey("LastName");
 
         validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogRegister(It.IsAny<string>(), null, It.IsAny<string>(), null, It.IsAny<string>()), Times.Once);
         _authServiceMock
             .Verify(a => a.RegisterAsync(
                 It.IsAny<RegisterRequestDto>()), 

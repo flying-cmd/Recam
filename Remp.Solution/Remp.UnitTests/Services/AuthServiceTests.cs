@@ -16,6 +16,7 @@ public class AuthServiceTests
     private readonly Mock<IAuthRepository> _authRepositoryMock;
     private readonly Mock<IJwtTokenService> _jwtTokenServiceMock;
     private readonly Mock<IBlobStorageService> _blobStorageServiceMock;
+    private readonly Mock<ILoggerService> _loggerServiceMock;
     private readonly AuthService _authService;
 
     public AuthServiceTests()
@@ -23,7 +24,12 @@ public class AuthServiceTests
         _authRepositoryMock = new Mock<IAuthRepository>();
         _jwtTokenServiceMock = new Mock<IJwtTokenService>();
         _blobStorageServiceMock = new Mock<IBlobStorageService>();
-        _authService = new AuthService(_authRepositoryMock.Object, _jwtTokenServiceMock.Object, _blobStorageServiceMock.Object);
+        _loggerServiceMock = new Mock<ILoggerService>();
+        _authService = new AuthService(
+            _authRepositoryMock.Object, 
+            _jwtTokenServiceMock.Object, 
+            _blobStorageServiceMock.Object, 
+            _loggerServiceMock.Object);
     }
 
     [Fact]
@@ -32,13 +38,15 @@ public class AuthServiceTests
         // Arrange
         var loginRequest = new LoginRequestDto { Email = "notfound@example.com", Password = "Pass123$" };
         _authRepositoryMock.Setup(r => r.FindByEmailAsync(loginRequest.Email)).ReturnsAsync((User?)null);
-    
+        _loggerServiceMock.Setup(l => l.LogLogin(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
+
         // Act
         var act = async () => await _authService.LoginAsync(loginRequest);
 
         // Assert
         await act.Should().ThrowAsync<UnauthorizedException>();
         _authRepositoryMock.Verify(r => r.FindByEmailAsync(loginRequest.Email), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogLogin(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 
     [Fact]
@@ -49,6 +57,7 @@ public class AuthServiceTests
         var user = new User { Email = loginRequest.Email };
         _authRepositoryMock.Setup(r => r.FindByEmailAsync(loginRequest.Email)).ReturnsAsync(user);
         _authRepositoryMock.Setup(r => r.CheckPasswordAsync(user, loginRequest.Password)).ReturnsAsync(false);
+        _loggerServiceMock.Setup(l => l.LogLogin("test@example.com", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
     
         // Act
         var act = async () => await _authService.LoginAsync(loginRequest);
@@ -57,6 +66,7 @@ public class AuthServiceTests
         await act.Should().ThrowAsync<UnauthorizedException>();
         _authRepositoryMock.Verify(r => r.FindByEmailAsync(loginRequest.Email), Times.Once);
         _authRepositoryMock.Verify(r => r.CheckPasswordAsync(user, loginRequest.Password), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogLogin("test@example.com", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 
     [Fact]
@@ -68,6 +78,7 @@ public class AuthServiceTests
         _authRepositoryMock.Setup(r => r.FindByEmailAsync(loginRequest.Email)).ReturnsAsync(user);
         _authRepositoryMock.Setup(r => r.CheckPasswordAsync(user, loginRequest.Password)).ReturnsAsync(true);
         _jwtTokenServiceMock.Setup(j => j.CreateTokenAsync(user)).ReturnsAsync("jwt-token");
+        _loggerServiceMock.Setup(l => l.LogLogin("test@example.com", It.IsAny<string>(), It.IsAny<string>(), null, null));
     
         // Act
         var result = await _authService.LoginAsync(loginRequest);
@@ -77,6 +88,7 @@ public class AuthServiceTests
         _authRepositoryMock.Verify(r => r.FindByEmailAsync(loginRequest.Email), Times.Once);
         _authRepositoryMock.Verify(r => r.CheckPasswordAsync(user, loginRequest.Password), Times.Once);
         _jwtTokenServiceMock.Verify(j => j.CreateTokenAsync(user), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogLogin("test@example.com", It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Once);
     }
 
     [Fact]
@@ -100,6 +112,7 @@ public class AuthServiceTests
 
         var user = new User { Email = registerRequest.Email, UserName = registerRequest.Email };
         _authRepositoryMock.Setup(r => r.FindByEmailAsync(registerRequest.Email)).ReturnsAsync(user);
+        _loggerServiceMock.Setup(l => l.LogRegister(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
     
         // Act
         var act = async () => await _authService.RegisterAsync(registerRequest);
@@ -108,6 +121,7 @@ public class AuthServiceTests
         await act.Should().ThrowAsync<ArgumentErrorException>();
         _authRepositoryMock.Verify(r => r.FindByEmailAsync(registerRequest.Email), Times.Once);
         _blobStorageServiceMock.Verify(b => b.UploadFileAsync(registerRequest.Avatar), Times.Never);
+        _loggerServiceMock.Verify(l => l.LogRegister(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 
     [Fact]
@@ -129,6 +143,8 @@ public class AuthServiceTests
         _blobStorageServiceMock
             .Setup(b => b.UploadFileAsync(registerRequest.Avatar))
             .ReturnsAsync("https://avatar_url");
+
+        _loggerServiceMock.Setup(l => l.LogRegister("test@example.com", It.IsAny<string>(), It.IsAny<string>(), null, null));
 
         //var user = new User
         //{
@@ -189,5 +205,7 @@ public class AuthServiceTests
             .Verify(j => j.CreateTokenAsync(
                 It.Is<User>(u => u.Email == registerRequest.Email)), 
             Times.Once);
+
+        _loggerServiceMock.Verify(l => l.LogRegister("test@example.com", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 }

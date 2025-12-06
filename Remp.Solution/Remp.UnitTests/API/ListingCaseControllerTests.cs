@@ -17,15 +17,17 @@ namespace Remp.UnitTests.API;
 public class ListingCaseControllerTests
 {
     private readonly Mock<IListingCaseService> _listingCaseServiceMock;
+    private readonly Mock<ILoggerService> _loggerServiceMock;
 
     public ListingCaseControllerTests()
     {
         _listingCaseServiceMock = new Mock<IListingCaseService>();
+        _loggerServiceMock = new Mock<ILoggerService>();
     }
 
     private ListingCaseController CreateController(ClaimsPrincipal? user = null)
     {
-        var controller = new ListingCaseController(_listingCaseServiceMock.Object);
+        var controller = new ListingCaseController(_listingCaseServiceMock.Object, _loggerServiceMock.Object);
 
         var httpContext = new DefaultHttpContext();
         if (user != null)
