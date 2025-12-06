@@ -627,4 +627,66 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Verify(r => r.CountListingCasesByAgentIdAsync(userId), Times.Once);
         _mapperMock.Verify(m => m.Map<IEnumerable<ListingCaseResponseDto>>(listingCases), Times.Once);
     }
+
+    [Fact]
+    public async Task GetFinalSelectionByListingCaseIdAsync_WhenListingCaseDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
+
+        // Act
+        var act = async () => await _listingCaseServices.GetFinalSelectionByListingCaseIdAsync(listingCaseId);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetFinalSelectionByListingCaseIdAsync_WhenListingCaseStatusIsNotDelivered_ShouldThrowNotInvalidException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var listingCase = new ListingCase { Id = listingCaseId, ListingCaseStatus = ListingCaseStatus.Created };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+    
+        // Act
+        var act = async () => await _listingCaseServices.GetFinalSelectionByListingCaseIdAsync(listingCaseId);
+    
+        // Assert
+        await act.Should().ThrowAsync<InvalidException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetFinalSelectionByListingCaseIdAsync_WhenListingCaseStatusIsDelivered_ShouldReturnAllMediaAssets()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var listingCase = new ListingCase { Id = listingCaseId, ListingCaseStatus = ListingCaseStatus.Delivered };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        var mediaAssets = new List<MediaAsset>
+        {
+            new MediaAsset { Id = 1 },
+            new MediaAsset { Id = 2 }
+        };
+        _listingCaseRepositoryMock.Setup(r => r.GetFinalSelectionByListingCaseIdAsync(listingCaseId)).ReturnsAsync(mediaAssets);
+
+        var expectedResult = new List<MediaAssetDto>
+        {
+            new MediaAssetDto { Id = 1 },
+            new MediaAssetDto { Id = 2 }
+        };
+        _mapperMock.Setup(m => m.Map<IEnumerable<MediaAssetDto>>(mediaAssets)).Returns(expectedResult);
+
+        // Act
+        var result = await _listingCaseServices.GetFinalSelectionByListingCaseIdAsync(listingCaseId);
+    
+        // Assert
+        result.Should().BeEquivalentTo(expectedResult);
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.GetFinalSelectionByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mapperMock.Verify(m => m.Map<IEnumerable<MediaAssetDto>>(mediaAssets), Times.Once);
+    }
 }
