@@ -147,7 +147,7 @@ public class ListingCaseService : IListingCaseService
         // Check if the user is the owner of the listing case (PhotographyCompany)
         if (listingCase.UserId != currentUserId)
         {
-            throw new UnauthorizedException(
+            throw new ForbiddenException(
                 message: $"User {currentUserId} cannot delete this listing case because the user is not the owner of this listing case",
                 title: "You cannot delete this listing case because you are not the owner of this listing case"
                 );

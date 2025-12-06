@@ -235,4 +235,57 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Verify(r => r.AddMediaAssetAsync(createdMediaAssets), Times.Once);
         _mapperMock.Verify(m => m.Map<IEnumerable<MediaAssetDto>>(createdMediaAssets), Times.Once);
     }
+
+    [Fact]
+    public async Task DeleteListingCaseByListingCaseIdAsync_WhenListingCaseNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
+
+        // Act
+        var act = async () => await _listingCaseServices.DeleteListingCaseByListingCaseIdAsync(listingCaseId, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteListingCaseByListingCaseIdAsync_WhenUserIsNotOwner_ShouldThrowForbiddenException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var listingCase = new ListingCase { UserId = "2" };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        // Act
+        var act = async () => await _listingCaseServices.DeleteListingCaseByListingCaseIdAsync(listingCaseId, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteListingCaseByListingCaseIdAsync_WhenArgumentsAreValid_ShouldDeleteListingCase()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var listingCase = new ListingCase { Id = listingCaseId, UserId = userId };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        _listingCaseRepositoryMock.Setup(r => r.DeleteListingCaseAsync(listingCase)).Returns(Task.CompletedTask);
+        _loggerServiceMock.Setup(l => l.LogDeleteListingCase(listingCaseId.ToString(), userId, It.IsAny<string>(), It.IsAny<string>(), null)).Returns(Task.CompletedTask);
+
+        // Act
+        await _listingCaseServices.DeleteListingCaseByListingCaseIdAsync(listingCaseId, userId);
+
+        // Assert
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.DeleteListingCaseAsync(listingCase), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogDeleteListingCase(listingCaseId.ToString(), userId, It.IsAny<string>(), It.IsAny<string>(), null), Times.Once);
+    }
 }
