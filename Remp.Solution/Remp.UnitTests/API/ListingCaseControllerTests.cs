@@ -694,13 +694,14 @@ public class ListingCaseControllerTests
     public async Task SetCoverImageByListingCaseIdAsync_WhenRequestIsValid_ShouldReturnOk()
     {
         // Arrange
+        var userId = "1";
         var user = CreateUser(userId: "1", role: RoleNames.Agent);
         var controller = CreateController(user);
         var listingCaseId = 1;
         var mediaAssetId = 1;
 
         _listingCaseServiceMock
-            .Setup(x => x.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId))
+            .Setup(x => x.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId, userId))
             .Returns(Task.CompletedTask);
 
         // Act
@@ -713,7 +714,7 @@ public class ListingCaseControllerTests
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Updated successfully");
 
-        _listingCaseServiceMock.Verify(x => x.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId), Times.Once);
+        _listingCaseServiceMock.Verify(x => x.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId, userId), Times.Once);
     }
 
     [Fact]

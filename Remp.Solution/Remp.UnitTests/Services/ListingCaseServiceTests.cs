@@ -152,7 +152,7 @@ public class ListingCaseServiceTests
 
         // Act
         var act = async () => await _listingCaseServices.CreateMediaByListingCaseIdAsync(filesMock, MediaType.Videography, listingCaseId, userId);
-    
+
         // Assert
         await act.Should().ThrowAsync<ArgumentErrorException>();
     }
@@ -184,10 +184,10 @@ public class ListingCaseServiceTests
         var filesMock = new[] { CreateMockedFormFile("image1.jpg"), CreateMockedFormFile("image2.jpg") };
         var listingCase = new ListingCase { UserId = "2" };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
-        
+
         // Act
         var act = async () => await _listingCaseServices.CreateMediaByListingCaseIdAsync(filesMock, MediaType.Photo, listingCaseId, userId);
-        
+
         // Assert
         await act.Should().ThrowAsync<ForbiddenException>();
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
@@ -216,10 +216,10 @@ public class ListingCaseServiceTests
             .Callback<IEnumerable<MediaAsset>>(assets => createdMediaAssets = assets.ToList())
             .ReturnsAsync(() => createdMediaAssets);
 
-        IEnumerable<MediaAssetDto> expectedMediaAssetDto = new[] 
-        { 
-            new MediaAssetDto { Id = 1, MediaUrl = "image1_url.jpg" }, 
-            new MediaAssetDto { Id = 2, MediaUrl = "image2_url.jpg" } 
+        IEnumerable<MediaAssetDto> expectedMediaAssetDto = new[]
+        {
+            new MediaAssetDto { Id = 1, MediaUrl = "image1_url.jpg" },
+            new MediaAssetDto { Id = 2, MediaUrl = "image2_url.jpg" }
         };
         _mapperMock.Setup(m => m.Map<IEnumerable<MediaAssetDto>>(It.IsAny<IEnumerable<MediaAsset>>())).Returns(expectedMediaAssetDto);
 
@@ -358,7 +358,7 @@ public class ListingCaseServiceTests
         };
 
         _listingCaseRepositoryMock.Setup(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId)).ReturnsAsync(mediaAssets);
-    
+
         var file1 = new byte[] { 1, 2, 3 };
         var file2 = new byte[] { 4, 5, 6 };
         _blobStorageServiceMock
@@ -387,7 +387,7 @@ public class ListingCaseServiceTests
 
         result.ContentType.Should().Be("application/zip");
         result.ZipFileName.Should().Be($"listingcase_{listingCaseId}_media.zip");
-    
+
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
         _listingCaseRepositoryMock.Verify(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId), Times.Once);
         _blobStorageServiceMock.Verify(b => b.DownloadFileAsync(It.IsAny<string>()), Times.Exactly(2));
@@ -529,7 +529,7 @@ public class ListingCaseServiceTests
 
         // Act
         var result = await _listingCaseServices.GetAllListingCasesAsync(pageNumber, pageSize, userId, userRole);
-    
+
         // Assert
         result.Should().BeEquivalentTo(expectedResult);
         _listingCaseRepositoryMock.Verify(r => r.FindListingCasesByPhotographyCompanyIdAsync(pageNumber, pageSize, userId), Times.Once);
@@ -650,10 +650,10 @@ public class ListingCaseServiceTests
         var listingCaseId = 1;
         var listingCase = new ListingCase { Id = listingCaseId, ListingCaseStatus = ListingCaseStatus.Created };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
-    
+
         // Act
         var act = async () => await _listingCaseServices.GetFinalSelectionByListingCaseIdAsync(listingCaseId);
-    
+
         // Assert
         await act.Should().ThrowAsync<InvalidException>();
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
@@ -682,7 +682,7 @@ public class ListingCaseServiceTests
 
         // Act
         var result = await _listingCaseServices.GetFinalSelectionByListingCaseIdAsync(listingCaseId);
-    
+
         // Assert
         result.Should().BeEquivalentTo(expectedResult);
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
@@ -716,10 +716,10 @@ public class ListingCaseServiceTests
         var userRole = RoleNames.PhotographyCompany;
         var listingCase = new ListingCase { UserId = "2" };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
-    
+
         // Act
         var act = async () => await _listingCaseServices.GetListingCaseByListingCaseIdAsync(listingCaseId, userId, userRole);
-    
+
         // Assert
         await act.Should().ThrowAsync<ForbiddenException>();
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
@@ -732,15 +732,15 @@ public class ListingCaseServiceTests
         var listingCaseId = 1;
         var userId = "1";
         var userRole = RoleNames.Agent;
-        var listingCase = new ListingCase 
-        { 
-            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = "2" } } 
+        var listingCase = new ListingCase
+        {
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = "2" } }
         };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
-    
+
         // Act
         var act = async () => await _listingCaseServices.GetListingCaseByListingCaseIdAsync(listingCaseId, userId, userRole);
-    
+
         // Assert
         await act.Should().ThrowAsync<ForbiddenException>();
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
@@ -755,13 +755,13 @@ public class ListingCaseServiceTests
         var userRole = RoleNames.PhotographyCompany;
         var listingCase = new ListingCase { UserId = userId };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
-        
+
         var expectedResult = new ListingCaseDetailResponseDto { Id = listingCaseId, UserId = userId };
         _mapperMock.Setup(m => m.Map<ListingCaseDetailResponseDto>(listingCase)).Returns(expectedResult);
-    
+
         // Act
         var result = await _listingCaseServices.GetListingCaseByListingCaseIdAsync(listingCaseId, userId, userRole);
-    
+
         // Assert
         result.Should().BeEquivalentTo(expectedResult);
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
@@ -856,11 +856,11 @@ public class ListingCaseServiceTests
         var listingCaseId = 1;
         var userId = "1";
         var userRole = RoleNames.PhotographyCompany;
-        var listingCase = new ListingCase 
-        { 
+        var listingCase = new ListingCase
+        {
             UserId = userId,
-            CaseContacts = new List<CaseContact> 
-            { 
+            CaseContacts = new List<CaseContact>
+            {
                 new CaseContact { ContactId = 1 },
                 new CaseContact { ContactId = 2 }
             }
@@ -868,7 +868,7 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
 
         IEnumerable<CaseContactDto> expectedResult = new List<CaseContactDto>
-        { 
+        {
             new CaseContactDto { ContactId = 1 },
             new CaseContactDto { ContactId = 2 }
         };
@@ -959,9 +959,9 @@ public class ListingCaseServiceTests
         var listingCaseId = 1;
         var useId = "1";
         var userRole = RoleNames.Agent;
-        var listingCase = new ListingCase 
-        { 
-            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = "2" } } 
+        var listingCase = new ListingCase
+        {
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = "2" } }
         };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
 
@@ -1032,12 +1032,13 @@ public class ListingCaseServiceTests
     public async Task SetCoverImageByListingCaseIdAsync_WhenListingCaseDoesNotExist_ShouldThrowNotFoundException()
     {
         // Arrange
+        var userId = "1";
         var listingCaseId = 1;
         var mediaAssetId = 1;
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
 
         // Act
-        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId, userId);
 
         // Assert
         await act.Should().ThrowAsync<NotFoundException>();
@@ -1045,16 +1046,39 @@ public class ListingCaseServiceTests
     }
 
     [Fact]
-    public async Task SetCoverImageByListingCaseIdAsync_WhenMediaAssetDoesNotExist_ShouldThrowNotFoundException()
+    public async Task SetCoverImageByListingCaseIdAsync_WhenUserIsNotAssignedAgent_ShouldThrowForbiddenException()
     {
         // Arrange
+        var userId = "1";
         var listingCaseId = 1;
         var mediaAssetId = 1;
-        var listingCase = new ListingCase { MediaAssets = new List<MediaAsset> { new MediaAsset { Id = 2 } } };
+        var listingCase = new ListingCase { UserId = "2" };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
 
         // Act
-        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetCoverImageByListingCaseIdAsync_WhenMediaAssetDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var userId = "1";
+        var listingCaseId = 1;
+        var mediaAssetId = 1;
+        var listingCase = new ListingCase
+        {
+            MediaAssets = new List<MediaAsset> { new MediaAsset { Id = 2 } },
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = userId } }
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        // Act
+        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId, userId);
 
         // Assert
         await act.Should().ThrowAsync<NotFoundException>();
@@ -1066,14 +1090,16 @@ public class ListingCaseServiceTests
     public async Task SetCoverImageByListingCaseIdAsync_WhenMediaTypeIsNotPhoto_ShouldThrowArgumentErrorException()
     {
         // Arrange
+        var userId = "1";
         var listingCaseId = 1;
         var mediaAssetId = 1;
-        var listingCase = new ListingCase 
-        { 
+        var listingCase = new ListingCase
+        {
             MediaAssets = new List<MediaAsset>
             {
                 new MediaAsset { Id = mediaAssetId, MediaType = MediaType.Videography }
-            }
+            },
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = userId } }
         };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
 
@@ -1081,7 +1107,7 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Setup(r => r.FindMediaByIdAsync(mediaAssetId)).ReturnsAsync(mediaAsset);
 
         // Act
-        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId, userId);
 
         // Assert
         await act.Should().ThrowAsync<ArgumentErrorException>();
@@ -1093,11 +1119,13 @@ public class ListingCaseServiceTests
     public async Task SetCoverImageByListingCaseIdAsync_WhenMediaDoesNotBelongToListingCase_ShouldThrowArgumentErrorException()
     {
         // Arrange
+        var userId = "1";
         var listingCaseId = 1;
         var mediaAssetId = 15;
-        var listingCase = new ListingCase 
-        { 
-            MediaAssets = new List<MediaAsset> { new MediaAsset { Id = 2 } } 
+        var listingCase = new ListingCase
+        {
+            MediaAssets = new List<MediaAsset> { new MediaAsset { Id = 2 } },
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = userId } }
         };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
 
@@ -1105,7 +1133,7 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Setup(r => r.FindMediaByIdAsync(mediaAssetId)).ReturnsAsync(mediaAsset);
 
         // Act
-        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId, userId);
 
         // Assert
         await act.Should().ThrowAsync<ArgumentErrorException>();
@@ -1117,6 +1145,7 @@ public class ListingCaseServiceTests
     public async Task SetCoverImageByListingCaseIdAsync_WhenListingCaseAlreadyHasCoverImage_ShouldSetNewCoverImageAndCancelOldCoverImage()
     {
         // Arrange
+        var userId = "1";
         var listingCaseId = 1;
         var mediaAssetId = 1;
         var listingCase = new ListingCase
@@ -1125,7 +1154,8 @@ public class ListingCaseServiceTests
             {
                 new MediaAsset { Id = mediaAssetId, MediaType = MediaType.Photo, IsHero = false, IsSelect = true, ListingCaseId = listingCaseId },
                 new MediaAsset { Id = 2, MediaType = MediaType.Photo, IsHero = true, IsSelect = true, ListingCaseId = listingCaseId } // already has a cover image
-            }
+            },
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = userId } }
         };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
 
@@ -1157,7 +1187,7 @@ public class ListingCaseServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+        await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId, userId);
 
         // Assert
         existingCoverMedia.IsHero.Should().BeFalse();
@@ -1176,6 +1206,7 @@ public class ListingCaseServiceTests
     public async Task SetCoverImageByListingCaseIdAsync_WhenListingCaseDoesNotHaveCoverImage_ShouldSetNewCoverImage()
     {
         // Arrange
+        var userId = "1";
         var listingCaseId = 1;
         var mediaAssetId = 1;
         var listingCase = new ListingCase
@@ -1184,7 +1215,8 @@ public class ListingCaseServiceTests
             {
                 new MediaAsset { Id = mediaAssetId, MediaType = MediaType.Photo, IsHero = false, IsSelect = false, ListingCaseId = listingCaseId },
                 new MediaAsset { Id = 2, MediaType = MediaType.Photo, IsHero = false, IsSelect = true, ListingCaseId = listingCaseId }
-            }
+            },
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = userId } }
         };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
 
@@ -1208,7 +1240,7 @@ public class ListingCaseServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+        await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId, userId);
 
         // Assert
         mediaAsset!.IsHero.Should().BeTrue();
@@ -1219,5 +1251,161 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Verify(r => r.FindMediaByIdAsync(mediaAssetId), Times.Once);
         _listingCaseRepositoryMock.Verify(r => r.FindCoverImageByListingCaseIdAsync(listingCaseId), Times.Once);
         _mediaRepositoryMock.Verify(r => r.UpdateMediaAssetsAsync(It.IsAny<IEnumerable<MediaAsset>>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetSelectedMediaByListingCaseIdAsync_WhenListingCaseDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        IEnumerable<int> mediaIds = new List<int> { 1, 2, 3 };
+        var userId = "1";
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
+
+        // Act
+        var act = async () => await _listingCaseServices.SetSelectedMediaByListingCaseIdAsync(listingCaseId, mediaIds, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetSelectedMediaByListingCaseIdAsync_WhenUserIsNotAssignedAgent_ShouldThrowForbiddenException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        IEnumerable<int> mediaIds = new List<int> { 1, 2, 3 };
+        var userId = "1";
+        var listingCase = new ListingCase { AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = "2" } } };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        // Act
+        var act = async () => await _listingCaseServices.SetSelectedMediaByListingCaseIdAsync(listingCaseId, mediaIds, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetSelectedMediaByListingCaseIdAsync_WhenNumsOfPhotosGreaterThanTen_ShouldThrowArgumentErrorException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        IEnumerable<int> mediaIds = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+        var userId = "1";
+        var listingCase = new ListingCase { AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = userId } } };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var mediaAsset = new List<MediaAsset>
+        {
+            new MediaAsset { Id = 1, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 2, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 3, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 4, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 5, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 6, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 7, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 8, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 9, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 10, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 11, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 12, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+        };
+        _mediaRepositoryMock.Setup(r => r.FindMediaByIdsAsync(mediaIds)).ReturnsAsync(mediaAsset);
+
+        // Act
+        var act = async () => await _listingCaseServices.SetSelectedMediaByListingCaseIdAsync(listingCaseId, mediaIds, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentErrorException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mediaRepositoryMock.Verify(r => r.FindMediaByIdsAsync(mediaIds), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetSelectedMediaByListingCaseIdAsync_WhenSomeMediaDoesNotBelongToListingCase_ShouldThrowArgumentErrorException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        IEnumerable<int> mediaIds = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+        var userId = "1";
+        var listingCase = new ListingCase 
+        { 
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = userId } },
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var selectedMediaAssers = new List<MediaAsset>
+        {
+            new MediaAsset { Id = 1, MediaType = MediaType.Photo, ListingCaseId = 2 }, // does not belong to listing case
+            new MediaAsset { Id = 2, MediaType = MediaType.Photo, ListingCaseId = listingCaseId },
+            new MediaAsset { Id = 3, MediaType = MediaType.Videography, ListingCaseId = 2 }, // does not belong to listing case
+        };
+        _mediaRepositoryMock.Setup(r => r.FindMediaByIdsAsync(mediaIds)).ReturnsAsync(selectedMediaAssers);
+
+        // Act
+        var act = async () => await _listingCaseServices.SetSelectedMediaByListingCaseIdAsync(listingCaseId, mediaIds, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentErrorException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mediaRepositoryMock.Verify(r => r.FindMediaByIdsAsync(mediaIds), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetSelectedMediaByListingCaseIdAsync_WhenAllArgumentsAreValid_ShouldSetSelectedMedia()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        IEnumerable<int> mediaIds = new List<int> { 1, 2 };
+        var userId = "1";
+        var listingCase = new ListingCase 
+        { 
+            Id = listingCaseId,
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = userId } },
+            MediaAssets = new List<MediaAsset>
+            {
+                new MediaAsset { Id = 1, MediaType = MediaType.Photo, IsSelect = false, ListingCaseId = listingCaseId },
+                new MediaAsset { Id = 2, MediaType = MediaType.Videography, IsSelect = false, ListingCaseId = listingCaseId },
+                new MediaAsset { Id = 3, MediaType = MediaType.Photo, IsSelect = true, ListingCaseId = listingCaseId },
+                new MediaAsset { Id = 4, MediaType = MediaType.FloorPlan , IsSelect = true, ListingCaseId = listingCaseId }
+            }
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var selectedMediaAsset = listingCase.MediaAssets.Where(m => mediaIds.Contains(m.Id)).ToList();
+        _mediaRepositoryMock.Setup(r => r.FindMediaByIdsAsync(mediaIds)).ReturnsAsync(selectedMediaAsset);
+
+        // Capture the passed updated MediaAsset argument
+        IEnumerable<MediaAsset> updatedMediaAssets = new List<MediaAsset>();
+        _mediaRepositoryMock
+            .Setup(r => r.UpdateMediaAssetsAsync(It.IsAny<IEnumerable<MediaAsset>>()))
+            .Callback<IEnumerable<MediaAsset>>(mediaAssets => updatedMediaAssets = mediaAssets.ToList())
+            .Returns(Task.CompletedTask);
+
+        _loggerServiceMock
+            .Setup(l => l.LogSelectMedia(listingCaseId.ToString(), mediaIds, userId, It.IsAny<string>(), It.IsAny<string>(), null))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _listingCaseServices.SetSelectedMediaByListingCaseIdAsync(listingCaseId, mediaIds, userId);
+
+        // Assert
+        listingCase.MediaAssets.Where(l => l.Id == 1).FirstOrDefault()!.IsSelect.Should().BeTrue();
+        listingCase.MediaAssets.Where(l => l.Id == 2).FirstOrDefault()!.IsSelect.Should().BeTrue();
+        listingCase.MediaAssets.Where(l => l.Id == 3).FirstOrDefault()!.IsSelect.Should().BeFalse();
+        listingCase.MediaAssets.Where(l => l.Id == 4).FirstOrDefault()!.IsSelect.Should().BeFalse();
+        updatedMediaAssets.Count().Should().Be(4);
+        updatedMediaAssets.Where(u => u.Id == 1).FirstOrDefault()!.IsSelect.Should().BeTrue();
+        updatedMediaAssets.Where(u => u.Id == 2).FirstOrDefault()!.IsSelect.Should().BeTrue();
+        updatedMediaAssets.Where(u => u.Id == 3).FirstOrDefault()!.IsSelect.Should().BeFalse();
+        updatedMediaAssets.Where(u => u.Id == 4).FirstOrDefault()!.IsSelect.Should().BeFalse();
+
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mediaRepositoryMock.Verify(r => r.FindMediaByIdsAsync(mediaIds), Times.Once);
+        _mediaRepositoryMock.Verify(r => r.UpdateMediaAssetsAsync(It.IsAny<IEnumerable<MediaAsset>>()), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogSelectMedia(listingCaseId.ToString(), mediaIds, userId, It.IsAny<string>(), It.IsAny<string>(), null), Times.Once);
     }
 }

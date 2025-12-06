@@ -456,7 +456,7 @@ public class ListingCaseService : IListingCaseService
         // Check if the user is the assigned agent
         if (!listingCase.AgentListingCases.Any(x => x.AgentId == userId))
         {
-            throw new UnauthorizedException(
+            throw new ForbiddenException(
                 message: $"User {userId} cannot access this listing case because the user is not the assigned agent of this listing case",
                 title: "You cannot access this listing case because you are not the assigned agent of this listing case"
                 );
