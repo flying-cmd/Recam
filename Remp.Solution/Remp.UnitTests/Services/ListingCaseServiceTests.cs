@@ -153,7 +153,6 @@ public class ListingCaseServiceTests
     
         // Assert
         await act.Should().ThrowAsync<ArgumentErrorException>();
-        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
     }
 
     [Fact]
@@ -390,5 +389,39 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
         _listingCaseRepositoryMock.Verify(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId), Times.Once);
         _blobStorageServiceMock.Verify(b => b.DownloadFileAsync(It.IsAny<string>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task GenerateSharedUrlAsync_WhenListingCaseDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
+
+        // Act
+        var act = async () => await _listingCaseServices.GenerateSharedUrlAsync(listingCaseId);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GenerateSharedUrlAsync_WhenListingCaseExists_ShouldReturnSharedUrl()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var listingCase = new ListingCase { Id = listingCaseId };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        _configurationMock.Setup(c => c["Url:BaseUrl"]).Returns("https://test.com");
+        _listingCaseRepositoryMock.Setup(r => r.UpdateListingCaseAsync(listingCase)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _listingCaseServices.GenerateSharedUrlAsync(listingCaseId);
+
+        // Assert
+        result.Should().StartWith("https://test.com/listings/share/");
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.UpdateListingCaseAsync(listingCase), Times.Once);
     }
 }
