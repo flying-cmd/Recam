@@ -689,4 +689,107 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Verify(r => r.GetFinalSelectionByListingCaseIdAsync(listingCaseId), Times.Once);
         _mapperMock.Verify(m => m.Map<IEnumerable<MediaAssetDto>>(mediaAssets), Times.Once);
     }
+
+    [Fact]
+    public async Task GetListingCaseByListingCaseIdAsync_WhenListingCaseDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var userRole = RoleNames.Agent;
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
+
+        // Act
+        var act = async () => await _listingCaseServices.GetListingCaseByListingCaseIdAsync(listingCaseId, userId, userRole);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetListingCaseByListingCaseIdAsync_WhenUserRoleIsPhotographyCompanyButIsNotOwner_ShouldThrowForbiddenException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        var listingCase = new ListingCase { UserId = "2" };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+    
+        // Act
+        var act = async () => await _listingCaseServices.GetListingCaseByListingCaseIdAsync(listingCaseId, userId, userRole);
+    
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetListingCaseByListingCaseIdAsync_WhenUserRoleIsAgentButIsNotAssignedUser_ShouldThrowForbiddenException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var userRole = RoleNames.Agent;
+        var listingCase = new ListingCase 
+        { 
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = "2" } } 
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+    
+        // Act
+        var act = async () => await _listingCaseServices.GetListingCaseByListingCaseIdAsync(listingCaseId, userId, userRole);
+    
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetListingCaseByListingCaseIdAsync_WhenUserRoleIsPhotographyCompanyAndIsOwner_ShouldReturnListingCaseDetailResponseDto()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        var listingCase = new ListingCase { UserId = userId };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        
+        var expectedResult = new ListingCaseDetailResponseDto { Id = listingCaseId, UserId = userId };
+        _mapperMock.Setup(m => m.Map<ListingCaseDetailResponseDto>(listingCase)).Returns(expectedResult);
+    
+        // Act
+        var result = await _listingCaseServices.GetListingCaseByListingCaseIdAsync(listingCaseId, userId, userRole);
+    
+        // Assert
+        result.Should().BeEquivalentTo(expectedResult);
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mapperMock.Verify(m => m.Map<ListingCaseDetailResponseDto>(listingCase), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetListingCaseByListingCaseIdAsync_WhenUserRoleIsAgentAndIsAssignedUser_ShouldReturnListingCaseDetailResponseDto()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var userRole = RoleNames.Agent;
+        var listingCase = new ListingCase
+        {
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = userId } }
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var expectedResult = new ListingCaseDetailResponseDto { Id = listingCaseId };
+        _mapperMock.Setup(m => m.Map<ListingCaseDetailResponseDto>(listingCase)).Returns(expectedResult);
+
+        // Act
+        var result = await _listingCaseServices.GetListingCaseByListingCaseIdAsync(listingCaseId, userId, userRole);
+
+        // Assert
+        result.Should().BeEquivalentTo(expectedResult);
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mapperMock.Verify(m => m.Map<ListingCaseDetailResponseDto>(listingCase), Times.Once);
+    }
 }
