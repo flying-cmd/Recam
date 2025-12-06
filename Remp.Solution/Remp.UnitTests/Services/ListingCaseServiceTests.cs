@@ -1408,4 +1408,144 @@ public class ListingCaseServiceTests
         _mediaRepositoryMock.Verify(r => r.UpdateMediaAssetsAsync(It.IsAny<IEnumerable<MediaAsset>>()), Times.Once);
         _loggerServiceMock.Verify(l => l.LogSelectMedia(listingCaseId.ToString(), mediaIds, userId, It.IsAny<string>(), It.IsAny<string>(), null), Times.Once);
     }
+
+    [Fact]
+    public async Task UpdateListingCaseAsync_WhenListingCaseDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var request = new UpdateListingCaseRequestDto();
+        var userId = "1";
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
+
+        // Act
+        var act = async () => await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, request, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateListingCaseAsync_WhenListingCaseDoesNotBelongToUser_ShouldThrowForbiddenException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var request = new UpdateListingCaseRequestDto();
+        var userId = "1";
+        var listingCase = new ListingCase 
+        { 
+            Id = listingCaseId, 
+            UserId = userId,
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        // Act
+        var act = async () => await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, request, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateListingCaseAsync_WhenNoFieldsAreChanged_ShouldReturnDirectly()
+    {
+        var listingCaseId = 1;
+        var request = new UpdateListingCaseRequestDto();
+        var userId = "1";
+        var listingCase = new ListingCase
+        {
+            Id = listingCaseId,
+            Title = "Old title",
+            Description = "Old description",
+            UserId = userId
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var updateListingCaseRequest = new UpdateListingCaseRequestDto
+        {
+            Title = "Old title",
+            Description = "Old description",
+        };
+        _mapperMock
+            .Setup(m => m.Map<UpdateListingCaseRequestDto>(listingCase))
+            .Returns(new UpdateListingCaseRequestDto
+            {
+                Title = listingCase.Title,
+                Description = listingCase.Description,
+            });
+
+        // Act
+        await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, userId);
+
+        // Assert
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mapperMock.Verify(m => m.Map<UpdateListingCaseRequestDto>(listingCase), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.UpdateListingCaseAsync(It.IsAny<ListingCase>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateListingCaseAsync_WhenFieldsAreChanged_ShouldUpdate()
+    {
+        var listingCaseId = 1;
+        var request = new UpdateListingCaseRequestDto();
+        var userId = "1";
+        var listingCase = new ListingCase
+        {
+            Id = listingCaseId,
+            Title = "Old title",
+            Description = "Old description",
+            UserId = userId
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var updateListingCaseRequest = new UpdateListingCaseRequestDto
+        {
+            Title = "New title",
+            Description = "New description",
+        };
+        _mapperMock
+            .Setup(m => m.Map<UpdateListingCaseRequestDto>(listingCase))
+            .Returns(new UpdateListingCaseRequestDto
+            {
+                Title = listingCase.Title,
+                Description = listingCase.Description,
+            });
+
+        // When mapping updateDto into listingCase, simulate the actual update
+        // Use Callback to simulate the actual update when use like _mapper.Map(source, destination)
+        // Because it does not use the return value of Map (no return value so you cannot use Returns())
+        // It relies on AutoMapper’s normal behaviour: mutate the existing listingCase instance (map onto destination)
+        _mapperMock
+            .Setup(m => m.Map(updateListingCaseRequest, listingCase))
+            .Callback((UpdateListingCaseRequestDto request, ListingCase listingCase) =>
+            {
+                listingCase.Title = request.Title;
+                listingCase.Description = request.Description;
+            });
+
+        // Capture the passed updated listingCase argument
+        ListingCase updatedListingCase = new ListingCase();
+        _listingCaseRepositoryMock
+            .Setup(r => r.UpdateListingCaseAsync(It.IsAny<ListingCase>()))
+            .Callback<ListingCase>(listingCase => updatedListingCase = listingCase)
+            .Returns(Task.CompletedTask);
+
+        _loggerServiceMock
+            .Setup(l => l.LogUpdateListingCase(listingCaseId.ToString(), userId, It.IsAny<Dictionary<string, FieldChange>>(), It.IsAny<string>(), It.IsAny<string>(), null))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, userId);
+
+        // Assert
+        updatedListingCase.Title.Should().Be(updateListingCaseRequest.Title);
+        updatedListingCase.Description.Should().Be(updateListingCaseRequest.Description);
+
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mapperMock.Verify(m => m.Map<UpdateListingCaseRequestDto>(listingCase), Times.Once);
+        _mapperMock.Verify(m => m.Map(updateListingCaseRequest, listingCase), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.UpdateListingCaseAsync(It.IsAny<ListingCase>()), Times.Once);
+    }
 }

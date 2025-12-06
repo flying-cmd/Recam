@@ -504,7 +504,7 @@ public class ListingCaseService : IListingCaseService
         // Check if the listing case belongs to the user
         if (userId != listingCase.UserId)
         {
-            throw new UnauthorizedException(
+            throw new ForbiddenException(
                 message: $"User {userId} cannot update this listing case because the user is not the owner of this listing case",
                 title: "You cannot update this listing case because you are not the owner of this listing case"
                 );
