@@ -467,7 +467,7 @@ public class ListingCaseControllerTests
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Updated successfully");
 
-        _listingCaseServiceMock.Verify(x => x.UpdateListingCaseStatusAsync(listingCaseId, "1"), Times.Once);
+        _listingCaseServiceMock.Verify(x => x.UpdateListingCaseStatusAsync(listingCaseId, "1", RoleNames.Agent), Times.Once);
     }
 
     [Fact]

@@ -1548,4 +1548,135 @@ public class ListingCaseServiceTests
         _mapperMock.Verify(m => m.Map(updateListingCaseRequest, listingCase), Times.Once);
         _listingCaseRepositoryMock.Verify(r => r.UpdateListingCaseAsync(It.IsAny<ListingCase>()), Times.Once);
     }
+
+    [Fact]
+    public async Task UpdateListingCaseStatusAsync_WhenListingCaseDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
+        _loggerServiceMock
+            .Setup(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, null, null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId, userRole);
+        
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, null, null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateListingCaseStatusAsync_WhenUserIsPhotographyCompanyButIsNotOwner_ShouldThrowForbiddenException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        var listingCase = new ListingCase { UserId = "2" };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        _loggerServiceMock
+            .Setup(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, null, null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId, userRole);
+        
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, null, null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateListingCaseStatusAsync_WhenUserIsAgentButIsNotAssignedUser_ShouldThrowForbiddenException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var userRole = RoleNames.Agent;
+        var listingCase = new ListingCase 
+        { 
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = "2" } }
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        _loggerServiceMock
+            .Setup(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, null, null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId, userRole);
+        
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, null, null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateListingCaseStatusAsync_WhenListingCaseStatusIsDelivered_ShouldThrowArgumentErrorException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        var listingCase = new ListingCase 
+        { 
+            UserId = userId,
+            ListingCaseStatus = ListingCaseStatus.Delivered 
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        _loggerServiceMock
+            .Setup(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, ListingCaseStatus.Delivered.ToString(), ListingCaseStatus.Delivered.ToString(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId, userRole);
+        
+        // Assert
+        await act.Should().ThrowAsync<ArgumentErrorException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, ListingCaseStatus.Delivered.ToString(), ListingCaseStatus.Delivered.ToString(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateListingCaseStatusAsync_WhenUserIsPhotographyCompanyAndIsOwner_ShouldUpdateListingCaseStatus()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var userId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        var listingCase = new ListingCase 
+        { 
+            Id = listingCaseId,
+            ListingCaseStatus = ListingCaseStatus.Created,
+            UserId = userId 
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        
+        // Capture the passed updated listingCase argument
+        var updatedListingCase = new ListingCase();
+        _listingCaseRepositoryMock
+            .Setup(r => r.UpdateListingCaseAsync(It.IsAny<ListingCase>()))
+            .Callback<ListingCase>(listingCase => updatedListingCase = listingCase)
+            .Returns(Task.CompletedTask);
+
+        _loggerServiceMock
+            .Setup(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, ListingCaseStatus.Created.ToString(), ListingCaseStatus.Pending.ToString(), It.IsAny<string>(), It.IsAny<string>(), null))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId, userRole);
+
+        // Assert
+        updatedListingCase.ListingCaseStatus.Should().Be(ListingCaseStatus.Pending);
+
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.UpdateListingCaseAsync(It.IsAny<ListingCase>()), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, ListingCaseStatus.Created.ToString(), ListingCaseStatus.Pending.ToString(), It.IsAny<string>(), It.IsAny<string>(), null), Times.Once);
+    }
 }

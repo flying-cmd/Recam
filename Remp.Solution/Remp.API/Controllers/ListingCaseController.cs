@@ -275,7 +275,14 @@ namespace Remp.API.Controllers
                 return Forbid();
             }
 
-            await _listingCaseService.UpdateListingCaseStatusAsync(listingCaseId, currentUserId);
+            // Get current user role
+            var currentRole = currentUser.FindFirstValue(ClaimTypes.Role);
+            if (currentRole == null)
+            {
+                return Forbid();
+            }
+
+            await _listingCaseService.UpdateListingCaseStatusAsync(listingCaseId, currentUserId, currentRole);
 
             return StatusCode(204, new PutResponse(true));
         }

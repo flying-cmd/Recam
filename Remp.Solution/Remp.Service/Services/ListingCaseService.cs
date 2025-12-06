@@ -538,7 +538,7 @@ public class ListingCaseService : IListingCaseService
     }
 
     // Update the status of the listing case following the workflow
-    public async Task UpdateListingCaseStatusAsync(int listingCaseId, string currentUserId)
+    public async Task UpdateListingCaseStatusAsync(int listingCaseId, string currentUserId, string currrentUserRole)
     {
         // Check if the listing case exists
         var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
@@ -554,6 +554,42 @@ public class ListingCaseService : IListingCaseService
                 );
 
             throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Check if the user is the owner of the listing case (PhotographyCompany)
+        if (currrentUserRole == RoleNames.PhotographyCompany && listingCase.UserId != currentUserId)
+        {
+            // Log
+            await _loggerService.LogUpdateListingCaseStatus(
+                listingCaseId.ToString(),
+                currentUserId,
+                null,
+                null,
+                error: $"User is not the owner of this listing case"
+                );
+
+            throw new ForbiddenException(
+                message: $"User {currentUserId} cannot update this listing case because the user is not the owner of this listing case",
+                title: "You cannot update this listing case because you are not the owner of this listing case"
+                );
+        }
+
+        // Check if the user is the assigned agent
+        if (currrentUserRole == RoleNames.Agent && !listingCase.AgentListingCases.Any(x => x.AgentId == currentUserId))
+        {
+            // Log
+            await _loggerService.LogUpdateListingCaseStatus(
+                listingCaseId.ToString(),
+                currentUserId,
+                null,
+                null,
+                error: $"User is not the assigned agent of this listing case"
+                );
+
+            throw new ForbiddenException(
+                message: $"User {currentUserId} cannot update this listing case because the user is not the assigned agent of this listing case",
+                title: "You cannot update this listing case because you are not the assigned agent of this listing case"
+                );
         }
 
         // Update the listing case status
