@@ -260,7 +260,7 @@ public class ListingCaseService : IListingCaseService
             listingCases = await _listingCaseRepository.FindListingCasesByAgentIdAsync(pageNumber, pageSize, currentUserId);
 
 
-            if (!listingCases.Any())
+            if (listingCases == null || !listingCases.Any())
             {
                 throw new NotFoundException(
                     message: $"No listing cases related to the agent {currentUserId} found. Page number: {pageNumber}, Page size: {pageSize}", 
