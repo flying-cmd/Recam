@@ -521,7 +521,15 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> SetCoverImageByListingCaseIdAsync(int listingCaseId, [FromQuery] int mediaAssetId)
         {
-            await _listingCaseService.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            await _listingCaseService.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId, currentUserId);
             
             return StatusCode(204, new PutResponse(true));
         }

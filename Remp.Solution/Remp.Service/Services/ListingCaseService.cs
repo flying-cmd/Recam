@@ -386,13 +386,22 @@ public class ListingCaseService : IListingCaseService
         return _mapper.Map<IEnumerable<MediaAssetDto>>(listingCase.MediaAssets);
     }
 
-    public async Task SetCoverImageByListingCaseIdAsync(int listingCaseId, int mediaAssetId)
+    public async Task SetCoverImageByListingCaseIdAsync(int listingCaseId, int mediaAssetId, string userId)
     {
         // Check if the listing case exists
         var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
         if (listingCase is null)
         {
             throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Check if the user is the assigned agent
+        if (!listingCase.AgentListingCases.Any(x => x.AgentId == userId))
+        {
+            throw new ForbiddenException(
+                message: $"User {mediaAssetId} cannot access this listing case because the user is not the assigned agent of this listing case",
+                title: "You cannot access this listing case because you are not the assigned agent of this listing case"
+                );
         }
 
         // Check if the media asset exists
