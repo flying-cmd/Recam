@@ -436,6 +436,7 @@ namespace Remp.API.Controllers
         /// </remarks>
         [HttpPost("{listingCaseId:int}/media")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [RequestSizeLimit(1024 * 1024 * 1024)]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PostResponse<IEnumerable<MediaAssetDto>>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]

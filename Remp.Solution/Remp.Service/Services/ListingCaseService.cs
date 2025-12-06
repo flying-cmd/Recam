@@ -10,7 +10,6 @@ using Remp.Repository.Interfaces;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using System.IO.Compression;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Remp.Service.Services;
 
@@ -101,7 +100,7 @@ public class ListingCaseService : IListingCaseService
         // Check if the user is the owner of the listing case (PhotographyCompany)
         if (listingCase.UserId != userId)
         {
-            throw new UnauthorizedException(
+            throw new ForbiddenException(
                 message: $"User {userId} cannot access this listing case because the user is not the owner of this listing case",
                 title: "You cannot access this listing case because you are not the owner of this listing case"
                 );
