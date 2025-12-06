@@ -916,4 +916,115 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
         _mapperMock.Verify(m => m.Map<IEnumerable<CaseContactDto>>(listingCase.CaseContacts), Times.Once);
     }
+
+    [Fact]
+    public async Task GetListingCaseMediaByListingCaseIdAsync_WhenListingCaseDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var useId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
+
+        // Act
+        var act = async () => await _listingCaseServices.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, useId, userRole);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetListingCaseMediaByListingCaseIdAsync_WhenUserIsPhotographyCompanyButIsNotOwner_ShouldThrowForbiddenException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var useId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        var listingCase = new ListingCase { UserId = "2" };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        // Act
+        var act = async () => await _listingCaseServices.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, useId, userRole);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetListingCaseMediaByListingCaseIdAsync_WhenUserIsAgentButIsNotAssignedUser_ShouldThrowForbiddenException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var useId = "1";
+        var userRole = RoleNames.Agent;
+        var listingCase = new ListingCase 
+        { 
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = "2" } } 
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        // Act
+        var act = async () => await _listingCaseServices.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, useId, userRole);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetListingCaseMediaByListingCaseIdAsync_WhenUserIsPhototraphyCompanyAndIsOwner_ShouldReturnMediaAssetDtoLists()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var useId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        var listingCase = new ListingCase { UserId = useId };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        IEnumerable<MediaAssetDto> expectedResult = new List<MediaAssetDto>
+        {
+            new MediaAssetDto { Id = 1 },
+            new MediaAssetDto { Id = 2 }
+        };
+        _mapperMock.Setup(m => m.Map<IEnumerable<MediaAssetDto>>(listingCase.MediaAssets)).Returns(expectedResult);
+
+        // Act
+        var result = await _listingCaseServices.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, useId, userRole);
+
+        // Assert
+        result.Should().BeEquivalentTo(expectedResult);
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mapperMock.Verify(m => m.Map<IEnumerable<MediaAssetDto>>(listingCase.MediaAssets), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetListingCaseMediaByListingCaseIdAsync_WhenUserIsAgentAndIsAssignedUser_ShouldReturnMediaAssetDtoLists()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var useId = "1";
+        var userRole = RoleNames.Agent;
+        var listingCase = new ListingCase
+        {
+            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = useId } }
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        IEnumerable<MediaAssetDto> expectedResult = new List<MediaAssetDto>
+        {
+            new MediaAssetDto { Id = 1 },
+            new MediaAssetDto { Id = 2 }
+        };
+        _mapperMock.Setup(m => m.Map<IEnumerable<MediaAssetDto>>(listingCase.MediaAssets)).Returns(expectedResult);
+
+        // Act
+        var result = await _listingCaseServices.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, useId, userRole);
+
+        // Assert
+        result.Should().BeEquivalentTo(expectedResult);
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mapperMock.Verify(m => m.Map<IEnumerable<MediaAssetDto>>(listingCase.MediaAssets), Times.Once);
+    }
 }
