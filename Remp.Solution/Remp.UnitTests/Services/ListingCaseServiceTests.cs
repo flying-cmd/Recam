@@ -7,9 +7,11 @@ using Remp.Common.Exceptions;
 using Remp.Models.Entities;
 using Remp.Models.Enums;
 using Remp.Repository.Interfaces;
+using Remp.Repository.Repositories;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using Remp.Service.Services;
+using System.IO.Compression;
 
 namespace Remp.UnitTests.Services;
 
@@ -287,5 +289,106 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
         _listingCaseRepositoryMock.Verify(r => r.DeleteListingCaseAsync(listingCase), Times.Once);
         _loggerServiceMock.Verify(l => l.LogDeleteListingCase(listingCaseId.ToString(), userId, It.IsAny<string>(), It.IsAny<string>(), null), Times.Once);
+    }
+
+    [Fact]
+    public async Task DownloadAllMediaByListingCaseIdAsync_WhenListingCaseNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
+
+        // Act
+        var act = async () => await _listingCaseServices.DownloadAllMediaByListingCaseIdAsync(listingCaseId);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task DownloadAllMediaByListingCaseIdAsync_WhenFindMediaAssetsReturnsNull_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var listingCase = new ListingCase { Id = listingCaseId };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        _listingCaseRepositoryMock.Setup(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId)).ReturnsAsync((IEnumerable<MediaAsset>?)null);
+
+        // Act
+        var act = async () => await _listingCaseServices.DownloadAllMediaByListingCaseIdAsync(listingCaseId);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task DownloadAllMediaByListingCaseIdAsync_WhenFindMediaAssetsReturnsEmpty_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var listingCase = new ListingCase { Id = listingCaseId };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        _listingCaseRepositoryMock.Setup(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId)).ReturnsAsync(new List<MediaAsset>());
+
+        // Act
+        var act = async () => await _listingCaseServices.DownloadAllMediaByListingCaseIdAsync(listingCaseId);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task DownloadAllMediaByListingCaseIdAsync_WhenArgumentsAreValid_ShouldReturnZipFile()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var listingCase = new ListingCase { Id = listingCaseId };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var mediaAssets = new List<MediaAsset>
+        {
+            new MediaAsset { Id = 1, ListingCaseId = listingCaseId, MediaUrl = "url1.jpg" },
+            new MediaAsset { Id = 2, ListingCaseId = listingCaseId, MediaUrl = "url2.jpg" }
+        };
+
+        _listingCaseRepositoryMock.Setup(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId)).ReturnsAsync(mediaAssets);
+    
+        var file1 = new byte[] { 1, 2, 3 };
+        var file2 = new byte[] { 4, 5, 6 };
+        _blobStorageServiceMock
+            .SetupSequence(b => b.DownloadFileAsync(It.IsAny<string>()))
+            .ReturnsAsync((
+            Content: (Stream)new MemoryStream(file1),
+            ContentType: "image/jpeg",
+            FileName: "image1.jpg"))
+            .ReturnsAsync((
+            Content: (Stream)new MemoryStream(file2),
+            ContentType: "image/jpeg",
+            FileName: "image2.jpg"));
+
+        // Act
+        var result = await _listingCaseServices.DownloadAllMediaByListingCaseIdAsync(listingCaseId);
+
+        // Assert
+        result.Should().NotBeNull();
+        // Verify the zip content
+        result.ZipContent.Should().NotBeNull();
+        using var zipStream = new MemoryStream(result.ZipContent);
+        using var zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+        zipArchive.Entries.Should().HaveCount(2);
+        var entry1 = zipArchive.Entries.Single(e => e.Name == "image1.jpg");
+        var entry2 = zipArchive.Entries.Single(e => e.Name == "image2.jpg");
+
+        result.ContentType.Should().Be("application/zip");
+        result.ZipFileName.Should().Be($"listingcase_{listingCaseId}_media.zip");
+    
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId), Times.Once);
+        _blobStorageServiceMock.Verify(b => b.DownloadFileAsync(It.IsAny<string>()), Times.Exactly(2));
     }
 }
