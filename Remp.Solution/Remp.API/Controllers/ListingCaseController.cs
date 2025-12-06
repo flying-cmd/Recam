@@ -642,5 +642,23 @@ namespace Remp.API.Controllers
 
             return Ok(new PostResponse<string>(true, result));
         }
+
+
+        [HttpPut("{listingCaseId:int}/assigned-agent")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        public async Task<IActionResult> AddAgentToListingCaseAsync([FromRoute] int listingCaseId, [FromQuery] string agentId)
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            await _listingCaseService.AddAgentToListingCaseAsync(listingCaseId, agentId, currentUserId);
+
+            return StatusCode(204, new PutResponse(true));
+        }
     }
 }

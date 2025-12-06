@@ -19,6 +19,7 @@ public class ListingCaseService : IListingCaseService
     private readonly IMapper _mapper;
     private readonly IBlobStorageService _blobStorageService;
     private readonly IMediaRepository _mediaRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
     private readonly ILoggerService _loggerService;
 
@@ -27,6 +28,7 @@ public class ListingCaseService : IListingCaseService
         IMapper mapper, 
         IBlobStorageService blobStorageService,
         IMediaRepository mediaRepository,
+        IUserRepository userRepository,
         IConfiguration configuration,
         ILoggerService loggerService)
     {
@@ -34,6 +36,7 @@ public class ListingCaseService : IListingCaseService
         _mapper = mapper;
         _blobStorageService = blobStorageService;
         _mediaRepository = mediaRepository;
+        _userRepository = userRepository;
         _configuration = configuration;
         _loggerService = loggerService;
     }
@@ -621,5 +624,74 @@ public class ListingCaseService : IListingCaseService
             oldStatus.ToString(),
             newStatus.ToString()
             );
+    }
+
+    public async Task AddAgentToListingCaseAsync(int listingCaseId, string agentId, string userId)
+    {
+        // Check if the current user exists
+        var photographyCompany = await _userRepository.FindPhotographyCompanyByIdAsync(userId);
+        if (photographyCompany is null)
+        {
+            // Log
+            await _loggerService.LogAddAgentToListingCase(
+                listingCaseId: listingCaseId.ToString(),
+                agentId: agentId,
+                photographyCompanyId: null,
+                error: $"Photography company {userId} does not exist"
+                );
+
+            throw new UnauthorizedException(message: $"Photography company {userId} does not exist", title: "Photography company does not exist");
+        }
+
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            // Log
+            await _loggerService.LogAddAgentToListingCase(
+                listingCaseId: null,
+                agentId: agentId,
+                photographyCompanyId: userId,
+                error: $"Listing case {listingCaseId} does not exist"
+                );
+
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Check if the user is the owner of the listing case (PhotographyCompany)
+        if (listingCase.UserId != userId)
+        {
+            // Log
+            await _loggerService.LogAddAgentToListingCase(
+                listingCaseId: listingCaseId.ToString(),
+                agentId: agentId,
+                photographyCompanyId: userId,
+                error: $"User is not the owner of this listing case"
+                );
+
+            throw new ForbiddenException(
+                message: $"User {userId} cannot add agent to this listing case because the user is not the owner of this listing case",
+                title: "You cannot add agent to this listing case because you are not the owner of this listing case"
+                );
+        }
+
+        // Check if the agent exists
+        var agent = await _userRepository.FindAgentByIdAsync(agentId);
+        if (agent is null)
+        {
+            // Log
+            await _loggerService.LogAddAgentToListingCase(
+                listingCaseId: listingCaseId.ToString(),
+                agentId: null,
+                photographyCompanyId: userId,
+                error: $"Agent {agentId} does not exist"
+                );
+
+            throw new NotFoundException(message: $"Agent {agentId} does not exist", title: "Agent does not exist");
+        }
+
+        // Add agent to listing case
+        AgentListingCase agentListingCase = new AgentListingCase() { AgentId = agentId, ListingCaseId = listingCaseId };
+        await _listingCaseRepository.AddAgentToListingCaseAsync(agentListingCase);
     }
 }

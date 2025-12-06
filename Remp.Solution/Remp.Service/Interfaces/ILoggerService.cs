@@ -16,4 +16,5 @@ public interface ILoggerService
     Task LogUpdateListingCaseStatus(string? listingCaseId, string userId, string? oldStatus, string? newStatus, [CallerMemberName] string actionName = "", string? message = null, string? error = null);
     Task LogDeleteMedia(string? mediaId, string userId, [CallerMemberName] string actionName = "", string? message = null, string? error = null);
     Task LogSelectMedia(string? listingCaseId, IEnumerable<int> mediaIds, string userId, [CallerMemberName] string actionName = "", string? message = null, string? error = null);
+    Task LogAddAgentToListingCase(string? listingCaseId, string? agentId, string? photographyCompanyId, [CallerMemberName] string actionName = "", string? message = null, string? error = null);
 }

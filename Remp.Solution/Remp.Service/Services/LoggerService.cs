@@ -351,4 +351,38 @@ public class LoggerService : ILoggerService
 
         await _loggerRepository.AddLogCaseHistoryAsync(caseHistory);
     }
+
+    public async Task LogAddAgentToListingCase(string? listingCaseId, string? agentId, string? photographyCompanyId, string actionName, string? message = null, string? error = null)
+    {
+        var caseHistory = new CaseHistory();
+        string details;
+
+        if (error == null)
+        {
+            details = $"Photography company {photographyCompanyId} successfully added agent {agentId} to listing case {listingCaseId}";
+            caseHistory = new CaseHistory(
+                listingCaseId: listingCaseId,
+                userId: photographyCompanyId,
+                eventType: "AddAgentToListingCase",
+                message: message ?? details,
+                agentId: agentId,
+                actionName: actionName
+                );
+        }
+        else
+        {
+            details = $"Photography company {photographyCompanyId} failed to add agent {agentId} to listing case {listingCaseId} with error: {error}";
+            caseHistory = new CaseHistory(
+                listingCaseId: listingCaseId,
+                userId: photographyCompanyId,
+                eventType: "AddAgentToListingCase",
+                message: message ?? details,
+                error: error!,
+                agentId: agentId,
+                actionName: actionName
+                );
+        }
+
+        await _loggerRepository.AddLogCaseHistoryAsync(caseHistory);
+    }
 }

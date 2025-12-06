@@ -35,6 +35,13 @@ public class UserService : IUserService
 
     public async Task<Agent?> AddAgentByIdAsync(string agentId, string photographyCompanyId)
     {
+        // Check if the photography company exists
+        var photographyCompany = await _userRepository.FindPhotographyCompanyByIdAsync(photographyCompanyId);
+        if (photographyCompany is null)
+        {
+            throw new UnauthorizedException(message: $"Photography company {photographyCompanyId} does not exist", title: "Unauthenticated");
+        }
+
         // Check if the agent exists
         var agent = await _userRepository.FindAgentByIdAsync(agentId);
         if (agent is null)
@@ -45,7 +52,7 @@ public class UserService : IUserService
         // Check if the photography company already added the agent
         if (await _userRepository.IsAgentAddedToPhotographyCompanyAsync(agentId, photographyCompanyId))
         {
-            return null;
+            throw new ArgumentErrorException(message: $"Photography company {photographyCompanyId} already added the agent {agentId}", title: "Photography company already added the agent");
         }
 
         // Add agent to photography company

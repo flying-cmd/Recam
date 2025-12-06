@@ -7,6 +7,7 @@ namespace Remp.Service.Interfaces;
 
 public interface IListingCaseService
 {
+    Task AddAgentToListingCaseAsync(int listingCaseId, string agentId, string userId);
     Task<CaseContactDto> CreateCaseContactByListingCaseIdAsync(int listingCaseId, CreateCaseContactRequestDto createCaseContactRequest);
     Task<ListingCaseResponseDto> CreateListingCaseAsync(CreateListingCaseRequestDto createListingCaseRequestDto);
     Task<IEnumerable<MediaAssetDto>> CreateMediaByListingCaseIdAsync(IEnumerable<IFormFile> files, MediaType mediaType, int listingCaseId, string userId);

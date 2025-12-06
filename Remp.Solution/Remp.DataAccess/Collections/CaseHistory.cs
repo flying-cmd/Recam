@@ -24,6 +24,9 @@ public class CaseHistory : BaseEvent
     [BsonIgnoreIfNull]
     public IEnumerable<int>? MediaIds { get; set; }
 
+    [BsonIgnoreIfNull]
+    public string? AgentId { get; set; }
+
     public CaseHistory() { }
 
     public CaseHistory( 
@@ -37,6 +40,7 @@ public class CaseHistory : BaseEvent
         string? newStatus = null,
         string? mediaId = null,
         IEnumerable<int>? mediaIds = null,
+        string? agentId = null,
         string? error = null)
         : base(eventType, message, actionName, userId, error)
     {
@@ -47,6 +51,7 @@ public class CaseHistory : BaseEvent
         if (newStatus != null) NewStatus = newStatus;
         if (mediaId != null) MediaId = mediaId;
         if (mediaIds != null) MediaIds = mediaIds;
+        if (agentId != null) AgentId = agentId;
         if (error != null) Error = error;
     }
 }

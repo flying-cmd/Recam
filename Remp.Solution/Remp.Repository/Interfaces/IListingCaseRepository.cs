@@ -4,6 +4,7 @@ namespace Remp.Repository.Interfaces;
 
 public interface IListingCaseRepository
 {
+    Task AddAgentToListingCaseAsync(AgentListingCase agentListingCase);
     Task<CaseContact> AddCaseContactAsync(CaseContact caseContact);
     Task<ListingCase> AddListingCaseAsync(ListingCase listingCase);
     Task<IEnumerable<MediaAsset>> AddMediaAssetAsync(IEnumerable<MediaAsset> mediaAssets);

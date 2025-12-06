@@ -134,4 +134,10 @@ public class ListingCaseRepository : IListingCaseRepository
         _dbContext.ListingCases.Update(newListingCase);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task AddAgentToListingCaseAsync(AgentListingCase agentListingCase)
+    {
+        await _dbContext.AgentListingCases.AddAsync(agentListingCase);
+        await _dbContext.SaveChangesAsync();
+    }
 }
