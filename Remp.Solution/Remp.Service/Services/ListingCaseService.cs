@@ -338,7 +338,7 @@ public class ListingCaseService : IListingCaseService
         // Check if the user is the owner of the listing case (PhotographyCompany)
         if (userRole == RoleNames.PhotographyCompany && listingCase.UserId != userId)
         {
-            throw new UnauthorizedException(
+            throw new ForbiddenException(
                 message: $"User {userId} cannot access this listing case because the user is not the owner of this listing case",
                 title: "You cannot access this listing case because you are not the owner of this listing case"
                 );
@@ -347,7 +347,7 @@ public class ListingCaseService : IListingCaseService
         // Check if the user is the assigned agent
         if (userRole == RoleNames.Agent && listingCase.AgentListingCases.Any(x => x.AgentId != userId))
         {
-            throw new UnauthorizedException(
+            throw new ForbiddenException(
                 message: $"User {userId} cannot access this listing case because the user is not the assigned agent of this listing case",
                 title: "You cannot access this listing case because you are not the assigned agent of this listing case"
                 );
