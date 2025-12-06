@@ -426,10 +426,13 @@ public class ListingCaseService : IListingCaseService
             var updatedMediaAssets = new List<MediaAsset> { existingCoverImage, mediaAsset };
             await _mediaRepository.UpdateMediaAssetsAsync(updatedMediaAssets);
         }
-
-        // Set the media asset as the cover image
-        mediaAsset.IsHero = true;
-        await _mediaRepository.UpdateMediaAssetsAsync(new List<MediaAsset> { mediaAsset });
+        else
+        {
+            // Set the media asset as the cover image
+            mediaAsset.IsHero = true;
+            mediaAsset.IsSelect = true;
+            await _mediaRepository.UpdateMediaAssetsAsync(new List<MediaAsset> { mediaAsset });
+        }
     }
 
     public async Task SetSelectedMediaByListingCaseIdAsync(int listingCaseId, IEnumerable<int> mediaIds, string userId)

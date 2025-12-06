@@ -209,7 +209,7 @@ public class ListingCaseServiceTests
             .ReturnsAsync("image1_url.jpg")
             .ReturnsAsync("image2_url.jpg");
 
-        // Capture the media assets the service creates
+        // Capture the passed media assets argument
         var createdMediaAssets = new List<MediaAsset>();
         _listingCaseRepositoryMock
             .Setup(r => r.AddMediaAssetAsync(It.IsAny<IEnumerable<MediaAsset>>()))
@@ -1026,5 +1026,198 @@ public class ListingCaseServiceTests
         result.Should().BeEquivalentTo(expectedResult);
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
         _mapperMock.Verify(m => m.Map<IEnumerable<MediaAssetDto>>(listingCase.MediaAssets), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetCoverImageByListingCaseIdAsync_WhenListingCaseDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var mediaAssetId = 1;
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
+
+        // Act
+        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetCoverImageByListingCaseIdAsync_WhenMediaAssetDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var mediaAssetId = 1;
+        var listingCase = new ListingCase { MediaAssets = new List<MediaAsset> { new MediaAsset { Id = 2 } } };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        // Act
+        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.FindMediaByIdAsync(mediaAssetId), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetCoverImageByListingCaseIdAsync_WhenMediaTypeIsNotPhoto_ShouldThrowArgumentErrorException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var mediaAssetId = 1;
+        var listingCase = new ListingCase 
+        { 
+            MediaAssets = new List<MediaAsset>
+            {
+                new MediaAsset { Id = mediaAssetId, MediaType = MediaType.Videography }
+            }
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var mediaAsset = new MediaAsset { Id = mediaAssetId, MediaType = MediaType.Videography };
+        _listingCaseRepositoryMock.Setup(r => r.FindMediaByIdAsync(mediaAssetId)).ReturnsAsync(mediaAsset);
+
+        // Act
+        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentErrorException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.FindMediaByIdAsync(mediaAssetId), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetCoverImageByListingCaseIdAsync_WhenMediaDoesNotBelongToListingCase_ShouldThrowArgumentErrorException()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var mediaAssetId = 15;
+        var listingCase = new ListingCase 
+        { 
+            MediaAssets = new List<MediaAsset> { new MediaAsset { Id = 2 } } 
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var mediaAsset = new MediaAsset { Id = mediaAssetId, MediaType = MediaType.Photo };
+        _listingCaseRepositoryMock.Setup(r => r.FindMediaByIdAsync(mediaAssetId)).ReturnsAsync(mediaAsset);
+
+        // Act
+        var act = async () => await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentErrorException>();
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.FindMediaByIdAsync(mediaAssetId), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetCoverImageByListingCaseIdAsync_WhenListingCaseAlreadyHasCoverImage_ShouldSetNewCoverImageAndCancelOldCoverImage()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var mediaAssetId = 1;
+        var listingCase = new ListingCase
+        {
+            MediaAssets = new List<MediaAsset>
+            {
+                new MediaAsset { Id = mediaAssetId, MediaType = MediaType.Photo, IsHero = false, IsSelect = true, ListingCaseId = listingCaseId },
+                new MediaAsset { Id = 2, MediaType = MediaType.Photo, IsHero = true, IsSelect = true, ListingCaseId = listingCaseId } // already has a cover image
+            }
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var mediaAsset = listingCase.MediaAssets.Where(m => m.IsHero == true).FirstOrDefault();
+
+        _listingCaseRepositoryMock
+            .Setup(r => r.FindMediaByIdAsync(mediaAssetId))
+            .ReturnsAsync(mediaAsset);
+
+        var existingCoverMedia = new MediaAsset
+        {
+            Id = 2,
+            MediaType = MediaType.Photo,
+            IsHero = true,
+            IsSelect = true
+        };
+
+        _listingCaseRepositoryMock.Setup(l => l.FindCoverImageByListingCaseIdAsync(listingCaseId)).ReturnsAsync(existingCoverMedia);
+
+        // Capture the passed updated MediaAsset argument
+        IEnumerable<MediaAsset> updatedMediaAssets = new List<MediaAsset>();
+
+        _mediaRepositoryMock
+            .Setup(r => r.UpdateMediaAssetsAsync(It.IsAny<IEnumerable<MediaAsset>>()))
+            .Callback<IEnumerable<MediaAsset>>(assets =>
+            {
+                updatedMediaAssets = assets.ToList();
+            })
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+
+        // Assert
+        existingCoverMedia.IsHero.Should().BeFalse();
+        existingCoverMedia.IsSelect.Should().BeTrue();
+        mediaAsset!.IsHero.Should().BeTrue();
+        mediaAsset!.IsSelect.Should().BeTrue();
+        updatedMediaAssets.Should().HaveCount(2);
+
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.FindMediaByIdAsync(mediaAssetId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.FindCoverImageByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mediaRepositoryMock.Verify(r => r.UpdateMediaAssetsAsync(It.IsAny<IEnumerable<MediaAsset>>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetCoverImageByListingCaseIdAsync_WhenListingCaseDoesNotHaveCoverImage_ShouldSetNewCoverImage()
+    {
+        // Arrange
+        var listingCaseId = 1;
+        var mediaAssetId = 1;
+        var listingCase = new ListingCase
+        {
+            MediaAssets = new List<MediaAsset>
+            {
+                new MediaAsset { Id = mediaAssetId, MediaType = MediaType.Photo, IsHero = false, IsSelect = false, ListingCaseId = listingCaseId },
+                new MediaAsset { Id = 2, MediaType = MediaType.Photo, IsHero = false, IsSelect = true, ListingCaseId = listingCaseId }
+            }
+        };
+        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+
+        var mediaAsset = listingCase.MediaAssets.Where(m => m.Id == mediaAssetId).FirstOrDefault();
+
+        _listingCaseRepositoryMock
+            .Setup(r => r.FindMediaByIdAsync(mediaAssetId))
+            .ReturnsAsync(mediaAsset);
+
+        _listingCaseRepositoryMock.Setup(l => l.FindCoverImageByListingCaseIdAsync(listingCaseId)).ReturnsAsync((MediaAsset?)null);
+
+        // Capture the passed updated MediaAsset argument
+        IEnumerable<MediaAsset> updatedMediaAssets = new List<MediaAsset>();
+
+        _mediaRepositoryMock
+            .Setup(r => r.UpdateMediaAssetsAsync(It.IsAny<IEnumerable<MediaAsset>>()))
+            .Callback<IEnumerable<MediaAsset>>(assets =>
+            {
+                updatedMediaAssets = assets.ToList();
+            })
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _listingCaseServices.SetCoverImageByListingCaseIdAsync(listingCaseId, mediaAssetId);
+
+        // Assert
+        mediaAsset!.IsHero.Should().BeTrue();
+        mediaAsset!.IsSelect.Should().BeTrue();
+        updatedMediaAssets.Should().HaveCount(1);
+
+        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.FindMediaByIdAsync(mediaAssetId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.FindCoverImageByListingCaseIdAsync(listingCaseId), Times.Once);
+        _mediaRepositoryMock.Verify(r => r.UpdateMediaAssetsAsync(It.IsAny<IEnumerable<MediaAsset>>()), Times.Once);
     }
 }
