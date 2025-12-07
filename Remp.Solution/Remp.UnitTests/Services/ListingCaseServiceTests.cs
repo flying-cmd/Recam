@@ -280,8 +280,21 @@ public class ListingCaseServiceTests
         // Arrange
         var listingCaseId = 1;
         var userId = "1";
-        var listingCase = new ListingCase { Id = listingCaseId, UserId = userId };
+        var listingCase = new ListingCase 
+        { 
+            Id = listingCaseId, 
+            UserId = userId,
+            MediaAssets = new List<MediaAsset> 
+            { 
+                new MediaAsset { MediaUrl = "image_url.jpg" },
+                new MediaAsset { MediaUrl = "image_url2.jpg" }
+            }
+        };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
+        _blobStorageServiceMock
+            .SetupSequence(b => b.DeleteFileAsync(It.IsAny<string>()))
+            .Returns(Task.CompletedTask)
+            .Returns(Task.CompletedTask);
         _listingCaseRepositoryMock.Setup(r => r.DeleteListingCaseAsync(listingCase)).Returns(Task.CompletedTask);
         _loggerServiceMock.Setup(l => l.LogDeleteListingCase(listingCaseId.ToString(), userId, It.IsAny<string>(), It.IsAny<string>(), null)).Returns(Task.CompletedTask);
 
@@ -290,6 +303,7 @@ public class ListingCaseServiceTests
 
         // Assert
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
+        _blobStorageServiceMock.Verify(b => b.DeleteFileAsync(It.IsAny<string>()), Times.Exactly(2));
         _listingCaseRepositoryMock.Verify(r => r.DeleteListingCaseAsync(listingCase), Times.Once);
         _loggerServiceMock.Verify(l => l.LogDeleteListingCase(listingCaseId.ToString(), userId, It.IsAny<string>(), It.IsAny<string>(), null), Times.Once);
     }
