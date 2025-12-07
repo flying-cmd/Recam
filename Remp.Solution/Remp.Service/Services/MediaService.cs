@@ -53,6 +53,8 @@ public class MediaService : IMediaService
 
         await _mediaRepository.DeleteMediaByIdAsync(media);
 
+        await _blobStorageService.DeleteFileAsync(media.MediaUrl);
+
         // Log
         await _loggerService.LogDeleteMedia(mediaId.ToString(), userId);
     }

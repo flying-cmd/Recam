@@ -156,6 +156,11 @@ public class ListingCaseService : IListingCaseService
                 );
         }
 
+        // Delete all files from the blob storage
+        foreach (var mediaAsset in listingCase.MediaAssets)
+        {
+            await _blobStorageService.DeleteFileAsync(mediaAsset.MediaUrl);
+        }
 
         await _listingCaseRepository.DeleteListingCaseAsync(listingCase);
 

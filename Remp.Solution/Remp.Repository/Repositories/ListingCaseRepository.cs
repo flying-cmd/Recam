@@ -56,6 +56,7 @@ public class ListingCaseRepository : IListingCaseRepository
 
     public async Task DeleteListingCaseAsync(ListingCase listingCase)
     {
+        listingCase.IsDeleted = true;
         _dbContext.ListingCases.Remove(listingCase);
         await _dbContext.SaveChangesAsync();
     }
