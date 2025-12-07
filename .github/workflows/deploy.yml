@@ -7,7 +7,7 @@ on:
 
 env:
   DOTNET_VERSION: '9.0'
-  PUBLISH_DIR: 'Remp.Solution/publish'
+  PUBLISH_DIR: './publish'
 
 jobs:
   build-and-deploy:
