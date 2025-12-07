@@ -259,10 +259,11 @@ namespace Remp.API.Controllers
         /// <response code="204">Listing case status updated</response>
         /// <response code="400">Failed to update listing case status</response>
         /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
         /// Updating listing case status must follow the workflow of the listing case (Created -> Pending -> Delivered).
         /// </remarks>
         [HttpPatch("{listingCaseId:int}/status")]
-        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
         [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> UpdateListingCaseStatusAsync(int listingCaseId)
@@ -275,14 +276,7 @@ namespace Remp.API.Controllers
                 return Forbid();
             }
 
-            // Get current user role
-            var currentRole = currentUser.FindFirstValue(ClaimTypes.Role);
-            if (currentRole == null)
-            {
-                return Forbid();
-            }
-
-            await _listingCaseService.UpdateListingCaseStatusAsync(listingCaseId, currentUserId, currentRole);
+            await _listingCaseService.UpdateListingCaseStatusAsync(listingCaseId, currentUserId);
 
             return StatusCode(204, new PutResponse(true));
         }
@@ -542,7 +536,7 @@ namespace Remp.API.Controllers
         }
 
         /// <summary>
-        /// Get the final selected media assets of a listing case
+        /// Get the final selected media assets of a listing case, and download them as a zip file
         /// </summary>
         /// <param name="listingCaseId">
         /// The ID of the listing case
@@ -634,6 +628,7 @@ namespace Remp.API.Controllers
         /// <response code="200">Returns the shared url</response>
         /// <response code="400">Failed to generate shared url</response>
         [HttpPost("{listingCaseId:int}/publish")]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostResponse<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> GenerateSharedUrlAsync(int listingCaseId)
@@ -643,9 +638,29 @@ namespace Remp.API.Controllers
             return Ok(new PostResponse<string>(true, result));
         }
 
-
+        /// <summary>
+        /// Assign an agent to a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <param name="agentId">
+        /// The ID of the agent
+        /// </param>
+        /// <returns>
+        /// If success, returns status code 204
+        /// </returns>
+        /// <response code="204">Assign successfully</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to assign agent</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
         [HttpPut("{listingCaseId:int}/assigned-agent")]
         [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<IActionResult> AddAgentToListingCaseAsync([FromRoute] int listingCaseId, [FromQuery] string agentId)
         {
             // Get current user id
