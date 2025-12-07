@@ -321,4 +321,53 @@ public class UserServiceTests : IDisposable
         _userRepositoryMock.Verify(r => r.GetTotalCountAsync(), Times.Once);
         _mapperMock.Verify(m => m.Map<IEnumerable<SearchAgentResponseDto>>(agents), Times.Once);
     }
+
+    [Fact]
+    public async Task GetAgentsUnderPhotographyCompanyAsync_WhenPhotographyCompanyDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var photographyCompanyId = "1";
+        _userRepositoryMock.Setup(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId)).ReturnsAsync((PhotographyCompany?)null);
+        
+        // Act
+        var act = async () => await _userService.GetAgentsUnderPhotographyCompanyAsync(photographyCompanyId);
+    
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _userRepositoryMock.Verify(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAgentsUnderPhotographyCompanyAsync_WhenPhotographyCompanyExists_ShouldReturnSearchAgentResponseDtoLists()
+    {
+        // Arrange
+        var photographyCompanyId = "1";
+        var photographyCompany = new PhotographyCompany { Id = photographyCompanyId };
+        _userRepositoryMock.Setup(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId)).ReturnsAsync(photographyCompany);
+        
+        var agents = new List<Agent> 
+        { 
+            new Agent { Id = "1" },
+            new Agent { Id = "2" }
+        };
+        _userRepositoryMock.Setup(r => r.GetAgentsUnderPhotographyCompanyAsync(photographyCompanyId)).ReturnsAsync(agents);
+        
+        IEnumerable<SearchAgentResponseDto> agentsDto = new List<SearchAgentResponseDto>
+        { 
+            new SearchAgentResponseDto { Id = "1" },
+            new SearchAgentResponseDto { Id = "2" }
+        };
+        _mapperMock.Setup(m => m.Map<IEnumerable<SearchAgentResponseDto>>(agents)).Returns(agentsDto);
+
+        // Act
+        var result = await _userService.GetAgentsUnderPhotographyCompanyAsync(photographyCompanyId);
+    
+        // Assert
+        result.Should().NotBeNull();
+        result.Count().Should().Be(2);
+
+        _userRepositoryMock.Verify(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId), Times.Once);
+        _userRepositoryMock.Verify(r => r.GetAgentsUnderPhotographyCompanyAsync(photographyCompanyId), Times.Once);
+        _mapperMock.Verify(m => m.Map<IEnumerable<SearchAgentResponseDto>>(agents), Times.Once);
+    }
 }
