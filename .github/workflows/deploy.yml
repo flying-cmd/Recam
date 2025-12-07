@@ -7,11 +7,15 @@ on:
 
 env:
   DOTNET_VERSION: '9.0'
-  PUBLISH_DIR: 'publish'
+  PUBLISH_DIR: 'Remp.Solution/publish'
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./Remp.Solution
 
     steps:
       - name: Checkout
