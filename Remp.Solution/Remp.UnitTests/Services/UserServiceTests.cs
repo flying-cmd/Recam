@@ -1,0 +1,136 @@
+﻿using AutoMapper;
+using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using Remp.Common.Exceptions;
+using Remp.DataAccess.Data;
+using Remp.Models.Entities;
+using Remp.Repository.Interfaces;
+using Remp.Service.Interfaces;
+using Remp.Service.Services;
+
+namespace Remp.UnitTests.Services;
+
+public class UserServiceTests : IDisposable
+{
+    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IMapper> _mapperMock;
+    private readonly Mock<UserManager<User>> _userManagerMock;
+    private readonly AppDbContext _appDbContext;
+    private readonly Mock<ILoggerService> _loggerServiceMock;
+    private UserService _userService;
+
+    public UserServiceTests()
+    {
+        var dbOptions = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase("TestDb").Options;
+        _appDbContext = new AppDbContext(dbOptions);
+
+        _userRepositoryMock = new Mock<IUserRepository>();
+        _mapperMock = new Mock<IMapper>();
+        _userManagerMock = new Mock<UserManager<User>>(Mock.Of<IUserStore<User>>(), null, null, null, null, null, null, null, null);
+        _loggerServiceMock = new Mock<ILoggerService>();
+        _userService = new UserService(
+            _userRepositoryMock.Object, 
+            _mapperMock.Object, 
+            _userManagerMock.Object, 
+            _appDbContext,
+            _loggerServiceMock.Object);
+    }
+
+    public void Dispose()
+    {
+        _appDbContext.Dispose();
+    }
+
+    [Fact]
+    public async Task AddAgentByIdAsync_WhenPhotographyCompanyDoesNotExist_ShouldThrowUnauthorizedException()
+    {
+        // Arrange
+        var agentId = "1";
+        var photographyCompanyId = "2";
+        _userRepositoryMock.Setup(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId)).ReturnsAsync((PhotographyCompany?)null);
+
+        // Act
+        var act = async () => await _userService.AddAgentByIdAsync(agentId, photographyCompanyId);
+    
+        // Assert
+        await act.Should().ThrowAsync<UnauthorizedException>();
+        _userRepositoryMock.Verify(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId), Times.Once);
+    }
+
+    [Fact]
+    public async Task AddAgentByIdAsync_WhenAgentDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var agentId = "1";
+        var photographyCompanyId = "2";
+        var photographyCompany = new PhotographyCompany { Id = photographyCompanyId };
+        _userRepositoryMock.Setup(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId)).ReturnsAsync(photographyCompany);
+        _userRepositoryMock.Setup(r => r.FindAgentByIdAsync(agentId)).ReturnsAsync((Agent?)null);
+
+        // Act
+        var act = async () => await _userService.AddAgentByIdAsync(agentId, photographyCompanyId);
+    
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _userRepositoryMock.Verify(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId), Times.Once);
+        _userRepositoryMock.Verify(r => r.FindAgentByIdAsync(agentId), Times.Once);
+    }
+
+    [Fact]
+    public async Task AddAgentByIdAsync_WhenPhotographyHasAddedAgent_ShouldThrowArgumentErrorException()
+    {
+        // Arrange
+        var agentId = "1";
+        var photographyCompanyId = "2";
+        var photographyCompany = new PhotographyCompany { Id = photographyCompanyId };
+        var agent = new Agent { Id = agentId };
+        _userRepositoryMock.Setup(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId)).ReturnsAsync(photographyCompany);
+        _userRepositoryMock.Setup(r => r.FindAgentByIdAsync(agentId)).ReturnsAsync(agent);
+        _userRepositoryMock.Setup(r => r.IsAgentAddedToPhotographyCompanyAsync(agentId, photographyCompanyId)).ReturnsAsync(true);
+
+        // Act
+        var act = async () => await _userService.AddAgentByIdAsync(agentId, photographyCompanyId);
+    
+        // Assert
+        await act.Should().ThrowAsync<ArgumentErrorException>();
+        _userRepositoryMock.Verify(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId), Times.Once);
+        _userRepositoryMock.Verify(r => r.FindAgentByIdAsync(agentId), Times.Once);
+        _userRepositoryMock.Verify(r => r.IsAgentAddedToPhotographyCompanyAsync(agentId, photographyCompanyId), Times.Once);
+    }
+
+    [Fact]
+    public async Task AddAgentByIdAsync_WhenAllArgumentsAreValid_ShouldAddAgentToPhotographyCompany()
+    {
+        // Arrange
+        var agentId = "1";
+        var photographyCompanyId = "2";
+        var photographyCompany = new PhotographyCompany { Id = photographyCompanyId };
+        var agent = new Agent { Id = agentId };
+        _userRepositoryMock.Setup(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId)).ReturnsAsync(photographyCompany);
+        _userRepositoryMock.Setup(r => r.FindAgentByIdAsync(agentId)).ReturnsAsync(agent);
+        _userRepositoryMock.Setup(r => r.IsAgentAddedToPhotographyCompanyAsync(agentId, photographyCompanyId)).ReturnsAsync(false);
+
+        var addedAgent = new Agent 
+        { 
+            Id = agentId,
+            AgentPhotographyCompanies = new List<AgentPhotographyCompany> 
+            {
+                new AgentPhotographyCompany { AgentId = agentId, PhotographyCompanyId = photographyCompanyId }
+            }
+        };
+        _userRepositoryMock.Setup(r => r.AddAgentToPhotographyCompanyAsync(It.IsAny<AgentPhotographyCompany>())).ReturnsAsync(addedAgent);
+
+        // Act
+        var result = await _userService.AddAgentByIdAsync(agentId, photographyCompanyId);
+    
+        // Assert
+        result.Should().BeEquivalentTo(addedAgent);
+        _userRepositoryMock.Verify(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId), Times.Once);
+        _userRepositoryMock.Verify(r => r.FindAgentByIdAsync(agentId), Times.Once);
+        _userRepositoryMock.Verify(r => r.IsAgentAddedToPhotographyCompanyAsync(agentId, photographyCompanyId), Times.Once);
+        _userRepositoryMock.Verify(r => r.AddAgentToPhotographyCompanyAsync(It.IsAny<AgentPhotographyCompany>()), Times.Once);
+    }
+}
