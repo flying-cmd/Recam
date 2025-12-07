@@ -370,4 +370,116 @@ public class UserServiceTests : IDisposable
         _userRepositoryMock.Verify(r => r.GetAgentsUnderPhotographyCompanyAsync(photographyCompanyId), Times.Once);
         _mapperMock.Verify(m => m.Map<IEnumerable<SearchAgentResponseDto>>(agents), Times.Once);
     }
+
+    [Fact]
+    public async Task UpdatePasswordAsync_WhenUserDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var userId = "1";
+        var oldPassword = "oldPassword";
+        var newPassword = "newPassword";
+        var request = new UpdatePasswordRequestDto 
+        { 
+            OldPassword = oldPassword, 
+            NewPassword = newPassword,
+            ConfirmNewPassword = newPassword
+        };
+        _userManagerMock.Setup(r => r.FindByIdAsync(userId)).ReturnsAsync((User?)null);
+        
+        // Act
+        var act = async () => await _userService.UpdatePasswordAsync(request, userId);
+    
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _userManagerMock.Verify(r => r.FindByIdAsync(userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdatePasswordAsync_WhenOldPasswordIsIncorrect_ShouldThrowUnauthorizedException()
+    {
+        // Arrange
+        var userId = "1";
+        var oldPassword = "oldPassword";
+        var newPassword = "newPassword";
+        var request = new UpdatePasswordRequestDto 
+        { 
+            OldPassword = oldPassword, 
+            NewPassword = newPassword,
+            ConfirmNewPassword = newPassword
+        };
+        
+        var user = new User { Id = userId };
+        _userManagerMock.Setup(r => r.FindByIdAsync(userId)).ReturnsAsync(user);
+        
+        _userManagerMock.Setup(r => r.CheckPasswordAsync(user, oldPassword)).ReturnsAsync(false);
+
+        // Act
+        var act = async () => await _userService.UpdatePasswordAsync(request, userId);
+    
+        // Assert
+        await act.Should().ThrowAsync<UnauthorizedException>();
+        _userManagerMock.Verify(r => r.FindByIdAsync(userId), Times.Once);
+        _userManagerMock.Verify(r => r.CheckPasswordAsync(user, oldPassword), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdatePasswordAsync_WhenUpdatePasswordFails_ShouldThrowDbErrorException()
+    {
+        // Arrange
+        var userId = "1";
+        var oldPassword = "oldPassword";
+        var newPassword = "newPassword";
+        var request = new UpdatePasswordRequestDto 
+        { 
+            OldPassword = oldPassword, 
+            NewPassword = newPassword,
+            ConfirmNewPassword = newPassword
+        };
+        
+        var user = new User { Id = userId };
+        _userManagerMock.Setup(r => r.FindByIdAsync(userId)).ReturnsAsync(user);
+        
+        _userManagerMock.Setup(r => r.CheckPasswordAsync(user, oldPassword)).ReturnsAsync(true);
+        
+        _userManagerMock.Setup(r => r.ChangePasswordAsync(user, oldPassword, newPassword)).ReturnsAsync(IdentityResult.Failed());
+
+        // Act
+        var act = async () => await _userService.UpdatePasswordAsync(request, userId);
+    
+        // Assert
+        await act.Should().ThrowAsync<DbErrorException>();
+        _userManagerMock.Verify(r => r.FindByIdAsync(userId), Times.Once);
+        _userManagerMock.Verify(r => r.CheckPasswordAsync(user, oldPassword), Times.Once);
+        _userManagerMock.Verify(r => r.ChangePasswordAsync(user, oldPassword, newPassword), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdatePasswordAsync_WhenAllStepsAreSucceed_ShouldReturnUpdatePasswordResponseDto()
+    {
+        // Arrange
+        var userId = "1";
+        var oldPassword = "oldPassword";
+        var newPassword = "newPassword";
+        var request = new UpdatePasswordRequestDto 
+        { 
+            OldPassword = oldPassword, 
+            NewPassword = newPassword,
+            ConfirmNewPassword = newPassword
+        };
+        
+        var user = new User { Id = userId };
+        _userManagerMock.Setup(r => r.FindByIdAsync(userId)).ReturnsAsync(user);
+        
+        _userManagerMock.Setup(r => r.CheckPasswordAsync(user, oldPassword)).ReturnsAsync(true);
+        
+        _userManagerMock.Setup(r => r.ChangePasswordAsync(user, oldPassword, newPassword)).ReturnsAsync(IdentityResult.Success);
+
+        // Act
+        await _userService.UpdatePasswordAsync(request, userId);
+    
+        // Assert
+        _userManagerMock.Verify(r => r.FindByIdAsync(userId), Times.Once);
+        _userManagerMock.Verify(r => r.CheckPasswordAsync(user, oldPassword), Times.Once);
+        _userManagerMock.Verify(r => r.ChangePasswordAsync(user, oldPassword, newPassword), Times.Once);
+    }
 }
