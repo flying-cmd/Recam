@@ -7,7 +7,7 @@ on:
 
 env:
   DOTNET_VERSION: '9.0'
-  PUBLISH_DIR: './publish'
+  PUBLISH_DIR: 'publish'
 
 jobs:
   build-and-deploy:
@@ -36,7 +36,7 @@ jobs:
         run: dotnet test --configuration Release --no-build --verbosity normal
 
       - name: Publish
-        run: dotnet publish -c Release -o ${{ env.PUBLISH_DIR }}
+        run: dotnet publish -c Release -o ../${{ env.PUBLISH_DIR }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
