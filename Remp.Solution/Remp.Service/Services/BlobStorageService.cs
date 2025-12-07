@@ -66,4 +66,14 @@ public class BlobStorageService : IBlobStorageService
         
         return (memoryStream, contentType, fileName);
     }
+
+    public async Task DeleteFileAsync(string blobUrl)
+    {
+        var fileName = Path.GetFileName(blobUrl);
+
+        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+        var blobClient = containerClient.GetBlobClient(fileName);
+
+        await blobClient.DeleteIfExistsAsync();
+    }
 }
