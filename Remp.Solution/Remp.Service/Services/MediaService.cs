@@ -45,15 +45,15 @@ public class MediaService : IMediaService
                 error : $"User is not the owner of this media"
                 );
 
-            throw new UnauthorizedException(
+            throw new ForbiddenException(
                 message: $"User {userId} cannot delete this media because the user is not the owner of this media",
                 title: "You cannot delete this media because you are not the owner of this media"
                 );
         }
 
-        await _mediaRepository.DeleteMediaByIdAsync(media);
-
         await _blobStorageService.DeleteFileAsync(media.MediaUrl);
+
+        await _mediaRepository.DeleteMediaByIdAsync(media);
 
         // Log
         await _loggerService.LogDeleteMedia(mediaId.ToString(), userId);
