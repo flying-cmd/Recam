@@ -177,4 +177,39 @@ public class BlobStorageServiceTests
         blobClientMock.Verify(b => b.DownloadStreamingAsync(It.IsAny<BlobDownloadOptions>(), It.IsAny<CancellationToken>()), Times.Once);
         blobClientMock.Verify(b => b.GetPropertiesAsync(It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task DeleteFileAsync_WhenPassBlobUrl_ShouldDeleteFileAsync()
+    {
+        // Arrange
+        var blobUrl = "https://test-container/test_url.jpg";
+        var fileName = "test_url.jpg";
+
+        var containerClientMock = new Mock<BlobContainerClient>();
+        var blobClientMock = new Mock<BlobClient>();
+
+        _blobServiceClientMock
+            .Setup(s => s.GetBlobContainerClient(_containerName))
+            .Returns(containerClientMock.Object);
+
+        containerClientMock
+            .Setup(c => c.GetBlobClient(fileName))
+            .Returns(blobClientMock.Object);
+
+        blobClientMock
+            .Setup(b => b.DeleteIfExistsAsync(
+                It.IsAny<DeleteSnapshotsOption>(), 
+                It.IsAny<BlobRequestConditions>(),
+                It.IsAny<CancellationToken>()
+                ))
+            .ReturnsAsync(Mock.Of<Response<bool>>());
+
+        // Act
+        await _blobStorageService.DeleteFileAsync(blobUrl);
+
+        // Assert
+        _blobServiceClientMock.Verify(b => b.GetBlobContainerClient(_containerName), Times.Once);
+        containerClientMock.Verify(c => c.GetBlobClient(fileName), Times.Once);
+        blobClientMock.Verify(b => b.DeleteIfExistsAsync(It.IsAny<DeleteSnapshotsOption>(), It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
 }
