@@ -48,10 +48,10 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<PagedResult<CreateAgentAccountResponseDto>>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-        public async Task<ActionResult<GetResponse<PagedResult<CreateAgentAccountResponseDto>>>> GetAgentsAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
+        public async Task<ActionResult<GetResponse<PagedResult<SearchAgentResponseDto>>>> GetAgentsAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
         {
             var result = await _userService.GetAgentsAsync(pageNumer, pageSize);
-            return Ok(new GetResponse<PagedResult<CreateAgentAccountResponseDto>>(true, result));
+            return Ok(new GetResponse<PagedResult<SearchAgentResponseDto>>(true, result));
         }
 
         /// <summary>

@@ -37,7 +37,7 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(a => a.Id == agentId);
     }
 
-    public async Task<User?> FindByEmailAsync(string email)
+    public async Task<User?> FindUserByEmailAsync(string email)
     {
         return await _context.Users
             .AsNoTracking()

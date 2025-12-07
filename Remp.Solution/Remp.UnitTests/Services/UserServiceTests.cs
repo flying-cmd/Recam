@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
 using Remp.Common.Exceptions;
+using Remp.Common.Helpers;
 using Remp.DataAccess.Data;
 using Remp.Models.Constants;
 using Remp.Models.Entities;
@@ -146,7 +147,7 @@ public class UserServiceTests : IDisposable
         var newAgent = new User { Email = "test@example.com" };
         var request = new CreateAgentAccountRequestDto { Email = newAgent.Email };
         var photographyCompanyId = "1";
-        _userRepositoryMock.Setup(r => r.FindByEmailAsync(newAgent.Email)).ReturnsAsync(newAgent);
+        _userRepositoryMock.Setup(r => r.FindUserByEmailAsync(newAgent.Email)).ReturnsAsync(newAgent);
         _loggerServiceMock
             .Setup(l => l.LogCreateAgentAccount(
                 It.IsAny<string>(), 
@@ -163,7 +164,7 @@ public class UserServiceTests : IDisposable
     
         // Assert
         await act.Should().ThrowAsync<ArgumentErrorException>();
-        _userRepositoryMock.Verify(r => r.FindByEmailAsync(newAgent.Email), Times.Once);
+        _userRepositoryMock.Verify(r => r.FindUserByEmailAsync(newAgent.Email), Times.Once);
         _loggerServiceMock.Verify(l => l.LogCreateAgentAccount(It.IsAny<string>(), null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 
@@ -174,7 +175,7 @@ public class UserServiceTests : IDisposable
         var newAgent = new User { Email = "test@example.com" };
         var request = new CreateAgentAccountRequestDto { Email = newAgent.Email };
         var photographyCompanyId = "1";
-        _userRepositoryMock.Setup(r => r.FindByEmailAsync(newAgent.Email)).ReturnsAsync((User?)null);
+        _userRepositoryMock.Setup(r => r.FindUserByEmailAsync(newAgent.Email)).ReturnsAsync((User?)null);
         
         // Capture the passed user and password
         var newUser = new User();
@@ -209,10 +210,115 @@ public class UserServiceTests : IDisposable
         result.Email.Should().Be(newAgent.Email);
         result.Password.Should().Be(password);
 
-        _userRepositoryMock.Verify(r => r.FindByEmailAsync(newAgent.Email), Times.Once);
+        _userRepositoryMock.Verify(r => r.FindUserByEmailAsync(newAgent.Email), Times.Once);
         _userManagerMock.Verify(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
         _userManagerMock.Verify(u => u.AddToRoleAsync(It.Is<User>(user => user.Email == newAgent.Email), RoleNames.Agent), Times.Once);
         _userRepositoryMock.Verify(r => r.AddAgentAsync(It.Is<Agent>(a => a.Id == newUser.Id)), Times.Once);
         _loggerServiceMock.Verify(l => l.LogCreateAgentAccount(It.IsAny<string>(), It.IsAny<string>(), newAgent.Email, It.IsAny<string>(), It.IsAny<string>(), null), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAgentByEmailAsync_WhenEmailDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var email = "test@example.com";
+        _userRepositoryMock.Setup(r => r.GetAgentByEmailAsync(email)).ReturnsAsync((Agent?)null);
+        
+        // Act
+        var act = async () => await _userService.GetAgentByEmailAsync(email);
+    
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _userRepositoryMock.Verify(r => r.GetAgentByEmailAsync(email), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAgentByEmailAsync_WhenEmailExists_ShouldReturnSearchAgentResponseDto()
+    {
+        // Arrange
+        var email = "test@example.com";
+        var agent = new Agent { User = new User { Email = email } };
+        _userRepositoryMock.Setup(r => r.GetAgentByEmailAsync(email)).ReturnsAsync(agent);
+        
+        var expectedResult = new SearchAgentResponseDto { Email = email };
+        _mapperMock.Setup(m => m.Map<SearchAgentResponseDto>(agent)).Returns(expectedResult);
+
+        // Act
+        var result = await _userService.GetAgentByEmailAsync(email);
+    
+        // Assert
+        result.Should().BeEquivalentTo(expectedResult);
+        result.Should().BeOfType<SearchAgentResponseDto>();
+
+        _userRepositoryMock.Verify(r => r.GetAgentByEmailAsync(email), Times.Once);
+        _mapperMock.Verify(m => m.Map<SearchAgentResponseDto>(agent), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(0, 10)]
+    [InlineData(-1, 10)]
+    [InlineData(2, 0)]
+    [InlineData(2, -1)]
+    [InlineData(-1, -1)]
+    public async Task GetAgentsAsync_WhenArgumentsAreInvalid_ShouldThrowArgumentErrorException(int pageNumber, int pageSize)
+    {
+        // Act
+        var act = async () => await _userService.GetAgentsAsync(pageNumber, pageSize);
+    
+        // Assert
+        await act.Should().ThrowAsync<ArgumentErrorException>();
+    }
+
+    [Fact]
+    public async Task GetAgentsAsync_WhenNoAgentsExist_ShouldReturnNotFoundException()
+    {
+        // Arrange
+        var pageNumber = 1;
+        var pageSize = 10;
+        _userRepositoryMock.Setup(r => r.GetAgentsAsync(pageNumber, pageSize)).ReturnsAsync(new List<Agent>());
+        
+        // Act
+        var act = async () => await _userService.GetAgentsAsync(pageNumber, pageSize);
+    
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _userRepositoryMock.Verify(r => r.GetAgentsAsync(pageNumber, pageSize), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAgentsAsync_WhenAgentsExist_ShouldReturnPagedResult()
+    {
+        // Arrange
+        var pageNumber = 1;
+        var pageSize = 10;
+        var agents = new List<Agent> 
+        { 
+            new Agent { Id = "1" },
+            new Agent { Id = "2" }
+        };
+        _userRepositoryMock.Setup(r => r.GetAgentsAsync(pageNumber, pageSize)).ReturnsAsync(agents);
+        _userRepositoryMock.Setup(r => r.GetTotalCountAsync()).ReturnsAsync(2);
+
+        var agentsDto = new List<SearchAgentResponseDto> 
+        { 
+            new SearchAgentResponseDto { Id = "1" },
+            new SearchAgentResponseDto { Id = "2" }
+        };
+        _mapperMock.Setup(m => m.Map<IEnumerable<SearchAgentResponseDto>>(agents)).Returns(agentsDto);
+
+        // Act
+        var result = await _userService.GetAgentsAsync(pageNumber, pageSize);
+    
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeOfType<PagedResult<SearchAgentResponseDto>>();
+        result.PageNumber.Should().Be(pageNumber);
+        result.PageSize.Should().Be(pageSize);
+        result.TotalCount.Should().Be(2);
+        result.Items.Should().BeEquivalentTo(agentsDto);
+
+        _userRepositoryMock.Verify(r => r.GetAgentsAsync(pageNumber, pageSize), Times.Once);
+        _userRepositoryMock.Verify(r => r.GetTotalCountAsync(), Times.Once);
+        _mapperMock.Verify(m => m.Map<IEnumerable<SearchAgentResponseDto>>(agents), Times.Once);
     }
 }

@@ -7,7 +7,7 @@ public interface IUserRepository
     Task AddAgentAsync(Agent agent);
     Task<Agent?> AddAgentToPhotographyCompanyAsync(AgentPhotographyCompany agentPhotographyCompany);
     Task<Agent?> FindAgentByIdAsync(string agentId);
-    Task<User?> FindByEmailAsync(string email);
+    Task<User?> FindUserByEmailAsync(string email);
     Task<PhotographyCompany?> FindPhotographyCompanyByIdAsync(string photographyCompanyId);
     Task<Agent?> GetAgentByEmailAsync(string email);
     Task<IEnumerable<Agent>> GetAgentsAsync(int pageNumber, int pageSize);

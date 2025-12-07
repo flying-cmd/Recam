@@ -65,7 +65,7 @@ public class UserService : IUserService
     public async Task<CreateAgentAccountResponseDto?> CreateAgentAccountAsync(CreateAgentAccountRequestDto createAgentAccountRequestDto, string photographyCompanyId)
     {
         // Check if the email already exists
-        var emailExists = await _userRepository.FindByEmailAsync(createAgentAccountRequestDto.Email);
+        var emailExists = await _userRepository.FindUserByEmailAsync(createAgentAccountRequestDto.Email);
         if (emailExists != null)
         {
             // Log
@@ -163,17 +163,21 @@ public class UserService : IUserService
     public async Task<SearchAgentResponseDto?> GetAgentByEmailAsync(string email)
     {
         var agent = await _userRepository.GetAgentByEmailAsync(email);
+
+        if (agent is null)
+        {
+            throw new NotFoundException(message: $"Agent with email {email} does not exist", title: "Agent does not exist");
+        }
+
         return _mapper.Map<SearchAgentResponseDto>(agent);
     }
 
-    public async Task<PagedResult<CreateAgentAccountResponseDto>> GetAgentsAsync(int pageNumber, int pageSize)
+    public async Task<PagedResult<SearchAgentResponseDto>> GetAgentsAsync(int pageNumber, int pageSize)
     {
         if (pageNumber <= 0 || pageSize <= 0)
         {
             throw new ArgumentErrorException(message: "Page number and page size must be greater than 0.", title: "Page number and page size must be greater than 0.");
         }
-
-        var totalCount = await _userRepository.GetTotalCountAsync();
 
         var agents = await _userRepository.GetAgentsAsync(pageNumber, pageSize);
 
@@ -182,9 +186,11 @@ public class UserService : IUserService
             throw new NotFoundException(message: $"No agents found. Page number: {pageNumber}, Page size: {pageSize}", title: "No agents found.");
         }
 
-        var agentsDto = _mapper.Map<IEnumerable<CreateAgentAccountResponseDto>>(agents);
+        var totalCount = await _userRepository.GetTotalCountAsync();
 
-        return new PagedResult<CreateAgentAccountResponseDto>(pageNumber, pageSize, totalCount, agentsDto);
+        var agentsDto = _mapper.Map<IEnumerable<SearchAgentResponseDto>>(agents);
+
+        return new PagedResult<SearchAgentResponseDto>(pageNumber, pageSize, totalCount, agentsDto);
     }
 
     public async Task<IEnumerable<SearchAgentResponseDto>> GetAgentsUnderPhotographyCompanyAsync(string photographyCompanyId)
