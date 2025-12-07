@@ -95,7 +95,7 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task Register_WhenRequestIsValid_ShouldReturnOk()
+    public async Task Register_WhenRequestIsValid_ShouldReturn201()
     {
         // Arrange
         var avatarFile = new Mock<IFormFile>();
