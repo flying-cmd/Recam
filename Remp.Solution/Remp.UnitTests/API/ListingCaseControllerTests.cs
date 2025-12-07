@@ -355,7 +355,7 @@ public class ListingCaseControllerTests
     }
 
     [Fact]
-    public async Task UpdateListingCaseAsync_WhenRequestIsValid_ShouldReturnOk()
+    public async Task UpdateListingCaseAsync_WhenRequestIsValid_ShouldReturn204()
     {
         // Arrange
         var user = CreateUser(userId: "1", role: RoleNames.PhotographyCompany);
@@ -414,7 +414,7 @@ public class ListingCaseControllerTests
     }
 
     [Fact]
-    public async Task DeleteListingCaseByListingCaseIdAsync_WhenRequestIsValid_ShouldReturnOk()
+    public async Task DeleteListingCaseByListingCaseIdAsync_WhenRequestIsValid_ShouldReturn204()
     {
         // Arrange
         var user = CreateUser(userId: "1", role: RoleNames.Agent);
@@ -450,7 +450,7 @@ public class ListingCaseControllerTests
     }
 
     [Fact]
-    public async Task UpdateListingCaseStatusAsync_WhenRequestIsValid_ShouldReturnOk()
+    public async Task UpdateListingCaseStatusAsync_WhenRequestIsValid_ShouldReturn204()
     {
         // Arrange
         var user = CreateUser(userId: "1", role: RoleNames.PhotographyCompany);
@@ -691,7 +691,7 @@ public class ListingCaseControllerTests
     }
 
     [Fact]
-    public async Task SetCoverImageByListingCaseIdAsync_WhenRequestIsValid_ShouldReturnOk()
+    public async Task SetCoverImageByListingCaseIdAsync_WhenRequestIsValid_ShouldReturn204()
     {
         // Arrange
         var userId = "1";
@@ -796,7 +796,7 @@ public class ListingCaseControllerTests
     }
 
     [Fact]
-    public async Task SetSelectedMediaByListingCaseIdAsync_WhenRequestIsValid_ShouldReturnOk()
+    public async Task SetSelectedMediaByListingCaseIdAsync_WhenRequestIsValid_ShouldReturn204()
     {
         // Arrange
         var user = CreateUser(userId: "1", role: RoleNames.Agent);
@@ -848,5 +848,47 @@ public class ListingCaseControllerTests
         var response = Assert.IsType<PostResponse<string>>(okResult.Value);
         response.Success.Should().BeTrue();
         response.Data.Should().Be(expectedUrl);
+    }
+
+    [Fact]
+    public async Task AddAgentToListingCaseAsync_WhenNoUserId_ShouldReturnForBid()
+    {
+        // Arrange
+        var user = CreateUser(userId: null, role: RoleNames.PhotographyCompany);
+        var controller = CreateController(user);
+        var listingCaseId = 1;
+        var agentId = "15";
+
+        // Act
+        var result = await controller.AddAgentToListingCaseAsync(listingCaseId, agentId);
+
+        // Assert
+        Assert.IsType<ForbidResult>(result);
+    }
+
+    [Fact]
+    public async Task AddAgentToListingCaseAsync_WhenAllArgumentsAreValid_ShouldReturn204()
+    {
+        // Arrange
+        var user = CreateUser(userId: "1", role: RoleNames.PhotographyCompany);
+        var controller = CreateController(user);
+        var listingCaseId = 1;
+        var agentId = "15";
+
+        _listingCaseServiceMock
+            .Setup(x => x.AddAgentToListingCaseAsync(listingCaseId, agentId, "1"))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await controller.AddAgentToListingCaseAsync(listingCaseId, agentId);
+
+        // Assert
+        var requestResult = Assert.IsType<ObjectResult>(result);
+        requestResult.StatusCode.Should().Be(204);
+        var response = Assert.IsType<PutResponse>(requestResult.Value);
+        response.Success.Should().BeTrue();
+        response.Message.Should().Be("Updated successfully");
+
+        _listingCaseServiceMock.Verify(x => x.AddAgentToListingCaseAsync(listingCaseId, agentId, "1"), Times.Once);
     }
 }
