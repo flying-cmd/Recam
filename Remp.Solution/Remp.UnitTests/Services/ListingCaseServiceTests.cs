@@ -9,7 +9,6 @@ using Remp.Models.Constants;
 using Remp.Models.Entities;
 using Remp.Models.Enums;
 using Remp.Repository.Interfaces;
-using Remp.Repository.Repositories;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using Remp.Service.Services;
@@ -23,6 +22,7 @@ public class ListingCaseServiceTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IBlobStorageService> _blobStorageServiceMock;
     private readonly Mock<IMediaRepository> _mediaRepositoryMock;
+    private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<ILoggerService> _loggerServiceMock;
     private readonly ListingCaseService _listingCaseServices;
@@ -33,6 +33,7 @@ public class ListingCaseServiceTests
         _mapperMock = new Mock<IMapper>();
         _blobStorageServiceMock = new Mock<IBlobStorageService>();
         _mediaRepositoryMock = new Mock<IMediaRepository>();
+        _userRepositoryMock = new Mock<IUserRepository>();
         _configurationMock = new Mock<IConfiguration>();
         _loggerServiceMock = new Mock<ILoggerService>();
         _listingCaseServices = new ListingCaseService(
@@ -40,6 +41,7 @@ public class ListingCaseServiceTests
             _mapperMock.Object,
             _blobStorageServiceMock.Object,
             _mediaRepositoryMock.Object,
+            _userRepositoryMock.Object,
             _configurationMock.Object,
             _loggerServiceMock.Object);
     }
@@ -1436,7 +1438,7 @@ public class ListingCaseServiceTests
         var listingCase = new ListingCase 
         { 
             Id = listingCaseId, 
-            UserId = userId,
+            UserId = "2",
         };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
 
@@ -1555,14 +1557,13 @@ public class ListingCaseServiceTests
         // Arrange
         var listingCaseId = 1;
         var userId = "1";
-        var userRole = RoleNames.PhotographyCompany;
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
         _loggerServiceMock
             .Setup(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, null, null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
         // Act
-        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId, userRole);
+        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId);
         
         // Assert
         await act.Should().ThrowAsync<NotFoundException>();
@@ -1571,12 +1572,11 @@ public class ListingCaseServiceTests
     }
 
     [Fact]
-    public async Task UpdateListingCaseStatusAsync_WhenUserIsPhotographyCompanyButIsNotOwner_ShouldThrowForbiddenException()
+    public async Task UpdateListingCaseStatusAsync_WhenUserIsNotOwner_ShouldThrowForbiddenException()
     {
         // Arrange
         var listingCaseId = 1;
         var userId = "1";
-        var userRole = RoleNames.PhotographyCompany;
         var listingCase = new ListingCase { UserId = "2" };
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
         _loggerServiceMock
@@ -1584,7 +1584,7 @@ public class ListingCaseServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId, userRole);
+        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId);
         
         // Assert
         await act.Should().ThrowAsync<ForbiddenException>();
@@ -1592,30 +1592,6 @@ public class ListingCaseServiceTests
         _loggerServiceMock.Verify(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, null, null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 
-    [Fact]
-    public async Task UpdateListingCaseStatusAsync_WhenUserIsAgentButIsNotAssignedUser_ShouldThrowForbiddenException()
-    {
-        // Arrange
-        var listingCaseId = 1;
-        var userId = "1";
-        var userRole = RoleNames.Agent;
-        var listingCase = new ListingCase 
-        { 
-            AgentListingCases = new List<AgentListingCase> { new AgentListingCase { AgentId = "2" } }
-        };
-        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
-        _loggerServiceMock
-            .Setup(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, null, null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId, userRole);
-        
-        // Assert
-        await act.Should().ThrowAsync<ForbiddenException>();
-        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
-        _loggerServiceMock.Verify(l => l.LogUpdateListingCaseStatus(listingCaseId.ToString(), userId, null, null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-    }
 
     [Fact]
     public async Task UpdateListingCaseStatusAsync_WhenListingCaseStatusIsDelivered_ShouldThrowArgumentErrorException()
@@ -1623,7 +1599,6 @@ public class ListingCaseServiceTests
         // Arrange
         var listingCaseId = 1;
         var userId = "1";
-        var userRole = RoleNames.PhotographyCompany;
         var listingCase = new ListingCase 
         { 
             UserId = userId,
@@ -1635,7 +1610,7 @@ public class ListingCaseServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId, userRole);
+        var act = async () => await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId);
         
         // Assert
         await act.Should().ThrowAsync<ArgumentErrorException>();
@@ -1644,12 +1619,11 @@ public class ListingCaseServiceTests
     }
 
     [Fact]
-    public async Task UpdateListingCaseStatusAsync_WhenUserIsPhotographyCompanyAndIsOwner_ShouldUpdateListingCaseStatus()
+    public async Task UpdateListingCaseStatusAsync_WhenUserIsOwner_ShouldUpdateListingCaseStatus()
     {
         // Arrange
         var listingCaseId = 1;
         var userId = "1";
-        var userRole = RoleNames.PhotographyCompany;
         var listingCase = new ListingCase 
         { 
             Id = listingCaseId,
@@ -1670,7 +1644,7 @@ public class ListingCaseServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId, userRole);
+        await _listingCaseServices.UpdateListingCaseStatusAsync(listingCaseId, userId);
 
         // Assert
         updatedListingCase.ListingCaseStatus.Should().Be(ListingCaseStatus.Pending);

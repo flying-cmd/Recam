@@ -358,7 +358,7 @@ public class ListingCaseControllerTests
     public async Task UpdateListingCaseAsync_WhenRequestIsValid_ShouldReturnOk()
     {
         // Arrange
-        var user = CreateUser(userId: "1", role: RoleNames.Agent);
+        var user = CreateUser(userId: "1", role: RoleNames.PhotographyCompany);
         var controller = CreateController(user);
         var listingCaseId = 1;
         var request = new UpdateListingCaseRequestDto
@@ -453,7 +453,7 @@ public class ListingCaseControllerTests
     public async Task UpdateListingCaseStatusAsync_WhenRequestIsValid_ShouldReturnOk()
     {
         // Arrange
-        var user = CreateUser(userId: "1", role: RoleNames.Agent);
+        var user = CreateUser(userId: "1", role: RoleNames.PhotographyCompany);
         var controller = CreateController(user);
         var listingCaseId = 1;
 
@@ -467,7 +467,7 @@ public class ListingCaseControllerTests
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Updated successfully");
 
-        _listingCaseServiceMock.Verify(x => x.UpdateListingCaseStatusAsync(listingCaseId, "1", RoleNames.Agent), Times.Once);
+        _listingCaseServiceMock.Verify(x => x.UpdateListingCaseStatusAsync(listingCaseId, "1"), Times.Once);
     }
 
     [Fact]
