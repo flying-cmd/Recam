@@ -2,11 +2,14 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
 using Remp.Common.Exceptions;
 using Remp.DataAccess.Data;
+using Remp.Models.Constants;
 using Remp.Models.Entities;
 using Remp.Repository.Interfaces;
+using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using Remp.Service.Services;
 
@@ -24,7 +27,9 @@ public class UserServiceTests : IDisposable
     public UserServiceTests()
     {
         var dbOptions = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase("TestDb").Options;
+            .UseInMemoryDatabase("TestDb")
+            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
         _appDbContext = new AppDbContext(dbOptions);
 
         _userRepositoryMock = new Mock<IUserRepository>();
@@ -132,5 +137,82 @@ public class UserServiceTests : IDisposable
         _userRepositoryMock.Verify(r => r.FindAgentByIdAsync(agentId), Times.Once);
         _userRepositoryMock.Verify(r => r.IsAgentAddedToPhotographyCompanyAsync(agentId, photographyCompanyId), Times.Once);
         _userRepositoryMock.Verify(r => r.AddAgentToPhotographyCompanyAsync(It.IsAny<AgentPhotographyCompany>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateAgentAccountAsync_WhenEmailAlreadyExists_ShouldThrowArgumentErrorException()
+    {
+        // Arrange
+        var newAgent = new User { Email = "test@example.com" };
+        var request = new CreateAgentAccountRequestDto { Email = newAgent.Email };
+        var photographyCompanyId = "1";
+        _userRepositoryMock.Setup(r => r.FindByEmailAsync(newAgent.Email)).ReturnsAsync(newAgent);
+        _loggerServiceMock
+            .Setup(l => l.LogCreateAgentAccount(
+                It.IsAny<string>(), 
+                null, 
+                It.IsAny<string>(), 
+                It.IsAny<string>(), 
+                It.IsAny<string>(),
+                It.IsAny<string>()
+                ))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = async () => await _userService.CreateAgentAccountAsync(request, photographyCompanyId);
+    
+        // Assert
+        await act.Should().ThrowAsync<ArgumentErrorException>();
+        _userRepositoryMock.Verify(r => r.FindByEmailAsync(newAgent.Email), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogCreateAgentAccount(It.IsAny<string>(), null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateAgentAccountAsync_WhenAllStepsAreSucceed_ShouldReturnCreateAgentAccountResponseDto()
+    {
+        // Arrange
+        var newAgent = new User { Email = "test@example.com" };
+        var request = new CreateAgentAccountRequestDto { Email = newAgent.Email };
+        var photographyCompanyId = "1";
+        _userRepositoryMock.Setup(r => r.FindByEmailAsync(newAgent.Email)).ReturnsAsync((User?)null);
+        
+        // Capture the passed user and password
+        var newUser = new User();
+        string password = "";
+
+        _userManagerMock
+            .Setup(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .Callback<User, string>((u, p) => { newUser = u; password = p; })
+            .ReturnsAsync(IdentityResult.Success);
+        
+        _userManagerMock.Setup(u => u.AddToRoleAsync(It.Is<User>(user => user.Email == newAgent.Email), RoleNames.Agent)).ReturnsAsync(IdentityResult.Success);
+
+        _userRepositoryMock.Setup(r => r.AddAgentAsync(It.Is<Agent>(a => a.Id == newUser.Id))).Returns(Task.CompletedTask);
+
+        _loggerServiceMock
+            .Setup(l => l.LogCreateAgentAccount(
+                It.IsAny<string>(), 
+                It.IsAny<string>(),
+                newAgent.Email,
+                It.IsAny<string>(), 
+                It.IsAny<string>(),
+                null
+                ))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _userService.CreateAgentAccountAsync(request, photographyCompanyId);
+    
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeOfType<CreateAgentAccountResponseDto>();
+        result.Email.Should().Be(newAgent.Email);
+        result.Password.Should().Be(password);
+
+        _userRepositoryMock.Verify(r => r.FindByEmailAsync(newAgent.Email), Times.Once);
+        _userManagerMock.Verify(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+        _userManagerMock.Verify(u => u.AddToRoleAsync(It.Is<User>(user => user.Email == newAgent.Email), RoleNames.Agent), Times.Once);
+        _userRepositoryMock.Verify(r => r.AddAgentAsync(It.Is<Agent>(a => a.Id == newUser.Id)), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogCreateAgentAccount(It.IsAny<string>(), It.IsAny<string>(), newAgent.Email, It.IsAny<string>(), It.IsAny<string>(), null), Times.Once);
     }
 }
