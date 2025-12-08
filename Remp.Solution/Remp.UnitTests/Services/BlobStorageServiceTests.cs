@@ -24,7 +24,7 @@ public class BlobStorageServiceTests
         var inMemorySetting = new Dictionary<string, string>
         {
             {
-                "AzureBlobStorage:ContainerName", _containerName
+                "BlobStorage:ContainerName", _containerName
             }
         };
 

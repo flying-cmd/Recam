@@ -94,7 +94,13 @@ typeof(AgentProfile).Assembly);
 builder.Services.Configure<EmailSetting>(builder.Configuration.GetSection("EmailSettings"));
 
 // Blob Storage
-builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.GetSection("AzureBlobStorage")["ConnectionString"]));
+builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.GetSection("BlobStorage")["ConnectionString"]));
+
+// ApplicationInsights
+builder.Services.AddApplicationInsightsTelemetry(options =>
+{
+    options.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+});
 
 // Validation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDtoValidator>();
