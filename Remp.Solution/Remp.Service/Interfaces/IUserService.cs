@@ -6,7 +6,7 @@ namespace Remp.Service.Interfaces;
 
 public interface IUserService
 {
-    Task<Agent?> AddAgentByIdAsync(string agentId, string photographyCompanyId);
+    Task AddAgentByIdAsync(string agentId, string photographyCompanyId);
     Task<CreateAgentAccountResponseDto?> CreateAgentAccountAsync(CreateAgentAccountRequestDto createAgentAccountRequestDto, string photographyCompanyId);
     Task<SearchAgentResponseDto?> GetAgentByEmailAsync(string email);
     Task<PagedResult<SearchAgentResponseDto>> GetAgentsAsync(int pageNumber, int pageSize);

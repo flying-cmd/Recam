@@ -20,14 +20,12 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Agent?> AddAgentToPhotographyCompanyAsync(AgentPhotographyCompany agentPhotographyCompany)
+    public async Task AddAgentToPhotographyCompanyAsync(AgentPhotographyCompany agentPhotographyCompany)
     {
         await _context.AgentPhotographyCompanies
             .AddAsync(agentPhotographyCompany);
 
         await _context.SaveChangesAsync();
-
-        return agentPhotographyCompany.Agent;
     }
 
     public async Task<Agent?> FindAgentByIdAsync(string agentId)

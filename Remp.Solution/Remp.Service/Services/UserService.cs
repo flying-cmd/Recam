@@ -33,7 +33,7 @@ public class UserService : IUserService
         _loggerService = loggerService;
     }
 
-    public async Task<Agent?> AddAgentByIdAsync(string agentId, string photographyCompanyId)
+    public async Task AddAgentByIdAsync(string agentId, string photographyCompanyId)
     {
         // Check if the photography company exists
         var photographyCompany = await _userRepository.FindPhotographyCompanyByIdAsync(photographyCompanyId);
@@ -57,9 +57,7 @@ public class UserService : IUserService
 
         // Add agent to photography company
         AgentPhotographyCompany agentPhotographyCompany = new AgentPhotographyCompany() { AgentId = agentId, PhotographyCompanyId = photographyCompanyId };
-        var addedAgent = await _userRepository.AddAgentToPhotographyCompanyAsync(agentPhotographyCompany);
-
-        return addedAgent;
+        await _userRepository.AddAgentToPhotographyCompanyAsync(agentPhotographyCompany);
     }
 
     public async Task<CreateAgentAccountResponseDto?> CreateAgentAccountAsync(CreateAgentAccountRequestDto createAgentAccountRequestDto, string photographyCompanyId)

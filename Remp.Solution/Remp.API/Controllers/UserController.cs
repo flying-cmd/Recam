@@ -123,12 +123,7 @@ namespace Remp.API.Controllers
                 return Forbid();
             }
 
-            var result = await _userService.AddAgentByIdAsync(agentId, currentUserId);
-
-            if (result == null)
-            {
-                return BadRequest();
-            }
+            await _userService.AddAgentByIdAsync(agentId, currentUserId);
 
             return StatusCode(204, new PutResponse(true));
         }
