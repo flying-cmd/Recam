@@ -7,7 +7,6 @@ using Remp.Common.Utilities;
 using Remp.Models.Constants;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
-using Remp.Service.Services;
 using System.Security.Claims;
 
 namespace Remp.API.Controllers
@@ -28,7 +27,7 @@ namespace Remp.API.Controllers
         /// <summary>
         /// Get all agents in pagination.
         /// </summary>
-        /// <param name="pageNumer">
+        /// <param name="pageNumber">
         /// Page number
         /// </param>
         /// <param name="pageSize">
@@ -48,9 +47,9 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<PagedResult<CreateAgentAccountResponseDto>>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-        public async Task<ActionResult<GetResponse<PagedResult<SearchAgentResponseDto>>>> GetAgentsAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
+        public async Task<ActionResult<GetResponse<PagedResult<SearchAgentResponseDto>>>> GetAgentsAsync([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
-            var result = await _userService.GetAgentsAsync(pageNumer, pageSize);
+            var result = await _userService.GetAgentsAsync(pageNumber, pageSize);
             return Ok(new GetResponse<PagedResult<SearchAgentResponseDto>>(true, result));
         }
 

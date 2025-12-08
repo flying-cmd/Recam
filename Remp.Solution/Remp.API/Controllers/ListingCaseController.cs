@@ -123,7 +123,7 @@ namespace Remp.API.Controllers
         /// If the user is an agent, it will return the listing cases that are assigned to the agent.
         /// If the user is a photography company, it will return the listing cases that are created by the photography company.
         /// </summary>
-        /// <param name="pageNumer">Page number</param>
+        /// <param name="pageNumber">Page number</param>
         /// <param name="pageSize">Page size (how many items per page)</param>
         /// <returns>
         /// Returns a list of listing cases, current page number, page size, total pages and total count
@@ -141,7 +141,7 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<GetResponse<PagedResult<ListingCaseResponseDto>>>> GetAllListingCasesAsync([FromQuery] int pageNumer, [FromQuery] int pageSize)
+        public async Task<ActionResult<GetResponse<PagedResult<ListingCaseResponseDto>>>> GetAllListingCasesAsync([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
             var currentUser = HttpContext.User;
             var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -156,7 +156,7 @@ namespace Remp.API.Controllers
                 return Forbid();
             }
 
-            var result = await _listingCaseService.GetAllListingCasesAsync(pageNumer, pageSize, currentUserId, currrentUserRole);
+            var result = await _listingCaseService.GetAllListingCasesAsync(pageNumber, pageSize, currentUserId, currrentUserRole);
 
             return Ok(new GetResponse<PagedResult<ListingCaseResponseDto>>(true, result));
         }
