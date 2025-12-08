@@ -10,6 +10,7 @@ using Remp.DataAccess.Data;
 using Remp.Models.Constants;
 using Remp.Models.Entities;
 using Remp.Repository.Interfaces;
+using Remp.Repository.Repositories;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
 using Remp.Service.Services;
@@ -369,6 +370,84 @@ public class UserServiceTests : IDisposable
         _userRepositoryMock.Verify(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId), Times.Once);
         _userRepositoryMock.Verify(r => r.GetAgentsUnderPhotographyCompanyAsync(photographyCompanyId), Times.Once);
         _mapperMock.Verify(m => m.Map<IEnumerable<SearchAgentResponseDto>>(agents), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUserListingCaseIdsAsync_WhenUserIsPhotographyCompanyButDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var userId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        _userRepositoryMock.Setup(r => r.FindPhotographyCompanyByIdAsync(userId)).ReturnsAsync((PhotographyCompany?)null);
+        
+        // Act
+        var act = async () => await _userService.GetUserListingCaseIdsAsync(userId, userRole);
+    
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _userRepositoryMock.Verify(r => r.FindPhotographyCompanyByIdAsync(userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUserListingCaseIdsAsync_WhenUserIsPhotographyCompanyAndExists_ShouldReturnCaseIds()
+    {
+        // Arrange
+        var userId = "1";
+        var userRole = RoleNames.PhotographyCompany;
+        var photographyCompany = new PhotographyCompany { Id = userId };
+        _userRepositoryMock.Setup(r => r.FindPhotographyCompanyByIdAsync(userId)).ReturnsAsync(photographyCompany);
+        
+        var listingCaseIds = new List<int> { 1, 2 };
+        _userRepositoryMock.Setup(r => r.GetPhotographyCompanyListingCaseIdsAsync(userId)).ReturnsAsync(listingCaseIds);
+    
+        // Act
+        var result = await _userService.GetUserListingCaseIdsAsync(userId, userRole);
+    
+        // Assert
+        result.Should().NotBeNull();
+        result.Count().Should().Be(2);
+
+        _userRepositoryMock.Verify(r => r.FindPhotographyCompanyByIdAsync(userId), Times.Once);
+        _userRepositoryMock.Verify(r => r.GetPhotographyCompanyListingCaseIdsAsync(userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUserListingCaseIdsAsync_WhenUserIsAgentButDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var userId = "1";
+        var userRole = RoleNames.Agent;
+        _userRepositoryMock.Setup(r => r.FindAgentByIdAsync(userId)).ReturnsAsync((Agent?)null);
+        
+        // Act
+        var act = async () => await _userService.GetUserListingCaseIdsAsync(userId, userRole);
+    
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        _userRepositoryMock.Verify(r => r.FindAgentByIdAsync(userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUserListingCaseIdsAsync_WhenUserIsAgentAndExists_ShouldReturnCaseIds()
+    {
+        // Arrange
+        var userId = "1";
+        var userRole = RoleNames.Agent;
+        var agent = new Agent { Id = userId };
+        _userRepositoryMock.Setup(r => r.FindAgentByIdAsync(userId)).ReturnsAsync(agent);
+        
+        var listingCaseIds = new List<int> { 1, 2 };
+        _userRepositoryMock.Setup(r => r.GetAgentListingCaseIdsAsync(userId)).ReturnsAsync(listingCaseIds);
+    
+        // Act
+        var result = await _userService.GetUserListingCaseIdsAsync(userId, userRole);
+    
+        // Assert
+        result.Should().NotBeNull();
+        result.Count().Should().Be(2);
+
+        _userRepositoryMock.Verify(r => r.FindAgentByIdAsync(userId), Times.Once);
+        _userRepositoryMock.Verify(r => r.GetAgentListingCaseIdsAsync(userId), Times.Once);
     }
 
     [Fact]
