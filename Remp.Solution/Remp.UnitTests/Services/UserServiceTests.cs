@@ -128,13 +128,12 @@ public class UserServiceTests : IDisposable
                 new AgentPhotographyCompany { AgentId = agentId, PhotographyCompanyId = photographyCompanyId }
             }
         };
-        _userRepositoryMock.Setup(r => r.AddAgentToPhotographyCompanyAsync(It.IsAny<AgentPhotographyCompany>())).ReturnsAsync(addedAgent);
+        _userRepositoryMock.Setup(r => r.AddAgentToPhotographyCompanyAsync(It.IsAny<AgentPhotographyCompany>())).Returns(Task.CompletedTask);
 
         // Act
-        var result = await _userService.AddAgentByIdAsync(agentId, photographyCompanyId);
+        await _userService.AddAgentByIdAsync(agentId, photographyCompanyId);
     
         // Assert
-        result.Should().BeEquivalentTo(addedAgent);
         _userRepositoryMock.Verify(r => r.FindPhotographyCompanyByIdAsync(photographyCompanyId), Times.Once);
         _userRepositoryMock.Verify(r => r.FindAgentByIdAsync(agentId), Times.Once);
         _userRepositoryMock.Verify(r => r.IsAgentAddedToPhotographyCompanyAsync(agentId, photographyCompanyId), Times.Once);
