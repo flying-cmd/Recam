@@ -11,6 +11,6 @@ public interface IUserService
     Task<SearchAgentResponseDto?> GetAgentByEmailAsync(string email);
     Task<PagedResult<SearchAgentResponseDto>> GetAgentsAsync(int pageNumber, int pageSize);
     Task<IEnumerable<SearchAgentResponseDto>> GetAgentsUnderPhotographyCompanyAsync(string photographyCompanyId);
-    Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId);
+    Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId, string userRole);
     Task UpdatePasswordAsync(UpdatePasswordRequestDto updatePasswordRequestDto, string userId);
 }

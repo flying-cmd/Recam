@@ -62,11 +62,8 @@ namespace Remp.API.Controllers
         /// <response code="200">Returns current user information including user Id, role and listing case Ids which the user has.</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Failed to get current user information</response>
-        /// <remarks>
-        /// This endpoint is restricted to users in the <c>Agent</c> role.
-        /// </remarks>
         [HttpGet("~/api/users/me")]
-        [Authorize(Roles = RoleNames.Agent)]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<UserInfoResponseDto>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -90,7 +87,7 @@ namespace Remp.API.Controllers
             userInfoResponseDto.Id = currentUserId;
             userInfoResponseDto.Role = currrentUserRole;
 
-            var userListingCaseIds = await _userService.GetUserListingCaseIdsAsync(currentUserId);
+            var userListingCaseIds = await _userService.GetUserListingCaseIdsAsync(currentUserId, currrentUserRole);
             userInfoResponseDto.ListingCaseIds = userListingCaseIds;
 
             return Ok(new GetResponse<UserInfoResponseDto>(true, userInfoResponseDto));

@@ -207,9 +207,30 @@ public class UserService : IUserService
         return _mapper.Map<IEnumerable<SearchAgentResponseDto>>(agents);
     }
 
-    public async Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId)
+    public async Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId, string userRole)
     {
-        return await _userRepository.GetUserListingCaseIdsAsync(currentUserId);
+        // If the user is a photographyCompany
+        // Check if the photography company exists
+        if (userRole == RoleNames.PhotographyCompany)
+        {
+            var photographyCompany = await _userRepository.FindPhotographyCompanyByIdAsync(currentUserId);
+            if (photographyCompany is null)
+            {
+                throw new NotFoundException(message: $"Photography company {currentUserId} does not exist", title: "Photography company does not exist");
+            }
+
+            return await _userRepository.GetPhotographyCompanyListingCaseIdsAsync(currentUserId);
+        }
+
+        // If the user is an agent
+        // Check if the agent exists
+        var agent = await _userRepository.FindAgentByIdAsync(currentUserId);
+        if (agent is null)
+        {
+            throw new NotFoundException(message: $"Agent {currentUserId} does not exist", title: "Agent does not exist");
+        }
+
+        return await _userRepository.GetAgentListingCaseIdsAsync(currentUserId);
     }
 
     public async Task UpdatePasswordAsync(UpdatePasswordRequestDto updatePasswordRequestDto, string userId)

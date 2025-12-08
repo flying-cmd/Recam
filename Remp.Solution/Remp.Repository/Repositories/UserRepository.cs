@@ -86,11 +86,11 @@ public class UserRepository : IUserRepository
             .CountAsync();
     }
 
-    public async Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId)
+    public async Task<IEnumerable<int>> GetAgentListingCaseIdsAsync(string agentId)
     {
         return await _context.AgentListingCases
             .AsNoTracking()
-            .Where(alc => alc.AgentId == currentUserId)
+            .Where(alc => alc.AgentId == agentId)
             .Select(alc => alc.ListingCaseId)
             .ToListAsync();
     }
@@ -100,5 +100,14 @@ public class UserRepository : IUserRepository
         return await _context.AgentPhotographyCompanies
             .AsNoTracking()
             .AnyAsync(apc => apc.AgentId == agentId && apc.PhotographyCompanyId == photographyCompanyId);
+    }
+
+    public async Task<IEnumerable<int>> GetPhotographyCompanyListingCaseIdsAsync(string photographyCompanyId)
+    {
+        return await _context.ListingCases
+            .AsNoTracking()
+            .Where(lc => lc.UserId == photographyCompanyId)
+            .Select(lc => lc.Id)
+            .ToListAsync();
     }
 }

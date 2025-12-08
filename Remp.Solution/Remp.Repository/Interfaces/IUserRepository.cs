@@ -13,6 +13,7 @@ public interface IUserRepository
     Task<IEnumerable<Agent>> GetAgentsAsync(int pageNumber, int pageSize);
     Task<IEnumerable<Agent>> GetAgentsUnderPhotographyCompanyAsync(string photographyCompanyId);
     Task<int> GetTotalCountAsync();
-    Task<IEnumerable<int>> GetUserListingCaseIdsAsync(string currentUserId);
+    Task<IEnumerable<int>> GetAgentListingCaseIdsAsync(string agentId);
     Task<bool> IsAgentAddedToPhotographyCompanyAsync(string agentId, string photographyCompanyId);
+    Task<IEnumerable<int>> GetPhotographyCompanyListingCaseIdsAsync(string photographyCompanyId);
 }
