@@ -26,7 +26,7 @@ namespace Remp.API.Controllers
         }
 
         /// <summary>
-        /// Get a listing case by id
+        /// Get detailed information about a listing case by id (including media assets and contact information).
         /// </summary>
         /// <param name="listingCaseId">
         /// The ID of the listing case to retrieve.

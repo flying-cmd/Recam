@@ -63,6 +63,7 @@ public class UserRepository : IUserRepository
     {
         return await _context.Agents
             .AsNoTracking()
+            .Include(a => a.User)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .OrderBy(a => a.AgentFirstName)
