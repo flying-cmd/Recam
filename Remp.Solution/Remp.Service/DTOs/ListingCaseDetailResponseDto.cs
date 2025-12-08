@@ -24,6 +24,7 @@ public class ListingCaseDetailResponseDto
     public string PropertyType { get; set; } = null!;
     public string SaleCategory { get; set; } = null!;
     public string ListingCaseStatus { get; set; } = null!;
+    public string SharedUrl { get; set; } = null!;
     public string UserId { get; set; } = null!;
     public IEnumerable<MediaAssetDto> MediaAssets { get; set; } = new List<MediaAssetDto>();
     public IEnumerable<CaseContactDto> CaseContacts { get; set; } = new List<CaseContactDto>();
