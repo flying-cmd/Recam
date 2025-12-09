@@ -106,20 +106,20 @@ builder.Services.AddApplicationInsightsTelemetry(options =>
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDtoValidator>();
 
 // Repositories
-builder.Services.AddScoped<ILoggerRepository, LoggerRepository>();
+builder.Services.AddSingleton<ILoggerRepository, LoggerRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IListingCaseRepository, ListingCaseRepository>();
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 
 // Services
-builder.Services.AddScoped<ILoggerService, LoggerService>();
+builder.Services.AddSingleton<ILoggerService, LoggerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IListingCaseService, ListingCaseService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
