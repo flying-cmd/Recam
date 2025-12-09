@@ -110,32 +110,51 @@ public class ListingCaseService : IListingCaseService
         }
 
         var createdMediaAssets = new List<MediaAsset>();
+        var uploadedBlobUrls = new List<string>();
 
-        // Upload files to the blob storage
-        foreach (var file in files)
+        try
         {
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-
-            var blobUrl = await _blobStorageService.UploadFileAsync(file);
-
-            // Create media asset and save it to the database
-            var mediaAssets = new MediaAsset
+            // Upload files to the blob storage
+            foreach (var file in files)
             {
-                MediaType = mediaType,
-                MediaUrl = blobUrl,
-                UploadedAt = DateTime.UtcNow,
-                IsSelect = false,
-                IsHero = false,
-                ListingCaseId = listingCaseId,
-                UserId = userId
-            };
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
 
-            createdMediaAssets.Add(mediaAssets);
+                var blobUrl = await _blobStorageService.UploadFileAsync(file);
+
+                uploadedBlobUrls.Add(blobUrl);
+
+                // Create media asset and save it to the database
+                var mediaAssets = new MediaAsset
+                {
+                    MediaType = mediaType,
+                    MediaUrl = blobUrl,
+                    UploadedAt = DateTime.UtcNow,
+                    IsSelect = false,
+                    IsHero = false,
+                    ListingCaseId = listingCaseId,
+                    UserId = userId
+                };
+
+                createdMediaAssets.Add(mediaAssets);
+            }
+
+            // Save media asset to the database
+            var result = await _listingCaseRepository.AddMediaAssetAsync(createdMediaAssets);
+
+            return _mapper.Map<IEnumerable<MediaAssetDto>>(result);
         }
+        catch
+        {
+            // If not all files are uploaded, delete the uploaded files from the blob storage
+            // If uploads successfully but save to the database failed, delete the uploaded files from the blob storage
+            foreach (var url in uploadedBlobUrls)
+            {
+                await _blobStorageService.DeleteFileAsync(url);
+            }
 
-        var result = await _listingCaseRepository.AddMediaAssetAsync(createdMediaAssets);
-
-        return _mapper.Map<IEnumerable<MediaAssetDto>>(result);
+            throw;
+        }
+        
     }
 
     public async Task DeleteListingCaseByListingCaseIdAsync(int listingCaseId, string currentUserId)
