@@ -134,8 +134,6 @@ namespace Remp.API.Controllers
         /// <param name="createAgentAccountRequestDto">
         /// The payload containing the details (The email) of the agent to create.</param>
         /// <param name="validator"></param>
-        /// <param name="emailService"></param>
-        /// <param name="configuration"></param>
         /// <returns>
         /// If success, returns status code 200 and a message indicating that the agent account has been created.
         /// </returns>
@@ -152,9 +150,7 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> CreateAgentAccountAsync(
             [FromBody] CreateAgentAccountRequestDto createAgentAccountRequestDto,
-            IValidator<CreateAgentAccountRequestDto> validator,
-            [FromServices] IEmailService emailService,
-            [FromServices] IConfiguration configuration)
+            IValidator<CreateAgentAccountRequestDto> validator)
         {
             // Validate
             var validationResult = await validator.ValidateAsync(createAgentAccountRequestDto);
@@ -178,19 +174,6 @@ namespace Remp.API.Controllers
 
             if (result != null)
             {
-                // Send email
-                var emailBody = EmailTemplates.CreateAccountEmail(
-                    result.Password,
-                    result.Email,
-                    configuration["Url:LoginUrl"]!
-                    );
-
-                await emailService.SendEmailAsync(
-                    createAgentAccountRequestDto.Email,
-                    "Account created successfully",
-                    emailBody
-                );
-
                 return Ok(new PostResponse<string>(true, result.Email));
             }
 

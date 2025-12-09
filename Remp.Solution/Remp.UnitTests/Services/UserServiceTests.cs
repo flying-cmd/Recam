@@ -3,6 +3,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using Remp.Common.Exceptions;
 using Remp.Common.Helpers;
@@ -24,6 +25,8 @@ public class UserServiceTests : IDisposable
     private readonly Mock<UserManager<User>> _userManagerMock;
     private readonly AppDbContext _appDbContext;
     private readonly Mock<ILoggerService> _loggerServiceMock;
+    private readonly Mock<IEmailService> _emailServiceMock;
+    private readonly Mock<IConfiguration> _configurationMock;
     private UserService _userService;
 
     public UserServiceTests()
@@ -38,12 +41,17 @@ public class UserServiceTests : IDisposable
         _mapperMock = new Mock<IMapper>();
         _userManagerMock = new Mock<UserManager<User>>(Mock.Of<IUserStore<User>>(), null, null, null, null, null, null, null, null);
         _loggerServiceMock = new Mock<ILoggerService>();
+        _emailServiceMock = new Mock<IEmailService>();
+        _configurationMock = new Mock<IConfiguration>();
         _userService = new UserService(
             _userRepositoryMock.Object, 
             _mapperMock.Object, 
             _userManagerMock.Object, 
             _appDbContext,
-            _loggerServiceMock.Object);
+            _loggerServiceMock.Object,
+            _emailServiceMock.Object,
+            _configurationMock.Object
+            );
     }
 
     public void Dispose()
@@ -190,6 +198,8 @@ public class UserServiceTests : IDisposable
 
         _userRepositoryMock.Setup(r => r.AddAgentAsync(It.Is<Agent>(a => a.Id == newUser.Id))).Returns(Task.CompletedTask);
 
+        _emailServiceMock.Setup(e => e.SendEmailAsync(request.Email, It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+
         _loggerServiceMock
             .Setup(l => l.LogCreateAgentAccount(
                 It.IsAny<string>(), 
@@ -214,6 +224,7 @@ public class UserServiceTests : IDisposable
         _userManagerMock.Verify(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
         _userManagerMock.Verify(u => u.AddToRoleAsync(It.Is<User>(user => user.Email == newAgent.Email), RoleNames.Agent), Times.Once);
         _userRepositoryMock.Verify(r => r.AddAgentAsync(It.Is<Agent>(a => a.Id == newUser.Id)), Times.Once);
+        _emailServiceMock.Verify(e => e.SendEmailAsync(request.Email, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         _loggerServiceMock.Verify(l => l.LogCreateAgentAccount(It.IsAny<string>(), It.IsAny<string>(), newAgent.Email, It.IsAny<string>(), It.IsAny<string>(), null), Times.Once);
     }
 

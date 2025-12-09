@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Remp.Common.Exceptions;
 using Remp.Common.Helpers;
 using Remp.DataAccess.Data;
@@ -18,19 +19,25 @@ public class UserService : IUserService
     private readonly UserManager<User> _userManager;
     private readonly AppDbContext _appDbContext;
     private readonly ILoggerService _loggerService;
+    private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
 
     public UserService(
         IUserRepository userRepository,
         IMapper mapper,
         UserManager<User> userManager,
         AppDbContext appDbContext,
-        ILoggerService loggerService)
+        ILoggerService loggerService,
+        IEmailService emailService,
+        IConfiguration configuration)
     {
         _userRepository = userRepository;
         _mapper = mapper;
         _userManager = userManager;
         _appDbContext = appDbContext;
         _loggerService = loggerService;
+        _emailService = emailService;
+        _configuration = configuration;
     }
 
     public async Task AddAgentByIdAsync(string agentId, string photographyCompanyId)
@@ -140,15 +147,6 @@ public class UserService : IUserService
 
             // Commit transaction
             await transaction.CommitAsync();
-
-            // Log
-            await _loggerService.LogCreateAgentAccount(
-                photographyCompanyId: photographyCompanyId,
-                createdAgentId: user.Id.ToString(),
-                createdAgentEmail: user.Email
-            );
-
-            return new CreateAgentAccountResponseDto(user.Id, createAgentAccountRequestDto.Email, password);
         }
         catch (Exception)
         {
@@ -156,6 +154,28 @@ public class UserService : IUserService
             await transaction.RollbackAsync();
             throw;
         }
+
+        // Send email
+        var emailBody = EmailTemplates.CreateAccountEmail(
+            password,
+            createAgentAccountRequestDto.Email,
+            _configuration["Url:LoginUrl"]!
+            );
+
+        await _emailService.SendEmailAsync(
+            createAgentAccountRequestDto.Email,
+            "Account created successfully",
+            emailBody
+        );
+
+        // Log
+        await _loggerService.LogCreateAgentAccount(
+            photographyCompanyId: photographyCompanyId,
+            createdAgentId: user.Id.ToString(),
+            createdAgentEmail: user.Email
+        );
+
+        return new CreateAgentAccountResponseDto(user.Id, createAgentAccountRequestDto.Email, password);
     }
 
     public async Task<SearchAgentResponseDto?> GetAgentByEmailAsync(string email)
