@@ -179,7 +179,7 @@ public class UserService : IUserService
 
         var agents = await _userRepository.GetAgentsAsync(pageNumber, pageSize);
 
-        if (agents == null || !agents.Any())
+        if (!agents.Any())
         {
             throw new NotFoundException(message: $"No agents found. Page number: {pageNumber}, Page size: {pageSize}", title: "No agents found.");
         }

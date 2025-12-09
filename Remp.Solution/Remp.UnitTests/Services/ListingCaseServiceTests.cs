@@ -324,24 +324,6 @@ public class ListingCaseServiceTests
     }
 
     [Fact]
-    public async Task DownloadAllMediaByListingCaseIdAsync_WhenFindMediaAssetsReturnsNull_ShouldThrowNotFoundException()
-    {
-        // Arrange
-        var listingCaseId = 1;
-        var listingCase = new ListingCase { Id = listingCaseId };
-        _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
-        _listingCaseRepositoryMock.Setup(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId)).ReturnsAsync((IEnumerable<MediaAsset>?)null);
-
-        // Act
-        var act = async () => await _listingCaseServices.DownloadAllMediaByListingCaseIdAsync(listingCaseId);
-
-        // Assert
-        await act.Should().ThrowAsync<NotFoundException>();
-        _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
-        _listingCaseRepositoryMock.Verify(r => r.FindMediaAssetsByListingCaseIdAsync(listingCaseId), Times.Once);
-    }
-
-    [Fact]
     public async Task DownloadAllMediaByListingCaseIdAsync_WhenFindMediaAssetsReturnsEmpty_ShouldThrowNotFoundException()
     {
         // Arrange
@@ -463,26 +445,6 @@ public class ListingCaseServiceTests
     }
 
     [Fact]
-    public async Task GetAllListingCasesAsync_WhenUserRoleIsPhotographyCompanyButListingCaseDoesNotExist_ShouldThrowNotFoundException()
-    {
-        // Arrange
-        var pageNumber = 1;
-        var pageSize = 10;
-        var userId = "1";
-        var userRole = RoleNames.PhotographyCompany;
-        _listingCaseRepositoryMock
-            .Setup(r => r.FindListingCasesByPhotographyCompanyIdAsync(pageNumber, pageSize, userId))
-            .ReturnsAsync((IEnumerable<ListingCase>?)null);
-
-        // Act
-        var act = async () => await _listingCaseServices.GetAllListingCasesAsync(pageNumber, pageSize, userId, userRole);
-
-        // Assert
-        await act.Should().ThrowAsync<NotFoundException>();
-        _listingCaseRepositoryMock.Verify(r => r.FindListingCasesByPhotographyCompanyIdAsync(pageNumber, pageSize, userId), Times.Once);
-    }
-
-    [Fact]
     public async Task GetAllListingCasesAsync_WhenUserRoleIsPhotographyCompanyButListingCaseIsEmpty_ShouldThrowNotFoundException()
     {
         // Arrange
@@ -551,26 +513,6 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Verify(r => r.FindListingCasesByPhotographyCompanyIdAsync(pageNumber, pageSize, userId), Times.Once);
         _listingCaseRepositoryMock.Verify(r => r.CountListingCasesByPhotographyCompanyIdAsync(userId), Times.Once);
         _mapperMock.Verify(m => m.Map<IEnumerable<ListingCaseResponseDto>>(listingCases), Times.Once);
-    }
-
-    [Fact]
-    public async Task GetAllListingCasesAsync_WhenUserRoleIsAgentButListingCaseDoesNotExist_ShouldThrowNotFoundException()
-    {
-        // Arrange
-        var pageNumber = 1;
-        var pageSize = 10;
-        var userId = "1";
-        var userRole = RoleNames.Agent;
-        _listingCaseRepositoryMock
-            .Setup(r => r.FindListingCasesByAgentIdAsync(pageNumber, pageSize, userId))
-            .ReturnsAsync((IEnumerable<ListingCase>?)null);
-
-        // Act
-        var act = async () => await _listingCaseServices.GetAllListingCasesAsync(pageNumber, pageSize, userId, userRole);
-
-        // Assert
-        await act.Should().ThrowAsync<NotFoundException>();
-        _listingCaseRepositoryMock.Verify(r => r.FindListingCasesByAgentIdAsync(pageNumber, pageSize, userId), Times.Once);
     }
 
     [Fact]

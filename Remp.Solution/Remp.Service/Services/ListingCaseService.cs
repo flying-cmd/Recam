@@ -202,7 +202,7 @@ public class ListingCaseService : IListingCaseService
         // Get all media assets by listing case id
         var mediaAssets = await _listingCaseRepository.FindMediaAssetsByListingCaseIdAsync(listingCaseId);
     
-        if (mediaAssets == null || !mediaAssets.Any())
+        if (!mediaAssets.Any())
         {
             throw new NotFoundException(message: $"No media assets found for listing case {listingCaseId}", title: "No media assets found");
         }
@@ -270,7 +270,7 @@ public class ListingCaseService : IListingCaseService
         {
             listingCases = await _listingCaseRepository.FindListingCasesByPhotographyCompanyIdAsync(pageNumber, pageSize, currentUserId);
 
-            if (listingCases == null || !listingCases.Any())
+            if (!listingCases.Any())
             {
                 throw new NotFoundException(
                     message: $"No listing cases created by the photography company {currentUserId} found. Page number: {pageNumber}, Page size: {pageSize}", 
@@ -287,7 +287,7 @@ public class ListingCaseService : IListingCaseService
             listingCases = await _listingCaseRepository.FindListingCasesByAgentIdAsync(pageNumber, pageSize, currentUserId);
 
 
-            if (listingCases == null || !listingCases.Any())
+            if (!listingCases.Any())
             {
                 throw new NotFoundException(
                     message: $"No listing cases related to the agent {currentUserId} found. Page number: {pageNumber}, Page size: {pageSize}", 
