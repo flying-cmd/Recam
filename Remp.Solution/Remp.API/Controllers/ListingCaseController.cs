@@ -55,12 +55,8 @@ namespace Remp.API.Controllers
             }
             
             var currrentUserRole = currentUser.FindFirstValue("scopes");
-            if (currrentUserRole == null)
-            {
-                return Forbid();
-            }
 
-            var result = await _listingCaseService.GetListingCaseByListingCaseIdAsync(listingCaseId, currentUserId, currrentUserRole);
+            var result = await _listingCaseService.GetListingCaseByListingCaseIdAsync(listingCaseId, currentUserId, currrentUserRole!);
             
             return Ok(new GetResponse<ListingCaseDetailResponseDto>(true, result));
         }
@@ -130,12 +126,8 @@ namespace Remp.API.Controllers
             }
 
             var currrentUserRole = currentUser.FindFirstValue("scopes");
-            if (currrentUserRole == null)
-            {
-                return Forbid();
-            }
 
-            var result = await _listingCaseService.GetAllListingCasesAsync(pageNumber, pageSize, currentUserId, currrentUserRole);
+            var result = await _listingCaseService.GetAllListingCasesAsync(pageNumber, pageSize, currentUserId, currrentUserRole!);
 
             return Ok(new GetResponse<PagedResult<ListingCaseResponseDto>>(true, result));
         }
@@ -275,12 +267,8 @@ namespace Remp.API.Controllers
 
             // Get current user role
             var currentUserRole = currentUser.FindFirstValue("scopes");
-            if (currentUserRole == null)
-            {
-                return Forbid();
-            }
 
-            var result = await _listingCaseService.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole);
+            var result = await _listingCaseService.GetListingCaseMediaByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole!);
 
             return Ok(new GetResponse<IEnumerable<MediaAssetDto>>(true, result));
         }
@@ -319,12 +307,8 @@ namespace Remp.API.Controllers
 
             // Get current user role
             var currentUserRole = currentUser.FindFirstValue("scopes");
-            if (currentUserRole == null)
-            {
-                return Forbid();
-            }
 
-            var result = await _listingCaseService.GetListingCaseContactByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole);
+            var result = await _listingCaseService.GetListingCaseContactByListingCaseIdAsync(listingCaseId, currentUserId, currentUserRole!);
 
             return Ok(new GetResponse<IEnumerable<CaseContactDto>>(true, result));
         }

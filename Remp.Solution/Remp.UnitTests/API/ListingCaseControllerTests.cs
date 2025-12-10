@@ -70,20 +70,6 @@ public class ListingCaseControllerTests
     }
 
     [Fact]
-    public async Task GetListingCaseByListingCaseId_WhenNoRole_ReturnsForBid()
-    {
-        // Arrange
-        var user = CreateUser(userId: "1", role: null);
-        var controller = CreateController(user);
-
-        // Act
-        var result = await controller.GetListingCaseByListingCaseIdAsync(1);
-
-        // Assert
-        Assert.IsType<ForbidResult>(result.Result);
-    }
-
-    [Fact]
     public async Task GetListingCaseByListingCaseId_WhenListingCaseIdExist_ShouldReturnOk()
     {
         // Arrange
@@ -158,20 +144,6 @@ public class ListingCaseControllerTests
     {
         // Arrange
         var user = CreateUser(userId: null, role: RoleNames.PhotographyCompany);
-        var controller = CreateController(user);
-
-        // Act
-        var result = await controller.GetAllListingCasesAsync(1, 10);
-
-        // Assert
-        Assert.IsType<ForbidResult>(result.Result);
-    }
-
-    [Fact]
-    public async Task GetAllListingCasesAsync_WhenNoRole_ShouldReturnsForBid()
-    {
-        // Arrange
-        var user = CreateUser(userId: "1", role: null);
         var controller = CreateController(user);
 
         // Act
@@ -376,21 +348,6 @@ public class ListingCaseControllerTests
     }
 
     [Fact]
-    public async Task GetListingCaseMediaByListingCaseIdAsync_WhenNoRole_ShouldReturnForBid()
-    {
-        // Arrange
-        var user = CreateUser(userId: "1", role: null);
-        var controller = CreateController(user);
-        var listingCaseId = 1;
-
-        // Act
-        var result = await controller.GetListingCaseMediaByListingCaseIdAsync(listingCaseId);
-
-        // Assert
-        Assert.IsType<ForbidResult>(result.Result);
-    }
-
-    [Fact]
     public async Task GetListingCaseMediaByListingCaseIdAsync_WhenRequestIsValid_ShouldReturnOk()
     {
         // Arrange
@@ -423,21 +380,6 @@ public class ListingCaseControllerTests
     {
         // Arrange
         var user = CreateUser(userId: null, role: RoleNames.PhotographyCompany);
-        var controller = CreateController(user);
-        var listingCaseId = 1;
-
-        // Act
-        var result = await controller.GetListingCaseContactByListingCaseIdAsync(listingCaseId);
-
-        // Assert
-        Assert.IsType<ForbidResult>(result.Result);
-    }
-
-    [Fact]
-    public async Task GetListingCaseContactByListingCaseIdAsync_WhenNoRole_ShouldReturnForBid()
-    {
-        // Arrange
-        var user = CreateUser(userId: "1", role: null);
         var controller = CreateController(user);
         var listingCaseId = 1;
 

@@ -75,11 +75,7 @@ namespace Remp.API.Controllers
                 return Forbid();
             }
 
-            var currrentUserRole = currentUser.FindFirstValue("scopes");
-            if (currrentUserRole == null)
-            {
-                return Forbid();
-            }
+            var currrentUserRole = currentUser.FindFirstValue("scopes")!;
 
             var userInfoResponseDto = new UserInfoResponseDto();
             userInfoResponseDto.Id = currentUserId;
