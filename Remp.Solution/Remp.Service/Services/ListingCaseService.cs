@@ -450,25 +450,22 @@ public class ListingCaseService : IListingCaseService
             throw new ArgumentErrorException(message: $"Media asset {mediaAssetId} does not belong to this listing case", title: "Media asset does not belong to this listing case");
         }
 
+        var updatedMediaAssets = new List<MediaAsset> { mediaAsset };
+
         // Check if the listing case already has a cover image
         var existingCoverImage = await _listingCaseRepository.FindCoverImageByListingCaseIdAsync(listingCaseId);
         if (existingCoverImage is not null)
         {
-            // Change the cover image to the current media asset
+            // Change the existing cover image to be not the cover image
             existingCoverImage.IsHero = false;
-            mediaAsset.IsHero = true;
-            mediaAsset.IsSelect = true;
 
-            var updatedMediaAssets = new List<MediaAsset> { existingCoverImage, mediaAsset };
-            await _mediaRepository.UpdateMediaAssetsAsync(updatedMediaAssets);
+            updatedMediaAssets.Add(existingCoverImage);
         }
-        else
-        {
-            // Set the media asset as the cover image
-            mediaAsset.IsHero = true;
-            mediaAsset.IsSelect = true;
-            await _mediaRepository.UpdateMediaAssetsAsync(new List<MediaAsset> { mediaAsset });
-        }
+
+        // Set the selected media asset as the cover image
+        mediaAsset.IsHero = true;
+        mediaAsset.IsSelect = true;
+        await _mediaRepository.UpdateMediaAssetsAsync(updatedMediaAssets);
     }
 
     public async Task SetSelectedMediaByListingCaseIdAsync(int listingCaseId, IEnumerable<int> mediaIds, string userId)
