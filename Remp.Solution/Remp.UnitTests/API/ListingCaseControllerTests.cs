@@ -17,17 +17,15 @@ namespace Remp.UnitTests.API;
 public class ListingCaseControllerTests
 {
     private readonly Mock<IListingCaseService> _listingCaseServiceMock;
-    private readonly Mock<ILoggerService> _loggerServiceMock;
 
     public ListingCaseControllerTests()
     {
         _listingCaseServiceMock = new Mock<IListingCaseService>();
-        _loggerServiceMock = new Mock<ILoggerService>();
     }
 
     private ListingCaseController CreateController(ClaimsPrincipal? user = null)
     {
-        var controller = new ListingCaseController(_listingCaseServiceMock.Object, _loggerServiceMock.Object);
+        var controller = new ListingCaseController(_listingCaseServiceMock.Object);
 
         var httpContext = new DefaultHttpContext();
         if (user != null)
@@ -109,53 +107,6 @@ public class ListingCaseControllerTests
     }
 
     [Fact]
-    public async Task CreateListingCase_WhenRequestIsInvalid_ShouldReturnValidationProblem()
-    {
-        // Arrange
-        var user = CreateUser(userId: "1", role: RoleNames.PhotographyCompany);
-        var controller = CreateController(user);
-
-        var request = new CreateListingCaseRequestDto
-        {
-            Title = "",
-            Description = "",
-            Street = "123 Main St",
-            City = "Melbourne",
-            State = "Victoria",
-            Postcode = 3000,
-            Longitude = 23.45m,
-            Latitude = 67.89m,
-            Price = 1000000,
-            Bedrooms = 2,
-            Bathrooms = 1,
-            Garages = 1,
-            FloorArea = 134.23,
-            PropertyType = "House",
-            SaleCategory = "ForSale",
-            UserId = "1"
-        };
-
-        var validatorMock = new Mock<IValidator<CreateListingCaseRequestDto>>();
-        var titleFailure = new ValidationFailure("Title", "Title is required.");
-        var validationFailure = new ValidationFailure("Description", "Description is required.");
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult(new[] { titleFailure, validationFailure }));
-
-        // Act
-        var result = await controller.CreateListingCase(request, validatorMock.Object);
-
-        // Assert
-        result.Result.Should().NotBeNull();
-        var requestResult = Assert.IsType<ObjectResult>(result.Result);
-        var response = Assert.IsType<ValidationProblemDetails>(requestResult.Value);
-        response.Errors.Should().ContainKey("Title", "Description");
-
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
-        _listingCaseServiceMock.Verify(x => x.CreateListingCaseAsync(request), Times.Never);
-    }
-
-    [Fact]
     public async Task CreateListingCase_WhenRequestIsValid_ShouldReturnCreatedAtRoute()
     {
         // Arrange
@@ -182,11 +133,6 @@ public class ListingCaseControllerTests
             UserId = "1"
         };
 
-        var validatorMock = new Mock<IValidator<CreateListingCaseRequestDto>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult());
-
         var responseDto = new ListingCaseResponseDto { Id = 18 };
 
         _listingCaseServiceMock
@@ -194,7 +140,7 @@ public class ListingCaseControllerTests
             .ReturnsAsync(responseDto);
 
         // Act
-        var result = await controller.CreateListingCase(request, validatorMock.Object);
+        var result = await controller.CreateListingCase(request);
 
         // Assert
         result.Result.Should().NotBeNull();
@@ -204,7 +150,6 @@ public class ListingCaseControllerTests
         response.Data.Should().BeEquivalentTo(responseDto);
         response.Message.Should().Be("Created successfully");
 
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
         _listingCaseServiceMock.Verify(x => x.CreateListingCaseAsync(request), Times.Once);
     }
 
@@ -294,63 +239,13 @@ public class ListingCaseControllerTests
             PropertyType = "House",
             SaleCategory = "ForSale",
         };
-        var validatorMock = new Mock<IValidator<UpdateListingCaseRequestDto>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult());
 
         // Act
-        var result = await controller.UpdateListingCaseAsync(listingCaseId, request, validatorMock.Object);
+        var result = await controller.UpdateListingCaseAsync(listingCaseId, request);
 
         // Assert
         Assert.IsType<ForbidResult>(result.Result);
 
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Never);
-        _listingCaseServiceMock.Verify(x => x.UpdateListingCaseAsync(listingCaseId, request, "1"), Times.Never);
-    }
-
-    [Fact]
-    public async Task UpdateListingCaseAsync_WhenRequestIsInvalid_ShouldReturnValidationProblem()
-    {
-        // Arrange
-        var user = CreateUser(userId: "1", role: RoleNames.PhotographyCompany);
-        var controller = CreateController(user);
-        var listingCaseId = 1;
-        var request = new UpdateListingCaseRequestDto
-        {
-            Title = "",
-            Description = "",
-            Street = "123 Main St",
-            City = "Melbourne",
-            State = "Victoria",
-            Postcode = 3000,
-            Longitude = 23.45m,
-            Latitude = 67.89m,
-            Price = 1000000,
-            Bedrooms = 2,
-            Bathrooms = 1,
-            Garages = 1,
-            FloorArea = 134.23,
-            PropertyType = "House",
-            SaleCategory = "ForSale",
-        };
-        var validatorMock = new Mock<IValidator<UpdateListingCaseRequestDto>>();
-        var titleFailure = new ValidationFailure("Title", "Title is required.");
-        var descriptionFailure = new ValidationFailure("Description", "Description is required.");
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult(new[] { titleFailure, descriptionFailure }));
-
-        // Act
-        var result = await controller.UpdateListingCaseAsync(listingCaseId, request, validatorMock.Object);
-
-        // Assert
-        result.Result.Should().NotBeNull();
-        var requestResult = Assert.IsType<ObjectResult>(result.Result);
-        var response = Assert.IsType<ValidationProblemDetails>(requestResult.Value);
-        response.Errors.Should().ContainKeys("Title", "Description");
-
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
         _listingCaseServiceMock.Verify(x => x.UpdateListingCaseAsync(listingCaseId, request, "1"), Times.Never);
     }
 
@@ -379,13 +274,9 @@ public class ListingCaseControllerTests
             PropertyType = "House",
             SaleCategory = "ForSale",
         };
-        var validatorMock = new Mock<IValidator<UpdateListingCaseRequestDto>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult());
 
         // Act
-        var result = await controller.UpdateListingCaseAsync(listingCaseId, request, validatorMock.Object);
+        var result = await controller.UpdateListingCaseAsync(listingCaseId, request);
 
         // Assert
         result.Result.Should().NotBeNull();
@@ -394,7 +285,6 @@ public class ListingCaseControllerTests
         var response = Assert.IsType<PutResponse>(requestResult.Value);
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Updated successfully");
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
         _listingCaseServiceMock.Verify(x => x.UpdateListingCaseAsync(listingCaseId, request, "1"), Times.Once);
     }
 
@@ -587,32 +477,6 @@ public class ListingCaseControllerTests
     }
 
     [Fact]
-    public async Task CreateCaseContactByListingCaseIdAsync_WhenRequestIsInvalid_ShouldReturnValidationProblem()
-    {
-        // Arrange
-        var user = CreateUser(userId: "1", role: RoleNames.Agent);
-        var controller = CreateController(user);
-        var listingCaseId = 1;
-        var request = new CreateCaseContactRequestDto();
-        var validatorMock = new Mock<IValidator<CreateCaseContactRequestDto>>();
-        var firstNameFailure = new ValidationFailure("FirstName", "First name is required");
-        var lastNameFailure = new ValidationFailure("LastName", "Last name is required");
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult(new[] { firstNameFailure, lastNameFailure }));
-
-        // Act
-        var result = await controller.CreateCaseContactByListingCaseIdAsync(listingCaseId, request, validatorMock.Object);
-
-        // Assert
-        var requestResult = Assert.IsType<ObjectResult>(result.Result);
-        var problem = Assert.IsType<ValidationProblemDetails>(requestResult.Value);
-        problem.Errors.Should().ContainKey("FirstName", "LastName");
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
-        _listingCaseServiceMock.Verify(x => x.CreateCaseContactByListingCaseIdAsync(listingCaseId, request), Times.Never);
-    }
-
-    [Fact]
     public async Task CreateCaseContactByListingCaseIdAsync_WhenRequestIsValid_ShouldReturnCreatedAtRoute()
     {
         // Arrange
@@ -620,46 +484,15 @@ public class ListingCaseControllerTests
         var controller = CreateController(user);
         var listingCaseId = 1;
         var request = new CreateCaseContactRequestDto();
-        var validatorMock = new Mock<IValidator<CreateCaseContactRequestDto>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult());
 
         // Act
-        var result = await controller.CreateCaseContactByListingCaseIdAsync(listingCaseId, request, validatorMock.Object);
+        var result = await controller.CreateCaseContactByListingCaseIdAsync(listingCaseId, request);
 
         // Assert
         var okResult = Assert.IsType<CreatedAtRouteResult>(result.Result);
         var response = Assert.IsType<PostResponse<CaseContactDto>>(okResult.Value);
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Created successfully");
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task CreateMediaByListingCaseIdAsync_WhenRequestIsInvalid_ShouldReturnValidationProblem()
-    {
-        // Arrange
-        var user = CreateUser(userId: "1", role: RoleNames.Agent);
-        var controller = CreateController(user);
-        var listingCaseId = 1;
-        var request = new CreateMediaRequestDto();
-        var fileMock = new List<IFormFile> { new Mock<IFormFile>().Object };
-        var validatorMock = new Mock<IValidator<CreateMediaRequestDto>>();
-        var mediaTypeFailure = new ValidationFailure("MediaType", "Media type is required");
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult(new[] { mediaTypeFailure }));
-
-        // Act
-        var result = await controller.CreateMediaByListingCaseIdAsync(request, listingCaseId, validatorMock.Object);
-
-        // Assert
-        var requestResult = Assert.IsType<ObjectResult>(result.Result);
-        var problem = Assert.IsType<ValidationProblemDetails>(requestResult.Value);
-        problem.Errors.Should().ContainKey("MediaType");
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
-        _listingCaseServiceMock.Verify(x => x.CreateMediaByListingCaseIdAsync(fileMock, Models.Enums.MediaType.Photo, listingCaseId, "1"), Times.Never);
     }
 
     [Fact]
@@ -756,43 +589,11 @@ public class ListingCaseControllerTests
         var listingCaseId = 1;
         var request = new SetSelectedMediaRequestDto();
 
-        var validatorMock = new Mock<IValidator<SetSelectedMediaRequestDto>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult());
-
         // Act
-        var result = await controller.SetSelectedMediaByListingCaseIdAsync(listingCaseId, request, validatorMock.Object);
+        var result = await controller.SetSelectedMediaByListingCaseIdAsync(listingCaseId, request);
 
         // Assert
         Assert.IsType<ForbidResult>(result.Result);
-
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task SetSelectedMediaByListingCaseIdAsync_WhenRequestIsInvalid_ShouldReturnValidationProblem()
-    {
-        // Arrange
-        var user = CreateUser(userId: "1", role: RoleNames.Agent);
-        var controller = CreateController(user);
-        var listingCaseId = 1;
-        var request = new SetSelectedMediaRequestDto();
-
-        var validatorMock = new Mock<IValidator<SetSelectedMediaRequestDto>>();
-        var validationFailure = new ValidationFailure("MediaId", "Media ID is required");
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult(new [] { validationFailure }));
-
-        // Act
-        var result = await controller.SetSelectedMediaByListingCaseIdAsync(listingCaseId, request, validatorMock.Object);
-
-        // Assert
-        var requestResult = Assert.IsType<ObjectResult>(result.Result);
-        var problem = Assert.IsType<ValidationProblemDetails>(requestResult.Value);
-        problem.Errors.Should().ContainKey("MediaId");
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -804,17 +605,12 @@ public class ListingCaseControllerTests
         var listingCaseId = 1;
         var request = new SetSelectedMediaRequestDto { MediaIds = new List<int> { 1, 2 } };
 
-        var validatorMock = new Mock<IValidator<SetSelectedMediaRequestDto>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult());
-
         _listingCaseServiceMock
             .Setup(x => x.SetSelectedMediaByListingCaseIdAsync(listingCaseId, request.MediaIds, "1"))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await controller.SetSelectedMediaByListingCaseIdAsync(listingCaseId, request, validatorMock.Object);
+        var result = await controller.SetSelectedMediaByListingCaseIdAsync(listingCaseId, request);
 
         // Assert
         var requestResult = Assert.IsType<ObjectResult>(result.Result);
@@ -823,7 +619,6 @@ public class ListingCaseControllerTests
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Updated successfully");
 
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
         _listingCaseServiceMock.Verify(x => x.SetSelectedMediaByListingCaseIdAsync(listingCaseId, request.MediaIds, "1"), Times.Once);
     }
 

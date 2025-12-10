@@ -275,5 +275,9 @@ public class UserService : IUserService
 
             throw new DbErrorException(message: $"Failed to update password with errors: {errors}", title: "Failed to update password");
         }
+
+        // Log
+        await _loggerService.LogUpdatePassword(
+            userId: userId);
     }
 }

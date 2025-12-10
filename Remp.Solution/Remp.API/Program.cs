@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Remp.API.Middleware;
+using Remp.Common.Helpers;
 using Remp.DataAccess.Data;
 using Remp.Models.Constants;
 using Remp.Models.Entities;
@@ -19,6 +20,8 @@ using Remp.Service.Mappers;
 using Remp.Service.Services;
 using Remp.Service.Validators;
 using Serilog;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Enums;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using System.Reflection;
 using System.Text;
 
@@ -104,6 +107,34 @@ builder.Services.AddApplicationInsightsTelemetry(options =>
 
 // Validation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestDtoValidator>();
+
+// Use SharpGrip.FluentValidation.AutoValidation package to implement automatic validation
+builder.Services.AddFluentValidationAutoValidation(configuration =>
+{
+    // Disable the built-in .NET model (data annotations) validation.
+    configuration.DisableBuiltInModelValidation = true;
+
+    // Only validate controllers decorated with the `AutoValidation` attribute.
+    configuration.ValidationStrategy = ValidationStrategy.All;
+
+    // Enable validation for parameters bound from `BindingSource.Body` binding sources.
+    configuration.EnableBodyBindingSourceAutomaticValidation = true;
+
+    // Enable validation for parameters bound from `BindingSource.Form` binding sources.
+    configuration.EnableFormBindingSourceAutomaticValidation = true;
+
+    // Enable validation for parameters bound from `BindingSource.Query` binding sources.
+    configuration.EnableQueryBindingSourceAutomaticValidation = true;
+
+    // Enable validation for parameters bound from `BindingSource.Path` binding sources.
+    configuration.EnablePathBindingSourceAutomaticValidation = true;
+
+    // Enable validation for parameters bound from 'BindingSource.Custom' binding sources.
+    configuration.EnableCustomBindingSourceAutomaticValidation = true;
+
+    // Replace the default result factory with a custom implementation.
+    //configuration.OverrideDefaultResultFactoryWith<CustomResultFactory>();
+});
 
 // Repositories
 builder.Services.AddSingleton<ILoggerRepository, LoggerRepository>();

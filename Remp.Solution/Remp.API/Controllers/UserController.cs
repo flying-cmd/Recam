@@ -16,12 +16,10 @@ namespace Remp.API.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly ILoggerService _loggerService;
 
-        public UserController(IUserService userService, ILoggerService loggerService)
+        public UserController(IUserService userService)
         {
             _userService = userService;
-            _loggerService = loggerService;
         }
 
         /// <summary>
@@ -133,7 +131,6 @@ namespace Remp.API.Controllers
         /// </summary>
         /// <param name="createAgentAccountRequestDto">
         /// The payload containing the details (The email) of the agent to create.</param>
-        /// <param name="validator"></param>
         /// <returns>
         /// If success, returns status code 200 and a message indicating that the agent account has been created.
         /// </returns>
@@ -149,19 +146,8 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> CreateAgentAccountAsync(
-            [FromBody] CreateAgentAccountRequestDto createAgentAccountRequestDto,
-            IValidator<CreateAgentAccountRequestDto> validator)
+            [FromBody] CreateAgentAccountRequestDto createAgentAccountRequestDto)
         {
-            // Validate
-            var validationResult = await validator.ValidateAsync(createAgentAccountRequestDto);
-            if (!validationResult.IsValid)
-            {
-                validationResult.AddToModelState(ModelState);
-                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-
-                return ValidationProblem(ModelState);
-            }
-
             // Get current user id
             var currentUser = HttpContext.User;
             var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -184,7 +170,6 @@ namespace Remp.API.Controllers
         /// Search agent by email.
         /// </summary>
         /// <param name="searchAgentRequestDto"></param>
-        /// <param name="validator"></param>
         /// <returns>
         /// Returns the agent.
         /// </returns>
@@ -196,19 +181,8 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<GetResponse<SearchAgentResponseDto>>> GetAgentByEmailAsync(
-            [FromQuery] SearchAgentRequestDto searchAgentRequestDto,
-            IValidator<SearchAgentRequestDto> validator)
+            [FromQuery] SearchAgentRequestDto searchAgentRequestDto)
         {
-            // Validate
-            var validationResult = await validator.ValidateAsync(searchAgentRequestDto);
-            if (!validationResult.IsValid)
-            {
-                validationResult.AddToModelState(ModelState);
-                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-
-                return ValidationProblem(ModelState);
-            }
-
             var result = await _userService.GetAgentByEmailAsync(searchAgentRequestDto.Email);
             
             if (result != null)
@@ -255,7 +229,6 @@ namespace Remp.API.Controllers
         /// <param name="updatePasswordRequestDto">
         /// The payload containing the old password, new password and confirm password of the user.
         /// </param>
-        /// <param name="validator"></param>
         /// <returns>
         /// Returns a message indicating whether the password is updated successfully or not.
         /// </returns>
@@ -267,7 +240,7 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-        public async Task<ActionResult<PutResponse>> UpdatePasswordAsync([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto, IValidator<UpdatePasswordRequestDto> validator)
+        public async Task<ActionResult<PutResponse>> UpdatePasswordAsync([FromBody] UpdatePasswordRequestDto updatePasswordRequestDto)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -277,26 +250,7 @@ namespace Remp.API.Controllers
                 return Forbid();
             }
 
-            // Validate
-            var validationResult = await validator.ValidateAsync(updatePasswordRequestDto);
-            if (!validationResult.IsValid)
-            {
-                validationResult.AddToModelState(ModelState);
-                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-
-                // Log
-                await _loggerService.LogUpdatePassword(
-                    userId: currentUserId,
-                    error: errors);
-
-                return ValidationProblem(ModelState);
-            }
-
             await _userService.UpdatePasswordAsync(updatePasswordRequestDto, currentUserId);
-            
-            // Log
-            await _loggerService.LogUpdatePassword(
-                userId: currentUserId);
 
             return StatusCode(204, new PutResponse(true));
         }

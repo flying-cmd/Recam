@@ -17,12 +17,10 @@ namespace Remp.API.Controllers
     public class ListingCaseController : ControllerBase
     {
         private readonly IListingCaseService _listingCaseService;
-        private readonly ILoggerService _loggerService;
 
-        public ListingCaseController(IListingCaseService listingCaseService, ILoggerService loggerService)
+        public ListingCaseController(IListingCaseService listingCaseService)
         {
             _listingCaseService = listingCaseService;
-            _loggerService = loggerService;
         }
 
         /// <summary>
@@ -73,7 +71,6 @@ namespace Remp.API.Controllers
         /// <param name="createListingCaseRequest">
         /// The payload containing the details of the listing case to create.
         /// </param>
-        /// <param name="validator"></param>
         /// <returns>
         /// Returns the created listing case and a location header pointing to access it.
         /// </returns>
@@ -89,26 +86,8 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<PostResponse<ListingCaseResponseDto>>> CreateListingCase(
-            [FromBody] CreateListingCaseRequestDto createListingCaseRequest, 
-            IValidator<CreateListingCaseRequestDto> validator)
+            [FromBody] CreateListingCaseRequestDto createListingCaseRequest)
         {
-            // Validate
-            var validationResult = await validator.ValidateAsync(createListingCaseRequest);
-            if (!validationResult.IsValid)
-            {
-                validationResult.AddToModelState(ModelState);
-                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-
-                // Log
-                await _loggerService.LogCreateListingCase(
-                    listingCaseId: null,
-                    userId: createListingCaseRequest.UserId,
-                    error: errors
-                );
-
-                return ValidationProblem(ModelState);
-            }
-
             var result = await _listingCaseService.CreateListingCaseAsync(createListingCaseRequest);
             
             return CreatedAtRoute(
@@ -170,7 +149,6 @@ namespace Remp.API.Controllers
         /// <param name="updateListingCaseRequest">
         /// The payload containing the details of the listing case to update.
         /// </param>
-        /// <param name="validator"></param>
         /// <returns></returns>
         /// <response code="204">Listing case updated.</response>
         /// <response code="401">Unauthorized</response>
@@ -183,7 +161,7 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-        public async Task<ActionResult<PutResponse>> UpdateListingCaseAsync(int listingCaseId, [FromBody] UpdateListingCaseRequestDto updateListingCaseRequest, IValidator<UpdateListingCaseRequestDto> validator)
+        public async Task<ActionResult<PutResponse>> UpdateListingCaseAsync(int listingCaseId, [FromBody] UpdateListingCaseRequestDto updateListingCaseRequest)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -191,24 +169,6 @@ namespace Remp.API.Controllers
             if (currentUserId == null)
             {
                 return Forbid();
-            }
-
-            // Validate
-            var validationResult = await validator.ValidateAsync(updateListingCaseRequest);
-            if (!validationResult.IsValid)
-            {
-                validationResult.AddToModelState(ModelState);
-                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-
-                // Log
-                await _loggerService.LogUpdateListingCase(
-                    listingCaseId: listingCaseId.ToString(),
-                    userId: currentUserId,
-                    updatedFields: null,
-                    error: errors
-                );
-
-                return ValidationProblem(ModelState);
             }
 
             await _listingCaseService.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, currentUserId);
@@ -378,7 +338,6 @@ namespace Remp.API.Controllers
         /// <param name="createCaseContactRequest">
         /// The payload containing the contact information
         /// </param>
-        /// <param name="validator"></param>
         /// <returns>
         /// Returns the created contact information
         /// </returns>
@@ -395,19 +354,8 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<CaseContactDto>>> CreateCaseContactByListingCaseIdAsync(
             int listingCaseId, 
-            [FromBody] CreateCaseContactRequestDto createCaseContactRequest,
-            IValidator<CreateCaseContactRequestDto> validator)
+            [FromBody] CreateCaseContactRequestDto createCaseContactRequest)
         {
-            // Validate
-            var validationResult = await validator.ValidateAsync(createCaseContactRequest);
-            if (!validationResult.IsValid)
-            {
-                validationResult.AddToModelState(ModelState);
-                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-                
-                return ValidationProblem(ModelState);
-            }
-
             var result = await _listingCaseService.CreateCaseContactByListingCaseIdAsync(listingCaseId, createCaseContactRequest);
             
             return CreatedAtRoute(
@@ -425,7 +373,6 @@ namespace Remp.API.Controllers
         /// <param name="listingCaseId">
         /// The ID of the listing case
         /// </param>
-        /// <param name="validator"></param>
         /// <returns>
         /// Returns the created media
         /// </returns>
@@ -443,19 +390,8 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<IEnumerable<MediaAssetDto>>>> CreateMediaByListingCaseIdAsync(
             [FromForm] CreateMediaRequestDto createMediaRequestDto,
-            int listingCaseId,
-            IValidator<CreateMediaRequestDto> validator)
+            int listingCaseId)
         {
-            // Validate
-            var validationResult = await validator.ValidateAsync(createMediaRequestDto);
-            if (!validationResult.IsValid)
-            {
-                validationResult.AddToModelState(ModelState);
-                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-
-                return ValidationProblem(ModelState);
-            }
-
             // Get current user id
             var currentUser = HttpContext.User;
             var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -573,7 +509,6 @@ namespace Remp.API.Controllers
         /// <param name="setSelectedMediaRequestDto">
         /// The payload containing the list of Ids of selected media assets.
         /// </param>
-        /// <param name="validator"></param>
         /// <returns>
         /// Returns status code 200 if success
         /// </returns>
@@ -590,8 +525,7 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PutResponse>> SetSelectedMediaByListingCaseIdAsync(
             int listingCaseId, 
-            [FromBody] SetSelectedMediaRequestDto setSelectedMediaRequestDto,
-            IValidator<SetSelectedMediaRequestDto> validator)
+            [FromBody] SetSelectedMediaRequestDto setSelectedMediaRequestDto)
         {
             // Get current user id
             var currentUser = HttpContext.User;
@@ -599,16 +533,6 @@ namespace Remp.API.Controllers
             if (currentUserId == null)
             {
                 return Forbid();
-            }
-
-            // Validate
-            var validationResult = await validator.ValidateAsync(setSelectedMediaRequestDto);
-            if (!validationResult.IsValid)
-            {
-                validationResult.AddToModelState(ModelState);
-                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-
-                return ValidationProblem(ModelState);
             }
 
             await _listingCaseService.SetSelectedMediaByListingCaseIdAsync(listingCaseId, setSelectedMediaRequestDto.MediaIds, currentUserId);

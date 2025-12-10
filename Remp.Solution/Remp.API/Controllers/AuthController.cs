@@ -1,10 +1,7 @@
-﻿using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Remp.Common.Helpers.ApiResponse;
-using Remp.Common.Utilities;
 using Remp.Service.DTOs;
 using Remp.Service.Interfaces;
-using Remp.Service.Services;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -15,12 +12,10 @@ namespace Remp.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly ILoggerService _loggerService;
 
-        public AuthController(IAuthService authService, ILoggerService loggerService)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
-            _loggerService = loggerService;
         }
         
         /// <summary>
@@ -29,7 +24,6 @@ namespace Remp.API.Controllers
         /// <param name="loginRequest">
         /// The payload containing the email and password of the user.
         /// </param>
-        /// <param name="validator"></param>
         /// <returns>
         /// Returns the jwt token.
         /// </returns>
@@ -38,25 +32,8 @@ namespace Remp.API.Controllers
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostResponse<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-        public async Task<ActionResult<PostResponse<string>>> Login([FromBody] LoginRequestDto loginRequest, IValidator<LoginRequestDto> validator)
+        public async Task<ActionResult<PostResponse<string>>> Login([FromBody] LoginRequestDto loginRequest)
         {
-            // Validate
-            var validationResult = await validator.ValidateAsync(loginRequest);
-            if (!validationResult.IsValid)
-            {
-                validationResult.AddToModelState(ModelState);
-                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-
-                // Log
-                await _loggerService.LogLogin(
-                    email: loginRequest.Email,
-                    userId: null,
-                    error: errors
-                    );
-
-                return ValidationProblem(ModelState);
-            }
-
             var result = await _authService.LoginAsync(loginRequest);
             return Ok(new PostResponse<string>(true, result, "Login successfully"));
         }
@@ -67,7 +44,6 @@ namespace Remp.API.Controllers
         /// <param name="registerRequest">
         /// The payload containing the details of the user to register.
         /// </param>
-        /// <param name="validator"></param>
         /// <returns>
         /// Returns the jwt token.
         /// </returns>
@@ -77,25 +53,8 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PostResponse<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> Register(
-            [FromForm] RegisterRequestDto registerRequest,
-            [FromServices] IValidator<RegisterRequestDto> validator)
+            [FromForm] RegisterRequestDto registerRequest)
         {
-            // Validate
-            var validationResult = await validator.ValidateAsync(registerRequest);
-            if (!validationResult.IsValid)
-            {
-                validationResult.AddToModelState(ModelState);
-                string errors = string.Join(" | ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
-
-                await _loggerService.LogRegister(
-                    email: registerRequest.Email,
-                    userId: null,
-                    error: errors
-                );
-
-                return ValidationProblem(ModelState);
-            }
-
             var result = await _authService.RegisterAsync(registerRequest);
             
             return StatusCode(201, new PostResponse<string>(true, result, "Registered successfully"));

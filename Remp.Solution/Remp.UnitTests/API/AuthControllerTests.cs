@@ -14,14 +14,12 @@ namespace Remp.UnitTests.API;
 public class AuthControllerTests
 {
     private readonly Mock<IAuthService> _authServiceMock;
-    private readonly Mock<ILoggerService> _loggerServiceMock;
     private readonly AuthController _authController;
 
     public AuthControllerTests()
     {
         _authServiceMock = new Mock<IAuthService>();
-        _loggerServiceMock = new Mock<ILoggerService>();
-        _authController = new AuthController(_authServiceMock.Object, _loggerServiceMock.Object);
+        _authController = new AuthController(_authServiceMock.Object);
     }
 
     [Fact]
@@ -33,18 +31,11 @@ public class AuthControllerTests
             Email = "test@example.com",
             Password = "password"
         };
-        var validatorMock = new Mock<IValidator<LoginRequestDto>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult());
-
-        _loggerServiceMock.Setup(l => l.LogLogin(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), null, null))
-            .Returns(Task.CompletedTask);
 
         _authServiceMock.Setup(s => s.LoginAsync(request)).ReturnsAsync("jwt-token");
 
         // Act
-        var result = await _authController.Login(request, validatorMock.Object);
+        var result = await _authController.Login(request);
 
         // Assert
         var okResult = result.Result as ObjectResult;
@@ -55,44 +46,9 @@ public class AuthControllerTests
         response!.Success.Should().BeTrue();
         response.Data.Should().Be("jwt-token");
         response.Message.Should().Be("Login successfully");
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
-        _loggerServiceMock.Verify(l => l.LogLogin(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Never);
         _authServiceMock.Verify(a => a.LoginAsync(request), Times.Once);
     }
 
-    [Fact]
-    public async Task Login_WhenRequestIsInvalid_ShouldReturnValidationProblem()
-    {
-        // Arrange
-        var request = new LoginRequestDto
-        {
-            Email = "invalid-email",
-            Password = "password"
-        };
-        var validatorMock = new Mock<IValidator<LoginRequestDto>>();
-        var validationFailure = new ValidationFailure("Email", "Invalid email address");
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult(new [] { validationFailure }));
-
-        _loggerServiceMock.Setup(l => l.LogLogin(It.IsAny<string>(), null, It.IsAny<string>(), null, It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _authController.Login(request, validatorMock.Object);
-    
-        // Assert
-        var badRequestResult = result.Result as ObjectResult;
-        badRequestResult.Should().NotBeNull();
-
-        var problem = badRequestResult.Value as ValidationProblemDetails;
-        problem.Should().NotBeNull();
-        problem.Errors.Should().ContainKey("Email");
-
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
-        _loggerServiceMock.Verify(l => l.LogLogin(It.IsAny<string>(), null, It.IsAny<string>(), null, It.IsAny<string>()), Times.Once);
-        _authServiceMock.Verify(a => a.LoginAsync(request), Times.Never);
-    }
 
     [Fact]
     public async Task Register_WhenRequestIsValid_ShouldReturn201()
@@ -109,14 +65,6 @@ public class AuthControllerTests
             Avatar = avatarFile.Object
         };
 
-        var validatorMock = new Mock<IValidator<RegisterRequestDto>>();
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult());
-
-        _loggerServiceMock.Setup(l => l.LogRegister(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), null, null))
-            .Returns(Task.CompletedTask);
-
         _authServiceMock
             .Setup(s => s.RegisterAsync(
                 It.Is<RegisterRequestDto>(
@@ -131,7 +79,7 @@ public class AuthControllerTests
             .ReturnsAsync("jwt-token");
     
         // Act
-        var result = await _authController.Register(request, validatorMock.Object);
+        var result = await _authController.Register(request);
     
         // Assert
         var okResult = result.Result as ObjectResult;
@@ -143,8 +91,6 @@ public class AuthControllerTests
         response.Data.Should().Be("jwt-token");
         response.Message.Should().Be("Registered successfully");
 
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
-        _loggerServiceMock.Verify(l => l.LogRegister(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), null, null), Times.Never);
         _authServiceMock
             .Verify(a => a.RegisterAsync(
                 It.Is<RegisterRequestDto>(
@@ -156,53 +102,5 @@ public class AuthControllerTests
                     )
                 ), 
                 Times.Once);
-    }
-
-    [Fact]
-    public async Task Register_WhenRequestIsInvalid_ShouldReturnValidationProblem()
-    {
-        // Arrange
-        var avatarFile = new Mock<IFormFile>();
-        var request = new RegisterRequestDto
-        {
-            Email = "invalid-email",
-            Password = "password",
-            ConfirmPassword = "password",
-            FirstName = "",
-            LastName = "",
-            Avatar = avatarFile.Object
-        };
-
-        var validatorMock = new Mock<IValidator<RegisterRequestDto>>();
-        var emailFailure = new ValidationFailure("Email", "Invalid email address");
-        var firtNameFailure = new ValidationFailure("FirstName", "First name is required");
-        var lastNameFailure = new ValidationFailure("LastName", "Last name is required");
-
-        validatorMock
-            .Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult(new [] { emailFailure, firtNameFailure, lastNameFailure }));
-
-        _loggerServiceMock.Setup(l => l.LogRegister(It.IsAny<string>(), null, It.IsAny<string>(), null, It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _authController.Register(request, validatorMock.Object);
-    
-        // Assert
-        var badRequestResult = result.Result as ObjectResult;
-        badRequestResult.Should().NotBeNull();
-
-        var problem = badRequestResult.Value as ValidationProblemDetails;
-        problem.Should().NotBeNull();
-        problem.Errors.Should().ContainKey("Email");
-        problem.Errors.Should().ContainKey("FirstName");
-        problem.Errors.Should().ContainKey("LastName");
-
-        validatorMock.Verify(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()), Times.Once);
-        _loggerServiceMock.Verify(l => l.LogRegister(It.IsAny<string>(), null, It.IsAny<string>(), null, It.IsAny<string>()), Times.Once);
-        _authServiceMock
-            .Verify(a => a.RegisterAsync(
-                It.IsAny<RegisterRequestDto>()), 
-                Times.Never);
     }
 }
