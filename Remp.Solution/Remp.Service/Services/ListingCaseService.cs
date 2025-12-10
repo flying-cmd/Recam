@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Remp.Common.Exceptions;
 using Remp.Common.Helpers;
+using Remp.Common.Utilities;
 using Remp.Models.Constants;
 using Remp.Models.Entities;
 using Remp.Models.Enums;
@@ -616,7 +617,7 @@ public class ListingCaseService : IListingCaseService
             throw new ArgumentErrorException(message: $"Listing case {listingCaseId} cannot be updated because it is already delivered", title: "Listing case cannot be updated because it is already delivered");
         }
 
-        var newStatus = (ListingCaseStatus)((int)listingCase.ListingCaseStatus + 1);
+        var newStatus = listingCase.ListingCaseStatus.NextStatus();
         listingCase.ListingCaseStatus = newStatus;
         await _listingCaseRepository.UpdateListingCaseAsync(listingCase);
 
