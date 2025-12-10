@@ -108,4 +108,21 @@ public class UserRepository : IUserRepository
             .Select(lc => lc.Id)
             .ToListAsync();
     }
+
+    public async Task ExecuteTransactionAsync(Func<Task> action)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            await action();
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 }

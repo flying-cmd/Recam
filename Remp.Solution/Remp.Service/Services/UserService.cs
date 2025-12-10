@@ -17,7 +17,6 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly UserManager<User> _userManager;
-    private readonly AppDbContext _appDbContext;
     private readonly ILoggerService _loggerService;
     private readonly IEmailService _emailService;
     private readonly IConfiguration _configuration;
@@ -26,7 +25,6 @@ public class UserService : IUserService
         IUserRepository userRepository,
         IMapper mapper,
         UserManager<User> userManager,
-        AppDbContext appDbContext,
         ILoggerService loggerService,
         IEmailService emailService,
         IConfiguration configuration)
@@ -34,7 +32,6 @@ public class UserService : IUserService
         _userRepository = userRepository;
         _mapper = mapper;
         _userManager = userManager;
-        _appDbContext = appDbContext;
         _loggerService = loggerService;
         _emailService = emailService;
         _configuration = configuration;
@@ -94,9 +91,7 @@ public class UserService : IUserService
             UserName = createAgentAccountRequestDto.Email
         };
 
-        await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
-
-        try
+        await _userRepository.ExecuteTransactionAsync(async () =>
         {
             var result = await _userManager.CreateAsync(user, password);
 
@@ -144,16 +139,7 @@ public class UserService : IUserService
             };
 
             await _userRepository.AddAgentAsync(agent);
-
-            // Commit transaction
-            await transaction.CommitAsync();
-        }
-        catch (Exception)
-        {
-            // Rollback transaction
-            await transaction.RollbackAsync();
-            throw;
-        }
+        });
 
         // Send email
         var emailBody = EmailTemplates.CreateAccountEmail(

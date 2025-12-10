@@ -18,12 +18,11 @@ using Remp.Service.Services;
 
 namespace Remp.UnitTests.Services;
 
-public class UserServiceTests : IDisposable
+public class UserServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<UserManager<User>> _userManagerMock;
-    private readonly AppDbContext _appDbContext;
     private readonly Mock<ILoggerService> _loggerServiceMock;
     private readonly Mock<IEmailService> _emailServiceMock;
     private readonly Mock<IConfiguration> _configurationMock;
@@ -31,12 +30,6 @@ public class UserServiceTests : IDisposable
 
     public UserServiceTests()
     {
-        var dbOptions = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase("TestDb")
-            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
-        _appDbContext = new AppDbContext(dbOptions);
-
         _userRepositoryMock = new Mock<IUserRepository>();
         _mapperMock = new Mock<IMapper>();
         _userManagerMock = new Mock<UserManager<User>>(Mock.Of<IUserStore<User>>(), null, null, null, null, null, null, null, null);
@@ -47,16 +40,10 @@ public class UserServiceTests : IDisposable
             _userRepositoryMock.Object, 
             _mapperMock.Object, 
             _userManagerMock.Object, 
-            _appDbContext,
             _loggerServiceMock.Object,
             _emailServiceMock.Object,
             _configurationMock.Object
             );
-    }
-
-    public void Dispose()
-    {
-        _appDbContext.Dispose();
     }
 
     [Fact]
@@ -177,7 +164,7 @@ public class UserServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateAgentAccountAsync_WhenAllStepsAreSucceed_ShouldReturnCreateAgentAccountResponseDto()
+    public async Task CreateAgentAccountAsync_WhenIdentityUserCreateFails_ShouldThrowDbErrorException()
     {
         // Arrange
         var newAgent = new User { Email = "test@example.com" };
@@ -185,9 +172,92 @@ public class UserServiceTests : IDisposable
         var photographyCompanyId = "1";
         _userRepositoryMock.Setup(r => r.FindUserByEmailAsync(newAgent.Email)).ReturnsAsync((User?)null);
         
+        _userRepositoryMock.Setup(r => r.ExecuteTransactionAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>(f => f());
+        
+        _userManagerMock.Setup(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+
+        _loggerServiceMock
+            .Setup(l => l.LogCreateAgentAccount(
+                It.IsAny<string>(), 
+                null, 
+                It.IsAny<string>(), 
+                It.IsAny<string>(), 
+                It.IsAny<string>(),
+                It.IsAny<string>()
+                ))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = async () => await _userService.CreateAgentAccountAsync(request, photographyCompanyId);
+    
+        // Assert
+        await act.Should().ThrowAsync<DbErrorException>();
+
+        _userRepositoryMock.Verify(r => r.FindUserByEmailAsync(newAgent.Email), Times.Once);
+        _userRepositoryMock.Verify(r => r.ExecuteTransactionAsync(It.IsAny<Func<Task>>()), Times.Once);
+        _userManagerMock.Verify(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogCreateAgentAccount(It.IsAny<string>(), null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        _userManagerMock.Verify(u => u.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+        _userRepositoryMock.Verify(r => r.AddAgentAsync(It.IsAny<Agent>()), Times.Never);
+        _emailServiceMock.Verify(e => e.SendEmailAsync(request.Email, It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateAgentAccountAsync_WhenAddToRoleFails_ShouldThrowDbErrorException()
+    {
+        // Arrange
+        var newAgent = new User { Email = "test@example.com" };
+        var request = new CreateAgentAccountRequestDto { Email = newAgent.Email };
+        var photographyCompanyId = "1";
+        _userRepositoryMock.Setup(r => r.FindUserByEmailAsync(newAgent.Email)).ReturnsAsync((User?)null);
+        
+        _userRepositoryMock.Setup(r => r.ExecuteTransactionAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>(f => f());
+        
+        _userManagerMock.Setup(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+        _userManagerMock.Setup(u => u.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+
+        _loggerServiceMock
+            .Setup(l => l.LogCreateAgentAccount(
+                It.IsAny<string>(), 
+                null, 
+                It.IsAny<string>(), 
+                It.IsAny<string>(), 
+                It.IsAny<string>(),
+                It.IsAny<string>()
+                ))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var act = async () => await _userService.CreateAgentAccountAsync(request, photographyCompanyId);
+    
+        // Assert
+        await act.Should().ThrowAsync<DbErrorException>();
+
+        _userRepositoryMock.Verify(r => r.FindUserByEmailAsync(newAgent.Email), Times.Once);
+        _userRepositoryMock.Verify(r => r.ExecuteTransactionAsync(It.IsAny<Func<Task>>()), Times.Once);
+        _userManagerMock.Verify(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+        _userManagerMock.Verify(u => u.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+        _loggerServiceMock.Verify(l => l.LogCreateAgentAccount(It.IsAny<string>(), null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        _userRepositoryMock.Verify(r => r.AddAgentAsync(It.IsAny<Agent>()), Times.Never);
+        _emailServiceMock.Verify(e => e.SendEmailAsync(request.Email, It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateAgentAccountAsync_WhenAllStepsAreSucceed_ShouldReturnCreateAgentAccountResponseDto()
+    {
+        // Arrange
+        var newAgent = new User { Email = "test@example.com" };
+        var request = new CreateAgentAccountRequestDto { Email = newAgent.Email };
+        var photographyCompanyId = "1";
+        _userRepositoryMock.Setup(r => r.FindUserByEmailAsync(newAgent.Email)).ReturnsAsync((User?)null);
+
+        // When ExecuteTransactionAsync is called and given some Func<Task> f, return the result of calling that delegate (f())
+        // Why not Returns(Task.CompletedTask)?: ExecuteTransactionAsync would just return a completed task and never run the delegate
+        _userRepositoryMock.Setup(r => r.ExecuteTransactionAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>(f => f());
+
         // Capture the passed user and password
         var newUser = new User();
-        string password = "";
+        string password = string.Empty;
 
         _userManagerMock
             .Setup(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
