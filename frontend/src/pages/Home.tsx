@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import SearchBox from "../components/SearchBox";
-import OrdersTable from "../features/Order/OrdersTable";
+import OrdersTable from "../features/order/OrdersTable";
 import type { IOrder } from "../types/IOrder";
 import { getAllOrders } from "../services/orderService";
 
