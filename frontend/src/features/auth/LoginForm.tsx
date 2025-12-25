@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import InputBox from "../../components/InputBox";
 import { loginSchema } from "./schema";
 import { MapZodErrorsToFields, type FieldErrors } from "./MapZodErrorsToFields";
+import { login } from "../../services/authApi";
+import type { ILoginResponse } from "../../types/IAuth";
+import PopupBox from "../../components/PopupBox";
+import type { IApiError } from "../../types/IApiResponse";
 
 interface LoginFormProps {
   title: "Login" | "Register" | "Admin";
@@ -15,6 +19,8 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors<LoginFormFieldsErrors>>({});
+  const [errorPopup, setErrorPopup] = useState({ open: false, message: "" });
+  const closeErrorPopup = () => setErrorPopup({ open: false, message: "" });
   const navigate = useNavigate();
 
   const resetForm = () => {
@@ -23,7 +29,7 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
     setErrors({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const formResult = loginSchema.safeParse({ email, password });
@@ -37,17 +43,16 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
     // if the form is valid
     setErrors({});
 
-    const AuthResponse = {
-      token: "token",
-      role: "user",
-    };
+    try {
+      const res: ILoginResponse = await login({ email, password });
 
-    localStorage.setItem("token", AuthResponse.token);
-    localStorage.setItem("role", AuthResponse.role);
+      localStorage.setItem("token", res.data);
 
-    resetForm();
-
-    navigate("/home");
+      resetForm();
+      navigate("/home");
+    } catch (error: unknown) {
+      setErrorPopup({ open: true, message: (error as IApiError).title });
+    }
   };
 
   return (
@@ -120,6 +125,11 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
           </div>
         </form>
       </div>
+      <PopupBox
+        message={errorPopup.message}
+        open={errorPopup.open}
+        onClose={closeErrorPopup}
+      />
     </div>
   );
 }

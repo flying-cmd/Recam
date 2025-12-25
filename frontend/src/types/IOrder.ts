@@ -1,4 +1,4 @@
-export interface IOrder {
+export type IOrder = {
   orderNumber: number;
   clientName: string;
   propertyAddress: string;
