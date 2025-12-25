@@ -222,6 +222,10 @@ app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
+app.UseRouting();
+
 app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthentication();
