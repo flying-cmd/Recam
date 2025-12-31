@@ -11,6 +11,7 @@ public class ListingCaseProfile : Profile
         CreateMap<CreateListingCaseRequestDto, ListingCase>();
 
         CreateMap<ListingCase, ListingCaseResponseDto>()
+            .ForMember(d => d.agents, opt => opt.MapFrom(src => src.AgentListingCases.Select(x => x.Agent)))
             .ForMember(d => d.PropertyType, opt => opt.MapFrom(src => src.PropertyType.ToString()))
             .ForMember(d => d.SaleCategory, opt => opt.MapFrom(src => src.SaleCategory.ToString()))
             .ForMember(d => d.ListingCaseStatus, opt => opt.MapFrom(src => src.ListingCaseStatus.ToString()));

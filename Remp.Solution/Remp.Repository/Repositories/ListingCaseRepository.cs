@@ -84,7 +84,11 @@ public class ListingCaseRepository : IListingCaseRepository
     {
         return await _dbContext.ListingCases
             .AsNoTracking()
+            .AsSplitQuery()
+            .Include(lc => lc.AgentListingCases)
+                .ThenInclude(alc => alc.Agent)
             .Where(lc => lc.AgentListingCases.Any(alc => alc.AgentId == currentUserId))
+            .OrderByDescending(lc => lc.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -94,7 +98,11 @@ public class ListingCaseRepository : IListingCaseRepository
     {
         return await _dbContext.ListingCases
             .AsNoTracking()
+            .AsSplitQuery()
+            .Include(lc => lc.AgentListingCases)
+                .ThenInclude(alc => alc.Agent)
             .Where(lc => lc.UserId == currentUserId)
+            .OrderByDescending(lc => lc.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
