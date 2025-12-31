@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import InputBox from "../../components/InputBox";
 import { loginSchema } from "./schema";
 import { MapZodErrorsToFields, type FieldErrors } from "./MapZodErrorsToFields";
-import { login } from "../../services/authApi";
+import { login as loginApi } from "../../services/authApi";
 import type { ILoginResponse } from "../../types/IAuth";
 import PopupBox from "../../components/PopupBox";
 import type { IApiError } from "../../types/IApiResponse";
+import { useAuth } from "../../hooks/useAuth";
+import Spinner from "../../components/Spinner";
 
 interface LoginFormProps {
   title: "Login" | "Register" | "Admin";
@@ -22,6 +24,16 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
   const [errorPopup, setErrorPopup] = useState({ open: false, message: "" });
   const closeErrorPopup = () => setErrorPopup({ open: false, message: "" });
   const navigate = useNavigate();
+  const { login, user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <Spinner />;
+  }
+
+  if (user?.scopes) {
+    navigate("/home");
+    return;
+  }
 
   const resetForm = () => {
     setEmail("");
@@ -44,9 +56,9 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
     setErrors({});
 
     try {
-      const res: ILoginResponse = await login({ email, password });
+      const res: ILoginResponse = await loginApi({ email, password });
 
-      localStorage.setItem("token", res.data);
+      login(res.data);
 
       resetForm();
       navigate("/home");

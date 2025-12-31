@@ -1,6 +1,9 @@
 import { LogOut } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Navbar() {
+  const { logout } = useAuth();
+
   return (
     <nav className="sticky bg-sky-600">
       <div className="flex flex-row justify-between p-4">
@@ -20,7 +23,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        <LogOut className="cursor-pointer" />
+        <LogOut className="cursor-pointer" onClick={logout} />
       </div>
     </nav>
   );
