@@ -8,6 +8,7 @@ public class MediaProfile : Profile
 {
     public MediaProfile()
     {
-        CreateMap<MediaAsset, MediaAssetDto>();
+        CreateMap<MediaAsset, MediaAssetDto>()
+            .ForMember(d => d.MediaType, opt => opt.MapFrom(src => src.MediaType.ToString()));
     }
 }

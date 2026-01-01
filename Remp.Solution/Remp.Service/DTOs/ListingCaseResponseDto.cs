@@ -21,6 +21,6 @@ public class ListingCaseResponseDto
     public string PropertyType { get; set; } = null!;
     public string SaleCategory { get; set; } = null!;
     public string ListingCaseStatus { get; set; } = null!;
-    public string sharedUrl { get; set; } = string.Empty;
+    public string SharedUrl { get; set; } = string.Empty;
     public IEnumerable<AgentDto> Agents { get; set; } = new List<AgentDto>();
 }
