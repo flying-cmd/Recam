@@ -30,8 +30,11 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
     return <Spinner />;
   }
 
-  if (user?.scopes) {
-    navigate("/home");
+  if (user?.scopes === "PhotographyCompany") {
+    navigate("/admin");
+    return;
+  } else if (user?.scopes == "Agent") {
+    navigate("/agent");
     return;
   }
 
@@ -61,7 +64,12 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
       login(res.data);
 
       resetForm();
-      navigate("/home");
+
+      if (user?.scopes === "PhotographyCompany") {
+        navigate("/admin");
+      } else if (user?.scopes == "Agent") {
+        navigate("/agent");
+      }
     } catch (error: unknown) {
       setErrorPopup({ open: true, message: (error as IApiError).title });
     }

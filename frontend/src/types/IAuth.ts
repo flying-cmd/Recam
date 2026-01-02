@@ -1,11 +1,11 @@
-import type { IApiResponse } from "./IApiResponse";
+import type { IPostResponse } from "./IApiResponse";
 
 export type ILoginRequest = {
   email: string;
   password: string;
 }
 
-export type ILoginResponse = IApiResponse<string>;
+export type ILoginResponse = IPostResponse<string>;
 
 export type IRegisterRequest = {
   email: string;
@@ -17,4 +17,4 @@ export type IRegisterRequest = {
   avatarFile: File;
 }
 
-export type IRegisterResponse = IApiResponse<string>;
+export type IRegisterResponse = IPostResponse<string>;

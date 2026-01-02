@@ -13,8 +13,23 @@ export type IApiError = {
   title: string;
 }
 
-export type IApiResponse<T> = {
+type BaseApiResponse = {
   success: boolean;
+}
+
+export type IGetResponse<T> = BaseApiResponse & {
   data: T;
+}
+
+export type IPostResponse<T> = BaseApiResponse & {
+  data: T;
+  message: string;
+}
+
+export type IPutResponse = BaseApiResponse & {
+  message: string;
+}
+
+export type IDeleteResponse = BaseApiResponse & {
   message: string;
 }

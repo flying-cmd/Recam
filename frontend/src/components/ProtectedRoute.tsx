@@ -13,8 +13,6 @@ export default function ProtectedRoute({
     return <Spinner />;
   }
 
-  console.log(user);
-
   if (!user?.scopes) {
     return <Navigate to="/login" replace />;
   }

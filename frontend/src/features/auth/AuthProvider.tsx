@@ -86,8 +86,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [token]);
 
-  console.log(user);
-
   return (
     <AuthContext.Provider value={{ token, user, login, logout, isLoading }}>
       {children}
