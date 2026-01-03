@@ -11,6 +11,7 @@ public class AgentProfile : Profile
         CreateMap<Agent, CreateAgentAccountResponseDto>();
 
         CreateMap<Agent, SearchAgentResponseDto>()
+            .ForMember(d => d.PhoneNumber, opt => opt.MapFrom(src => src.User.PhoneNumber))
             .ForMember(d => d.Email, opt => opt.MapFrom(src => src.User.Email));
 
         CreateMap<Agent, AgentDto>();
