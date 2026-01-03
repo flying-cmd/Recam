@@ -197,7 +197,8 @@ builder.Services.AddCors(options =>
                 "http://localhost:5173" // React local dev
                 )
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod()
+                .WithExposedHeaders("Content-Disposition", "Content-Type"); ;
         });
 });
 
