@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import SearchBox from "../../components/SearchBox";
 import type { IListingCase } from "../../types/IListingCase";
 import { getAllListingCases } from "../../services/listingCaseService";
-import ListingCaseTable from "../../features/admin/ListingCaseTable";
+import ListingCaseTable from "../../features/admin/listingCase/ListingCaseTable";
 
 export default function AdminPannel() {
   const [listingCases, setListingCases] = useState<IListingCase[]>([]);

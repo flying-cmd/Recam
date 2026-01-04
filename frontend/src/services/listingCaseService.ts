@@ -1,5 +1,5 @@
 import type { AxiosResponse } from "axios";
-import type { IGetResponse, IPostResponse } from "../types/IApiResponse";
+import type { IDeleteResponse, IGetResponse, IPostResponse } from "../types/IApiResponse";
 import type { IListingCaseDetails, IListingCase, ICreateListingCase } from "../types/IListingCase";
 import type { IPagedResponse } from "../types/IPagedResponse";
 import { service } from "./request";
@@ -101,6 +101,15 @@ export const createListingCase = async (params: ICreateListingCase): Promise<IPo
     url: "/listings",
     method: "post",
     data: params
+  });
+
+  return res.data;
+}
+
+export const deleteListingCaseById = async (id: number): Promise<IDeleteResponse> => {
+  const res = await service<IDeleteResponse>({
+    url: `/listings/${id}`,
+    method: "delete"
   });
 
   return res.data;

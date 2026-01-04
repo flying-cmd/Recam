@@ -1,16 +1,21 @@
 import { Bath, BedSingle, CarFront, Grid2x2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import MapAutocompleteComponent from "./MapAutocompleteComponent";
-import type { IAddress } from "../../types/IListingCase";
+import type { IAddress } from "../../../types/IListingCase";
 import { useJsApiLoader } from "@react-google-maps/api";
-import { LIBRARIES } from "../../utils/googleMapConfig";
-import Modal from "../../components/modal/Modal";
-import TextField from "../../components/form/TextField";
-import TextAreaField from "../../components/form/TextAreaField";
-import RadioGroupField from "../../components/form/RadioGroupField";
-import { useAuth } from "../../hooks/useAuth";
-import BasicInfoCard from "../../components/form/BasicInfoCard";
-import { createListingCase } from "../../services/listingCaseService";
+import { LIBRARIES } from "../../../utils/googleMapConfig";
+import Modal from "../../../components/modal/Modal";
+import TextField from "../../../components/form/TextField";
+import TextAreaField from "../../../components/form/TextAreaField";
+import RadioGroupField from "../../../components/form/RadioGroupField";
+import { useAuth } from "../../../hooks/useAuth";
+import BasicInfoCard from "../../../components/form/BasicInfoCard";
+import { createListingCase } from "../../../services/listingCaseService";
+import {
+  MapZodErrorsToFields,
+  type FieldErrors,
+} from "../../../utils/MapZodErrorsToFields";
+import { createListingCaseSchema } from "./createListingCaseSchema";
 
 interface CreatePropertyModalProps {
   open: boolean;
@@ -35,6 +40,8 @@ interface FormState {
   saleCategory: string;
 }
 
+type FormErrors = FieldErrors<keyof FormState>;
+
 export default function CreatePropertyModal({
   open,
   onClose,
@@ -44,8 +51,6 @@ export default function CreatePropertyModal({
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAPS_API_KEY,
     libraries: LIBRARIES,
   });
-
-  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const saleCategoryOptions = useMemo(
     () => [
@@ -85,8 +90,12 @@ export default function CreatePropertyModal({
     saleCategory: "",
   });
   const [addressSearch, setAddressSearch] = useState<string>("");
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [errors, setErrors] = useState<FormErrors>({});
   const { user } = useAuth();
 
+  // K extends keyof FormState: K must be a key of FormState
+  // FormState[K]: get the type of the key
   const handleFormChange = <K extends keyof FormState>(
     key: K,
     value: FormState[K]
@@ -127,6 +136,19 @@ export default function CreatePropertyModal({
   };
 
   const handleSave = async () => {
+    // validate form
+    const formResult = createListingCaseSchema.safeParse(form);
+
+    // if the form is not valid
+    if (!formResult.success) {
+      const errors = MapZodErrorsToFields(formResult.error);
+      setErrors(errors);
+      return;
+    }
+
+    // if the form is valid
+    setErrors({});
+
     try {
       setIsSaving(true);
       const res = await createListingCase({
@@ -137,7 +159,6 @@ export default function CreatePropertyModal({
       console.log(res);
 
       if (res.success) {
-        setIsSaving(false);
         resetForm();
         onClose();
       } else {
@@ -167,6 +188,7 @@ export default function CreatePropertyModal({
         value={form.title}
         placeholder="Please provide a title for the property."
         onChange={(value) => handleFormChange("title", value)}
+        error={errors.title}
       />
       <hr className="mt-4 w-full border-gray-300" />
 
@@ -177,6 +199,7 @@ export default function CreatePropertyModal({
         placeholder="Please provide a description of the property."
         onChange={(value) => handleFormChange("description", value)}
         rows={4}
+        error={errors.description}
       />
       <hr className="mt-4 w-full border-gray-300" />
 
@@ -187,6 +210,7 @@ export default function CreatePropertyModal({
         value={form.saleCategory}
         onChange={(value) => handleFormChange("saleCategory", value)}
         options={saleCategoryOptions}
+        error={errors.saleCategory}
       />
       <hr className="mt-4 w-full border-gray-300" />
 
@@ -197,6 +221,7 @@ export default function CreatePropertyModal({
         value={form.propertyType}
         onChange={(value) => handleFormChange("propertyType", value)}
         options={propertyTypeOptions}
+        error={errors.propertyType}
       />
       <hr className="mt-4 w-full border-gray-300" />
 
@@ -216,6 +241,7 @@ export default function CreatePropertyModal({
         value={form.street}
         placeholder=""
         onChange={(value) => handleFormChange("street", value)}
+        error={errors.street}
       />
 
       <div className="flex gap-4">
@@ -225,6 +251,7 @@ export default function CreatePropertyModal({
           value={form.city}
           placeholder=""
           onChange={(value) => handleFormChange("city", value)}
+          error={errors.city}
         />
 
         {/* State */}
@@ -233,6 +260,7 @@ export default function CreatePropertyModal({
           value={form.state}
           placeholder=""
           onChange={(value) => handleFormChange("state", value)}
+          error={errors.state}
         />
       </div>
 
@@ -243,6 +271,7 @@ export default function CreatePropertyModal({
           value={form.postcode.toString()}
           placeholder=""
           onChange={(value) => handleFormChange("postcode", Number(value))}
+          error={errors.postcode}
         />
 
         {/* Longitude */}
@@ -251,6 +280,7 @@ export default function CreatePropertyModal({
           value={form.longitude.toString()}
           placeholder=""
           onChange={(value) => handleFormChange("longitude", Number(value))}
+          error={errors.longitude}
         />
       </div>
 
@@ -261,6 +291,7 @@ export default function CreatePropertyModal({
           value={form.latitude.toString()}
           placeholder=""
           onChange={(value) => handleFormChange("latitude", Number(value))}
+          error={errors.latitude}
         />
 
         {/* Price */}
@@ -269,6 +300,7 @@ export default function CreatePropertyModal({
           value={form.price.toString()}
           placeholder=""
           onChange={(value) => handleFormChange("price", Number(value))}
+          error={errors.price}
         />
       </div>
 

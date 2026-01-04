@@ -1,6 +1,6 @@
 import { Autocomplete } from "@react-google-maps/api";
 import { useRef } from "react";
-import type { IAddress } from "../../types/IListingCase";
+import type { IAddress } from "../../../types/IListingCase";
 
 interface MapAutocompleteComponentProps {
   value: string;

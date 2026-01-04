@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InputBox from "../../components/InputBox";
 import { loginSchema } from "./schema";
-import { MapZodErrorsToFields, type FieldErrors } from "./MapZodErrorsToFields";
+import {
+  MapZodErrorsToFields,
+  type FieldErrors,
+} from "../../utils/MapZodErrorsToFields";
 import { login as loginApi } from "../../services/authApi";
 import type { ILoginResponse } from "../../types/IAuth";
 import PopupBox from "../../components/PopupBox";

@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import SearchBox from "../../components/SearchBox";
 import type { IListingCase } from "../../types/IListingCase";
 import { getAllListingCases } from "../../services/listingCaseService";
-import ListingCaseTable from "../../features/admin/ListingCaseTable";
+import ListingCaseTable from "../../features/admin/listingCase/ListingCaseTable";
 import Spinner from "../../components/Spinner";
-import CreatePropertyModal from "../../features/admin/CreatePropertyModal";
+import CreatePropertyModal from "../../features/admin/listingCase/CreatePropertyModal";
 // import Spinner from "../../components/Spinner";
 
 export default function ListingCasePage() {

@@ -1,6 +1,14 @@
 import { useState } from "react";
 
-export default function ActionsButton() {
+interface ActionsButtonProps {
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+export default function ActionsButton({
+  onEdit,
+  onDelete,
+}: ActionsButtonProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -22,12 +30,14 @@ export default function ActionsButton() {
             <button
               type="button"
               className="block w-full p-1 text-left cursor-pointer hover:bg-gray-200"
+              onClick={onEdit}
             >
               Edit
             </button>
             <button
               type="button"
               className="block w-full p-1 text-left cursor-pointer hover:bg-gray-200"
+              onClick={onDelete}
             >
               Delete
             </button>

@@ -4,6 +4,7 @@ interface TextAreaFieldProps {
   value: string;
   onChange: (value: string) => void;
   rows: number;
+  error?: string;
 }
 
 export default function TextAreaField({
@@ -12,6 +13,7 @@ export default function TextAreaField({
   value,
   onChange,
   rows,
+  error,
 }: TextAreaFieldProps) {
   return (
     <div className="w-full pt-6 pb-2">
@@ -23,6 +25,7 @@ export default function TextAreaField({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
       ></textarea>
+      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </div>
   );
 }

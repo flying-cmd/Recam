@@ -1,6 +1,7 @@
-import ActionsButton from "../../components/ActionsButton";
-import StatusBox from "../../components/StatusBox";
-import type { IListingCase } from "../../types/IListingCase";
+import ActionsButton from "../../../components/ActionsButton";
+import StatusBox from "../../../components/StatusBox";
+import { deleteListingCaseById } from "../../../services/listingCaseService";
+import type { IListingCase } from "../../../types/IListingCase";
 
 interface listingCaseTableProps {
   listingCases: IListingCase[];
@@ -9,6 +10,16 @@ interface listingCaseTableProps {
 export default function ListingCaseTable({
   listingCases,
 }: listingCaseTableProps) {
+  const onEdit = () => {};
+
+  const onDelete = async (listingCaseId: number) => {
+    try {
+      await deleteListingCaseById(listingCaseId);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="border-2 border-gray-300 rounded-lg">
       <table className="w-full text-xs md:text-base">
@@ -42,7 +53,10 @@ export default function ListingCaseTable({
                 <StatusBox status={listingCase.listingCaseStatus} />
               </td>
               <td className="md:px-8 py-4">
-                <ActionsButton />
+                <ActionsButton
+                  onEdit={onEdit}
+                  onDelete={() => onDelete(listingCase.id)}
+                />
               </td>
             </tr>
           ))}

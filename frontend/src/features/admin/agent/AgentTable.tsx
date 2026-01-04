@@ -1,11 +1,14 @@
-import ActionsButton from "../../components/ActionsButton";
-import type { IAgent } from "../../types/IAgent";
+import ActionsButton from "../../../components/ActionsButton";
+import type { IAgent } from "../../../types/IAgent";
 
 interface AgentTableProps {
   agents: IAgent[];
 }
 
 export default function AgentTable({ agents }: AgentTableProps) {
+  const onEdit = () => {};
+  const onDelete = () => {};
+
   return (
     <div className="border-2 border-gray-300 rounded-lg">
       <table className="w-full text-xs md:text-base">
@@ -29,7 +32,7 @@ export default function AgentTable({ agents }: AgentTableProps) {
               <td className="md:px-8 py-4">{agent.phoneNumber}</td>
               <td className="md:px-8 py-4">{agent.email}</td>
               <td className="md:px-8 py-4">
-                <ActionsButton />
+                <ActionsButton onEdit={onEdit} onDelete={onDelete} />
               </td>
             </tr>
           ))}

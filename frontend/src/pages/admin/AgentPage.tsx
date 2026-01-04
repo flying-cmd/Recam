@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import SearchBox from "../../components/SearchBox";
-import AgentTable from "../../features/admin/AgentTable";
+import AgentTable from "../../features/admin/agent/AgentTable";
 import type { IAgent } from "../../types/IAgent";
 import { getAgentsUnderPhotographyCompany } from "../../services/userService";
 import Spinner from "../../components/Spinner";

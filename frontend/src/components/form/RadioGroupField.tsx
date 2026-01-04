@@ -9,6 +9,7 @@ interface RadioGroupFieldProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
   options: Option<T>[];
+  error?: string;
 }
 
 export default function RadioGroupField<T extends string>({
@@ -17,6 +18,7 @@ export default function RadioGroupField<T extends string>({
   value,
   onChange,
   options,
+  error,
 }: RadioGroupFieldProps<T>) {
   return (
     <div className="w-full pt-6 pb-2">
@@ -36,6 +38,8 @@ export default function RadioGroupField<T extends string>({
           </label>
         ))}
       </div>
+
+      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </div>
   );
 }

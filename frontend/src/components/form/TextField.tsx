@@ -3,6 +3,7 @@ interface TextFieldProps {
   value: string;
   placeholder: string;
   onChange: (value: string) => void;
+  error?: string;
 }
 
 export default function TextField({
@@ -10,6 +11,7 @@ export default function TextField({
   value,
   placeholder,
   onChange,
+  error,
 }: TextFieldProps) {
   return (
     <div className="w-full pt-6 pb-2">
@@ -21,6 +23,7 @@ export default function TextField({
         onChange={(e) => onChange(e.target.value)}
         className="w-full border border-gray-300 rounded-md p-2"
       />
+      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </div>
   );
 }
