@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -25,6 +26,7 @@ public class UserServiceTests
     private readonly Mock<UserManager<User>> _userManagerMock;
     private readonly Mock<ILoggerService> _loggerServiceMock;
     private readonly Mock<IEmailService> _emailServiceMock;
+    private readonly Mock<IBlobStorageService> _blobStorageServiceMock;
     private readonly Mock<IConfiguration> _configurationMock;
     private UserService _userService;
 
@@ -35,6 +37,7 @@ public class UserServiceTests
         _userManagerMock = new Mock<UserManager<User>>(Mock.Of<IUserStore<User>>(), null, null, null, null, null, null, null, null);
         _loggerServiceMock = new Mock<ILoggerService>();
         _emailServiceMock = new Mock<IEmailService>();
+        _blobStorageServiceMock = new Mock<IBlobStorageService>();
         _configurationMock = new Mock<IConfiguration>();
         _userService = new UserService(
             _userRepositoryMock.Object, 
@@ -42,6 +45,7 @@ public class UserServiceTests
             _userManagerMock.Object, 
             _loggerServiceMock.Object,
             _emailServiceMock.Object,
+            _blobStorageServiceMock.Object,
             _configurationMock.Object
             );
     }
@@ -168,13 +172,15 @@ public class UserServiceTests
     {
         // Arrange
         var newAgent = new User { Email = "test@example.com" };
-        var request = new CreateAgentAccountRequestDto { Email = newAgent.Email };
+        var request = new CreateAgentAccountRequestDto { Email = newAgent.Email, Avatar = new FormFile(new MemoryStream(), 0, 0, "", "") };
         var photographyCompanyId = "1";
         _userRepositoryMock.Setup(r => r.FindUserByEmailAsync(newAgent.Email)).ReturnsAsync((User?)null);
         
         _userRepositoryMock.Setup(r => r.ExecuteTransactionAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>(f => f());
         
         _userManagerMock.Setup(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+
+        _blobStorageServiceMock.Setup(b => b.UploadFileAsync(It.IsAny<IFormFile>())).ReturnsAsync("https://avatar_url");
 
         _loggerServiceMock
             .Setup(l => l.LogCreateAgentAccount(
@@ -197,6 +203,7 @@ public class UserServiceTests
         _userRepositoryMock.Verify(r => r.ExecuteTransactionAsync(It.IsAny<Func<Task>>()), Times.Once);
         _userManagerMock.Verify(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
         _loggerServiceMock.Verify(l => l.LogCreateAgentAccount(It.IsAny<string>(), null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        _blobStorageServiceMock.Verify(l => l.UploadFileAsync(It.IsAny<IFormFile>()), Times.Never);
         _userManagerMock.Verify(u => u.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
         _userRepositoryMock.Verify(r => r.AddAgentAsync(It.IsAny<Agent>()), Times.Never);
         _emailServiceMock.Verify(e => e.SendEmailAsync(request.Email, It.IsAny<string>(), It.IsAny<string>()), Times.Never);
@@ -207,7 +214,7 @@ public class UserServiceTests
     {
         // Arrange
         var newAgent = new User { Email = "test@example.com" };
-        var request = new CreateAgentAccountRequestDto { Email = newAgent.Email };
+        var request = new CreateAgentAccountRequestDto { Email = newAgent.Email, Avatar = new FormFile(new MemoryStream(), 0, 0, "", "") };
         var photographyCompanyId = "1";
         _userRepositoryMock.Setup(r => r.FindUserByEmailAsync(newAgent.Email)).ReturnsAsync((User?)null);
         
@@ -215,6 +222,8 @@ public class UserServiceTests
         
         _userManagerMock.Setup(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
         _userManagerMock.Setup(u => u.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Failed());
+
+        _blobStorageServiceMock.Setup(b => b.UploadFileAsync(It.IsAny<IFormFile>())).ReturnsAsync("https://avatar_url");
 
         _loggerServiceMock
             .Setup(l => l.LogCreateAgentAccount(
@@ -238,6 +247,7 @@ public class UserServiceTests
         _userManagerMock.Verify(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
         _userManagerMock.Verify(u => u.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
         _loggerServiceMock.Verify(l => l.LogCreateAgentAccount(It.IsAny<string>(), null, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        _blobStorageServiceMock.Verify(l => l.UploadFileAsync(It.IsAny<IFormFile>()), Times.Never);
         _userRepositoryMock.Verify(r => r.AddAgentAsync(It.IsAny<Agent>()), Times.Never);
         _emailServiceMock.Verify(e => e.SendEmailAsync(request.Email, It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
@@ -247,7 +257,7 @@ public class UserServiceTests
     {
         // Arrange
         var newAgent = new User { Email = "test@example.com" };
-        var request = new CreateAgentAccountRequestDto { Email = newAgent.Email };
+        var request = new CreateAgentAccountRequestDto { Email = newAgent.Email, Avatar = new FormFile(new MemoryStream(), 0, 0, "", "") };
         var photographyCompanyId = "1";
         _userRepositoryMock.Setup(r => r.FindUserByEmailAsync(newAgent.Email)).ReturnsAsync((User?)null);
 
@@ -265,6 +275,8 @@ public class UserServiceTests
             .ReturnsAsync(IdentityResult.Success);
         
         _userManagerMock.Setup(u => u.AddToRoleAsync(It.Is<User>(user => user.Email == newAgent.Email), RoleNames.Agent)).ReturnsAsync(IdentityResult.Success);
+
+        _blobStorageServiceMock.Setup(b => b.UploadFileAsync(It.IsAny<IFormFile>())).ReturnsAsync("https://avatar_url");
 
         _userRepositoryMock.Setup(r => r.AddAgentAsync(It.Is<Agent>(a => a.Id == newUser.Id))).Returns(Task.CompletedTask);
 
@@ -293,6 +305,7 @@ public class UserServiceTests
         _userRepositoryMock.Verify(r => r.FindUserByEmailAsync(newAgent.Email), Times.Once);
         _userManagerMock.Verify(u => u.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
         _userManagerMock.Verify(u => u.AddToRoleAsync(It.Is<User>(user => user.Email == newAgent.Email), RoleNames.Agent), Times.Once);
+        _blobStorageServiceMock.Verify(b => b.UploadFileAsync(It.IsAny<IFormFile>()), Times.Once);
         _userRepositoryMock.Verify(r => r.AddAgentAsync(It.Is<Agent>(a => a.Id == newUser.Id)), Times.Once);
         _emailServiceMock.Verify(e => e.SendEmailAsync(request.Email, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         _loggerServiceMock.Verify(l => l.LogCreateAgentAccount(It.IsAny<string>(), It.IsAny<string>(), newAgent.Email, It.IsAny<string>(), It.IsAny<string>(), null), Times.Once);

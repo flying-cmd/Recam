@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Remp.Common.Exceptions;
 using Remp.Common.Helpers;
-using Remp.DataAccess.Data;
 using Remp.Models.Constants;
 using Remp.Models.Entities;
 using Remp.Repository.Interfaces;
@@ -19,6 +18,7 @@ public class UserService : IUserService
     private readonly UserManager<User> _userManager;
     private readonly ILoggerService _loggerService;
     private readonly IEmailService _emailService;
+    private readonly IBlobStorageService _blobStorageService;
     private readonly IConfiguration _configuration;
 
     public UserService(
@@ -27,6 +27,7 @@ public class UserService : IUserService
         UserManager<User> userManager,
         ILoggerService loggerService,
         IEmailService emailService,
+        IBlobStorageService blobStorageService,
         IConfiguration configuration)
     {
         _userRepository = userRepository;
@@ -34,6 +35,7 @@ public class UserService : IUserService
         _userManager = userManager;
         _loggerService = loggerService;
         _emailService = emailService;
+        _blobStorageService = blobStorageService;
         _configuration = configuration;
     }
 
@@ -88,7 +90,8 @@ public class UserService : IUserService
         var user = new User
         {
             Email = createAgentAccountRequestDto.Email,
-            UserName = createAgentAccountRequestDto.Email
+            UserName = createAgentAccountRequestDto.Email,
+            PhoneNumber = createAgentAccountRequestDto.PhoneNumber
         };
 
         await _userRepository.ExecuteTransactionAsync(async () =>
@@ -132,10 +135,21 @@ public class UserService : IUserService
                     title: "Failed to create agent account");
             }
 
+            var avatarUrl = string.Empty;
+            // Upload avatar file to blob storage
+            if (createAgentAccountRequestDto.Avatar is not null)
+            {
+                avatarUrl = await _blobStorageService.UploadFileAsync(createAgentAccountRequestDto.Avatar);
+            }
+
             // Add agent to Agent table
             var agent = new Agent
             {
                 Id = user.Id,
+                AgentFirstName = createAgentAccountRequestDto.AgentFirstName,
+                AgentLastName = createAgentAccountRequestDto.AgentLastName,
+                CompanyName = createAgentAccountRequestDto.CompanyName,
+                AvataUrl = avatarUrl ?? string.Empty
             };
 
             await _userRepository.AddAgentAsync(agent);

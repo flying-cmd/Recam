@@ -42,6 +42,7 @@ public class BlobStorageServiceTests
         var formFileMock = new Mock<IFormFile>();
         var fileContent = "test file content";
         var fileName = "avatar.jpg";
+        var contentType = "image/jpg";
 
         var containerClientMock = new Mock<BlobContainerClient>();
         var blobClientMock = new Mock<BlobClient>();
@@ -51,6 +52,7 @@ public class BlobStorageServiceTests
             .Returns(containerClientMock.Object);
 
         formFileMock.Setup(f => f.FileName).Returns(fileName);
+        formFileMock.Setup(f => f.ContentType).Returns(contentType);
 
         // Capture the blob name used
         string? capturedBlobName = null;
@@ -72,7 +74,8 @@ public class BlobStorageServiceTests
         blobClientMock
             .Setup(b => b.UploadAsync(
                 It.IsAny<Stream>(),
-                true,
+                It.Is<BlobUploadOptions>(option =>
+                    option.HttpHeaders != null && option.HttpHeaders.ContentType == contentType),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Response.FromValue(
                 BlobsModelFactory.BlobContentInfo(
@@ -106,7 +109,8 @@ public class BlobStorageServiceTests
         blobClientMock
             .Verify(b => b.UploadAsync(
                     It.IsAny<Stream>(),
-                    true,
+                    It.Is<BlobUploadOptions>(option =>
+                        option.HttpHeaders != null && option.HttpHeaders.ContentType == contentType),
                     It.IsAny<CancellationToken>()),
             Times.Once);
     }

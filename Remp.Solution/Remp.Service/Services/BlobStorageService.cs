@@ -1,7 +1,10 @@
 ﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver.Search;
+using Remp.Common.Exceptions;
 using Remp.Service.Interfaces;
 using System.Diagnostics.Metrics;
 
@@ -32,7 +35,15 @@ public class BlobStorageService : IBlobStorageService
 
         // Opens a readable stream for the uploaded file
         using var stream = file.OpenReadStream();
-        await blobClient.UploadAsync(stream, true);
+        await blobClient.UploadAsync(
+            stream,
+            new BlobUploadOptions
+            {
+                HttpHeaders = new BlobHttpHeaders
+                {
+                    ContentType = file.ContentType
+                }
+            });
         
         return blobClient.Uri.ToString();
     }
@@ -75,5 +86,34 @@ public class BlobStorageService : IBlobStorageService
         var blobClient = containerClient.GetBlobClient(fileName);
 
         await blobClient.DeleteIfExistsAsync();
+    }
+
+    // Generate a read-only url with SAS token
+    public string GetReadSasUrl(string blobUrl, double hours = 1)
+    {
+        var fileName = Path.GetFileName(blobUrl);
+
+        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+        var blobClient = containerClient.GetBlobClient(fileName);
+
+        if (containerClient.CanGenerateSasUri)
+        {
+            var sasBuilder = new BlobSasBuilder
+            {
+                BlobContainerName = _containerName,
+                Resource = "c",
+                ExpiresOn = DateTimeOffset.UtcNow.AddHours(hours),
+            };
+
+            sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+            var sasUri = blobClient.GenerateSasUri(sasBuilder);
+
+            return sasUri.ToString();
+        }
+        else
+        {
+            throw new InvalidException("ContainerClient is not authorized to generate SAS tokens.", "ContainerClient is not authorized to generate SAS tokens.");
+        }
     }
 }
