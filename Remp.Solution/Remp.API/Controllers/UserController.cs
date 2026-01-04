@@ -142,7 +142,7 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> CreateAgentAccountAsync(
-            [FromBody] CreateAgentAccountRequestDto createAgentAccountRequestDto)
+            [FromForm] CreateAgentAccountRequestDto createAgentAccountRequestDto)
         {
             // Get current user id
             var currentUser = HttpContext.User;

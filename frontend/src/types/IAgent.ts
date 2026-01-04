@@ -7,3 +7,12 @@ export type IAgent = {
   phoneNumber: string;
   email: string;
 };
+
+export interface ICreateAgent {
+  agentFirstName: string;
+  agentLastName: string;
+  avatar: File | null;
+  companyName: string;
+  phoneNumber: string;
+  email: string;
+}

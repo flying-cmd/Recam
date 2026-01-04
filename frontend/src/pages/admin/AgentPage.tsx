@@ -4,10 +4,12 @@ import AgentTable from "../../features/admin/agent/AgentTable";
 import type { IAgent } from "../../types/IAgent";
 import { getAgentsUnderPhotographyCompany } from "../../services/userService";
 import Spinner from "../../components/Spinner";
+import CreateAgentModal from "../../features/admin/agent/CreateAgentModal";
 
 export default function AgentPage() {
   const [agents, setAgents] = useState<IAgent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -45,6 +47,7 @@ export default function AgentPage() {
             <button
               type="button"
               className="bg-sky-500 hover:bg-sky-600 text-white rounded-md sm:px-2 sm:ml-6 sm:w-2/3 py-2 "
+              onClick={() => setShowModal(true)}
             >
               + Create New Agent
             </button>
@@ -55,6 +58,14 @@ export default function AgentPage() {
           <AgentTable agents={agents} />
         </div>
       </section>
+
+      {/* Create Agent Modal */}
+      {showModal && (
+        <CreateAgentModal
+          open={showModal}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </>
   );
 }
