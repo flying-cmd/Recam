@@ -1,9 +1,16 @@
 import { LogOut } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { IRole } from "../types/IRole";
+import { NavLink } from "react-router-dom";
+
+const baseLink = "text-white/70 hover:text-white cursor-pointer p-1";
+const activeLink = "border-none rounded-md bg-blue-600 text-white/90";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+
+  const linkClassName = ({ isActive }: { isActive: boolean }) =>
+    `${baseLink} ${isActive ? activeLink : null}`;
 
   return (
     <nav className="sticky bg-sky-600">
@@ -13,17 +20,17 @@ export default function Navbar() {
 
           {user && user.scopes === IRole.PhotographyCompany && (
             <>
-              <div className="text-white/70 hover:text-white cursor-pointer">
+              <NavLink to="/listings" className={linkClassName}>
                 Listing Cases
-              </div>
+              </NavLink>
 
-              <div className="text-white/70 hover:text-white cursor-pointer">
+              <NavLink to="/agents" className={linkClassName}>
                 Agents
-              </div>
+              </NavLink>
 
-              <div className="text-white/70 hover:text-white cursor-pointer">
+              {/* <div className="text-white/70 hover:text-white cursor-pointer">
                 Photography Companies
-              </div>
+              </div> */}
             </>
           )}
 
