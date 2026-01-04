@@ -1,6 +1,6 @@
 import { Download } from "lucide-react";
-import type { MediaAsset } from "../../../types/IOrder";
-import { downloadMediaFileById } from "../../../services/orderService";
+import type { MediaAsset } from "../../types/IListingCase";
+import { downloadMediaFileById } from "../../services/listingCaseService";
 import { useState } from "react";
 
 interface PropertyImagesProps {

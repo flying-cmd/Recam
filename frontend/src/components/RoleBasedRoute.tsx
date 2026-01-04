@@ -1,9 +1,9 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import Spinner from "./Spinner";
 
 interface RoleBasedRouteProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   scopes: string;
 }
 
@@ -26,5 +26,5 @@ export default function RoleBasedRoute({
     return <Navigate to="/unauthorized" replace />;
   }
 
-  return children;
+  return children ? children : <Outlet />;
 }

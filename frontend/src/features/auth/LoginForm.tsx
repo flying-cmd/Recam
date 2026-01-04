@@ -10,14 +10,9 @@ import type { IApiError } from "../../types/IApiResponse";
 import { useAuth } from "../../hooks/useAuth";
 import Spinner from "../../components/Spinner";
 
-interface LoginFormProps {
-  title: "Login" | "Register" | "Admin";
-  submitButtonText: string;
-}
-
 type LoginFormFieldsErrors = "email" | "password";
 
-export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
+export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors<LoginFormFieldsErrors>>({});
@@ -31,7 +26,7 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
   }
 
   if (user?.scopes === "PhotographyCompany") {
-    navigate("/admin");
+    navigate("/dashboard");
     return;
   } else if (user?.scopes == "Agent") {
     navigate("/agent");
@@ -66,7 +61,7 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
       resetForm();
 
       if (user?.scopes === "PhotographyCompany") {
-        navigate("/admin");
+        navigate("/dashboard");
       } else if (user?.scopes == "Agent") {
         navigate("/agent");
       }
@@ -79,7 +74,7 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-2xl font-bold mb-7 text-center text-gray-800">
-          {title}
+          Login
         </h2>
 
         <form onSubmit={handleSubmit}>
@@ -112,36 +107,16 @@ export default function LoginForm({ title, submitButtonText }: LoginFormProps) {
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
               type="submit"
             >
-              {submitButtonText}
+              Login
             </button>
 
-            {title === "Login" ? (
-              <>
-                <button
-                  type="button"
-                  className="text-sm text-blue-500 hover:text-blue-700 cursor-pointer"
-                  onClick={() => navigate("/register")}
-                >
-                  Don't have an account? Register
-                </button>
-
-                <button
-                  type="button"
-                  className="text-sm text-blue-500 hover:text-blue-700 cursor-pointer"
-                  onClick={() => navigate("/admin/login")}
-                >
-                  Login as Admin
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                className="text-sm text-blue-500 hover:text-blue-700 cursor-pointer"
-                onClick={() => navigate("/login")}
-              >
-                Login as User
-              </button>
-            )}
+            <button
+              type="button"
+              className="text-sm text-blue-500 hover:text-blue-700 cursor-pointer"
+              onClick={() => navigate("/register")}
+            >
+              Don't have an account? Register
+            </button>
           </div>
         </form>
       </div>

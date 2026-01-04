@@ -1,13 +1,13 @@
 import type { IAgent } from "./IAgent";
 
-export type IOrder = {
+export type IListingCase = {
   id: number;
   title: string;
   description: string;
   street: string;
   city: string;
   state: string;
-  postcode: string;
+  postcode: number;
   longitude: number;
   latitude: number;
   price: number;
@@ -24,24 +24,33 @@ export type IOrder = {
   agents: IAgent[];
 }
 
-export enum OrderStatus {
-  Created,
-  Pending,
-  Delivered
+export type IAddress = {
+  street: string;
+  city: string;
+  state: string;
+  postcode: number;
+  longitude: number;
+  latitude: number;
+}
+
+export enum ListingCaseStatus {
+  Created = "Created",
+  Pending = "Pending",
+  Delivered = "Delivered"
 }
 
 export enum PropertyType {
-  House,
-  Unit,
-  Townhouse,
-  Villa,
-  Others
+  House = "House",
+  Unit = "Unit",
+  Townhouse = "Townhouse",
+  Villa = "Villa",
+  Others = "Others"
 }
 
 export enum SaleCategory {
-  ForSale,
-  ForRent,
-  Auction
+  ForSale = "ForSale",
+  ForRent = "ForRent",
+  Auction = "Auction"
 }
 
 export type MediaAsset = {
@@ -96,3 +105,22 @@ export type IListingCaseDetails = {
   mediaAssets: MediaAsset[];
   caseContacts: CaseContact[];
 }
+
+export interface ICreateListingCase {
+  title: string;
+  description: string;
+  street: string;
+  city: string;
+  state: string;
+  postcode: number;
+  longitude: number;
+  latitude: number;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  garages: number;
+  floorArea: number;
+  propertyType: string;
+  saleCategory: string;
+  userId: string;
+} 

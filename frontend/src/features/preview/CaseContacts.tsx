@@ -1,5 +1,5 @@
 import { OctagonX, SquarePen } from "lucide-react";
-import type { CaseContact } from "../../../types/IOrder";
+import type { CaseContact } from "../../types/IListingCase";
 
 interface CaseContactsProps {
   caseContacts: CaseContact[];

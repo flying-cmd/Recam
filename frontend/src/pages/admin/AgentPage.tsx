@@ -1,22 +1,29 @@
 import { useEffect, useState } from "react";
 import SearchBox from "../../components/SearchBox";
-import type { IListingCase } from "../../types/IListingCase";
-import { getAllListingCases } from "../../services/listingCaseService";
-import ListingCaseTable from "../../features/admin/ListingCaseTable";
+import AgentTable from "../../features/admin/AgentTable";
+import type { IAgent } from "../../types/IAgent";
+import { getAgentsUnderPhotographyCompany } from "../../services/userService";
+import Spinner from "../../components/Spinner";
 
-export default function AdminPannel() {
-  const [listingCases, setListingCases] = useState<IListingCase[]>([]);
+export default function AgentPage() {
+  const [agents, setAgents] = useState<IAgent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await getAllListingCases();
-        setListingCases(res.data.items);
+        const res = await getAgentsUnderPhotographyCompany();
+        setAgents(res.data);
+        setIsLoading(false);
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     })();
   });
+
+  if (isLoading) return <Spinner />;
 
   return (
     <>
@@ -30,7 +37,7 @@ export default function AdminPannel() {
           <div className="flex-1 flex justify-center">
             <SearchBox
               className="sm:w-140 h-full w-full"
-              placeholder="Search from listing cases"
+              placeholder="Search from agents"
             />
           </div>
 
@@ -39,13 +46,13 @@ export default function AdminPannel() {
               type="button"
               className="bg-sky-500 hover:bg-sky-600 text-white rounded-md sm:px-2 sm:ml-6 sm:w-2/3 py-2 "
             >
-              + Create Property
+              + Create New Agent
             </button>
           </div>
         </div>
 
         <div>
-          <ListingCaseTable listingCases={listingCases} />
+          <AgentTable agents={agents} />
         </div>
       </section>
     </>

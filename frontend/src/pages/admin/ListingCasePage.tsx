@@ -3,20 +3,30 @@ import SearchBox from "../../components/SearchBox";
 import type { IListingCase } from "../../types/IListingCase";
 import { getAllListingCases } from "../../services/listingCaseService";
 import ListingCaseTable from "../../features/admin/ListingCaseTable";
+import Spinner from "../../components/Spinner";
+import CreatePropertyModal from "../../features/admin/CreatePropertyModal";
+// import Spinner from "../../components/Spinner";
 
-export default function AdminPannel() {
+export default function ListingCasePage() {
   const [listingCases, setListingCases] = useState<IListingCase[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
         const res = await getAllListingCases();
         setListingCases(res.data.items);
+        setIsLoading(false);
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     })();
   });
+
+  if (isLoading) return <Spinner />;
 
   return (
     <>
@@ -38,6 +48,7 @@ export default function AdminPannel() {
             <button
               type="button"
               className="bg-sky-500 hover:bg-sky-600 text-white rounded-md sm:px-2 sm:ml-6 sm:w-2/3 py-2 "
+              onClick={() => setShowModal(true)}
             >
               + Create Property
             </button>
@@ -48,6 +59,14 @@ export default function AdminPannel() {
           <ListingCaseTable listingCases={listingCases} />
         </div>
       </section>
+
+      {/* Create Property Modal */}
+      {showModal && (
+        <CreatePropertyModal
+          open={showModal}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </>
   );
 }

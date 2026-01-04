@@ -1,0 +1,346 @@
+import { Bath, BedSingle, CarFront, Grid2x2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import MapAutocompleteComponent from "./MapAutocompleteComponent";
+import type { IAddress } from "../../types/IListingCase";
+import { useJsApiLoader } from "@react-google-maps/api";
+import { LIBRARIES } from "../../utils/googleMapConfig";
+import Modal from "../../components/modal/Modal";
+import TextField from "../../components/form/TextField";
+import TextAreaField from "../../components/form/TextAreaField";
+import RadioGroupField from "../../components/form/RadioGroupField";
+import { useAuth } from "../../hooks/useAuth";
+import BasicInfoCard from "../../components/form/BasicInfoCard";
+import { createListingCase } from "../../services/listingCaseService";
+
+interface CreatePropertyModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+interface FormState {
+  title: string;
+  description: string;
+  street: string;
+  city: string;
+  state: string;
+  postcode: number;
+  longitude: number;
+  latitude: number;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  garages: number;
+  floorArea: number;
+  propertyType: string;
+  saleCategory: string;
+}
+
+export default function CreatePropertyModal({
+  open,
+  onClose,
+}: CreatePropertyModalProps) {
+  const { isLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLEMAPS_API_KEY,
+    libraries: LIBRARIES,
+  });
+
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+
+  const saleCategoryOptions = useMemo(
+    () => [
+      { label: "For Sale", value: "ForSale" },
+      { label: "For Rent", value: "ForRent" },
+      { label: "Auction", value: "Auction" },
+    ],
+    []
+  );
+
+  const propertyTypeOptions = useMemo(
+    () => [
+      { label: "House", value: "House" },
+      { label: "Unit", value: "Unit" },
+      { label: "Townhouse", value: "Townhouse" },
+      { label: "Villa", value: "Villa" },
+      { label: "Others", value: "Others" },
+    ],
+    []
+  );
+
+  const [form, setForm] = useState<FormState>({
+    title: "",
+    description: "",
+    street: "",
+    city: "",
+    state: "",
+    postcode: 0,
+    longitude: 0,
+    latitude: 0,
+    price: 0,
+    bedrooms: 0,
+    bathrooms: 0,
+    garages: 0,
+    floorArea: 0,
+    propertyType: "",
+    saleCategory: "",
+  });
+  const [addressSearch, setAddressSearch] = useState<string>("");
+  const { user } = useAuth();
+
+  const handleFormChange = <K extends keyof FormState>(
+    key: K,
+    value: FormState[K]
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSelectAddress = (address: IAddress) => {
+    setForm((prev) => ({
+      ...prev,
+      street: address.street,
+      city: address.city,
+      state: address.state,
+      postcode: address.postcode,
+      longitude: address.longitude,
+      latitude: address.latitude,
+    }));
+  };
+
+  const resetForm = () => {
+    setForm({
+      title: "",
+      description: "",
+      street: "",
+      city: "",
+      state: "",
+      postcode: 0,
+      longitude: 0,
+      latitude: 0,
+      price: 0,
+      bedrooms: 0,
+      bathrooms: 0,
+      garages: 0,
+      floorArea: 0,
+      propertyType: "",
+      saleCategory: "",
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      const res = await createListingCase({
+        ...form,
+        userId: user?.id ?? "",
+      });
+
+      console.log(res);
+
+      if (res.success) {
+        setIsSaving(false);
+        resetForm();
+        onClose();
+      } else {
+        throw new Error("Failed to create listing case");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Create Property"
+      description="Please take a moment to review and complete property details."
+    >
+      {/* Property Title */}
+      <TextField
+        label="Property Title"
+        value={form.title}
+        placeholder="Please provide a title for the property."
+        onChange={(value) => handleFormChange("title", value)}
+      />
+      <hr className="mt-4 w-full border-gray-300" />
+
+      {/* Property Description */}
+      <TextAreaField
+        label="Property Description"
+        value={form.description}
+        placeholder="Please provide a description of the property."
+        onChange={(value) => handleFormChange("description", value)}
+        rows={4}
+      />
+      <hr className="mt-4 w-full border-gray-300" />
+
+      {/* Sale Category */}
+      <RadioGroupField
+        label="Sale Category"
+        name="saleCategory"
+        value={form.saleCategory}
+        onChange={(value) => handleFormChange("saleCategory", value)}
+        options={saleCategoryOptions}
+      />
+      <hr className="mt-4 w-full border-gray-300" />
+
+      {/* Property Type */}
+      <RadioGroupField
+        label="Property Type"
+        name="propertyType"
+        value={form.propertyType}
+        onChange={(value) => handleFormChange("propertyType", value)}
+        options={propertyTypeOptions}
+      />
+      <hr className="mt-4 w-full border-gray-300" />
+
+      {/* Search Address */}
+      {isLoaded && (
+        <MapAutocompleteComponent
+          value={addressSearch}
+          onChange={setAddressSearch}
+          onSelect={(address) => handleSelectAddress(address)}
+        />
+      )}
+
+      {/* Address Input */}
+      {/* Street */}
+      <TextField
+        label="Street"
+        value={form.street}
+        placeholder=""
+        onChange={(value) => handleFormChange("street", value)}
+      />
+
+      <div className="flex gap-4">
+        {/* City */}
+        <TextField
+          label="City"
+          value={form.city}
+          placeholder=""
+          onChange={(value) => handleFormChange("city", value)}
+        />
+
+        {/* State */}
+        <TextField
+          label="State"
+          value={form.state}
+          placeholder=""
+          onChange={(value) => handleFormChange("state", value)}
+        />
+      </div>
+
+      <div className="flex gap-4">
+        {/* Postcode */}
+        <TextField
+          label="Postcode"
+          value={form.postcode.toString()}
+          placeholder=""
+          onChange={(value) => handleFormChange("postcode", Number(value))}
+        />
+
+        {/* Longitude */}
+        <TextField
+          label="Longitude"
+          value={form.longitude.toString()}
+          placeholder=""
+          onChange={(value) => handleFormChange("longitude", Number(value))}
+        />
+      </div>
+
+      <div className="flex gap-4">
+        {/* Latitude */}
+        <TextField
+          label="Latitude"
+          value={form.latitude.toString()}
+          placeholder=""
+          onChange={(value) => handleFormChange("latitude", Number(value))}
+        />
+
+        {/* Price */}
+        <TextField
+          label="Price"
+          value={form.price.toString()}
+          placeholder=""
+          onChange={(value) => handleFormChange("price", Number(value))}
+        />
+      </div>
+
+      <hr className="mt-4 w-full border-gray-300" />
+      {/* Basic information */}
+      <div className="my-5 w-full">
+        <p>Basic Information</p>
+        <div className="flex flex-row items-start flex-wrap my-2">
+          <div className="flex flex-row gap-4 w-full flex-wrap">
+            {/* Bedrooms */}
+            <BasicInfoCard
+              label="Beds"
+              value={form.bedrooms}
+              min={0}
+              step={1}
+              onChange={(value) => handleFormChange("bedrooms", value)}
+              icon={<BedSingle color="black" />}
+            />
+
+            {/* Baths */}
+            <BasicInfoCard
+              label="Baths"
+              value={form.bathrooms}
+              min={0}
+              step={1}
+              onChange={(value) => handleFormChange("bathrooms", value)}
+              icon={<Bath color="black" />}
+            />
+
+            {/* Garage */}
+            <BasicInfoCard
+              label="Garage"
+              value={form.garages}
+              min={0}
+              step={1}
+              onChange={(value) => handleFormChange("garages", value)}
+              icon={<CarFront color="black" />}
+            />
+
+            {/* Area */}
+            <BasicInfoCard
+              label="Area"
+              value={form.floorArea}
+              min={0}
+              step={1}
+              onChange={(value) => handleFormChange("floorArea", value)}
+              icon={<Grid2x2 color="black" />}
+            />
+          </div>
+        </div>
+      </div>
+      <hr className="mt-4 w-full border-gray-300" />
+
+      {/* Save and Cancel buttons */}
+      <div className="flex flex-row justify-end gap-4 mt-4 w-full">
+        <button
+          type="button"
+          className="w-20 h-10 bg-white border-black border rounded-2xl p-2 hover:bg-gray-200"
+          onClick={onClose}
+          disabled={isSaving}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="w-20 h-10 bg-blue-400 border border-blue-500 rounded-2xl p-2 text-white hover:bg-blue-500"
+          onClick={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </Modal>
+  );
+}

@@ -4,4 +4,6 @@ export type IAgent = {
   agentLastName: string;
   avatarUrl: string;
   companyName: string;
+  phoneNumber: string;
+  email: string;
 };

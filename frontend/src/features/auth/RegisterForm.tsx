@@ -204,7 +204,7 @@ export default function RegisterForm() {
               className="text-sm text-blue-500 hover:text-blue-700 cursor-pointer"
               onClick={() => navigate("/login")}
             >
-              Back to Login as User
+              Back to Login
             </button>
           </div>
         </form>

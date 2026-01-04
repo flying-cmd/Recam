@@ -1,15 +1,15 @@
 import { useParams } from "react-router-dom";
 import TopBar from "../../components/TopBar";
 import { useEffect, useState } from "react";
-import { getListingCaseDetailsById } from "../../services/orderService";
-import { MediaType, type IListingCaseDetails } from "../../types/IOrder";
-import Hero from "../../features/order/details/Hero";
-import PropertyImages from "../../features/order/details/PropertyImages";
-import FloorPlan from "../../features/order/details/FloorPlan";
-import Videography from "../../features/order/details/Videography";
-import LocationMap from "../../features/order/details/LocationMap";
-import CaseContacts from "../../features/order/details/CaseContacts";
-import Footer from "../../features/order/details/Footer";
+import { getListingCaseDetailsById } from "../../services/listingCaseService";
+import { MediaType, type IListingCaseDetails } from "../../types/IListingCase";
+import Hero from "../../features/preview/Hero";
+import PropertyImages from "../../features/preview/PropertyImages";
+import FloorPlan from "../../features/preview/FloorPlan";
+import Videography from "../../features/preview/Videography";
+import LocationMap from "../../features/preview/LocationMap";
+import CaseContacts from "../../features/preview/CaseContacts";
+import Footer from "../../features/preview/Footer";
 
 export default function PropertyDetails() {
   const { listingCaseId } = useParams();

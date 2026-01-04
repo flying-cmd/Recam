@@ -14,7 +14,7 @@ export default function PopupBox({ message, open, onClose }: PopupBoxProps) {
   return (
     // fill the full screen
     <div
-      className="fixed inset-0 z-100 flex justify-center items-center bg-black/40"
+      className="fixed inset-0 z-99999 flex justify-center items-center bg-black/40"
       role="dialog"
       aria-modal="true"
       // onClick={onClose} // close on click outside

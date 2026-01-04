@@ -1,11 +1,11 @@
 import type { AxiosResponse } from "axios";
-import type { IGetResponse } from "../types/IApiResponse";
-import type { IListingCaseDetails, IOrder } from "../types/IOrder";
+import type { IGetResponse, IPostResponse } from "../types/IApiResponse";
+import type { IListingCaseDetails, IListingCase, ICreateListingCase } from "../types/IListingCase";
 import type { IPagedResponse } from "../types/IPagedResponse";
 import { service } from "./request";
 
-export const getAllOrders = async (pageNumber: number = 1, pageSize: number = 10): Promise<IGetResponse<IPagedResponse<IOrder[]>>> => {
-  const res = await service<IGetResponse<IPagedResponse<IOrder[]>>>({
+export const getAllListingCases = async (pageNumber: number = 1, pageSize: number = 10): Promise<IGetResponse<IPagedResponse<IListingCase[]>>> => {
+  const res = await service<IGetResponse<IPagedResponse<IListingCase[]>>>({
     url: "/listings",
     method: "get",
     params: {
@@ -94,4 +94,14 @@ export const downloadMediaFileById = async (mediaAssetId: number): Promise<void>
   // Clean up the temporary link and URL
   templink.remove();
   window.URL.revokeObjectURL(url);
+}
+
+export const createListingCase = async (params: ICreateListingCase): Promise<IPostResponse<ICreateListingCase>> => {
+  const res = await service<IPostResponse<ICreateListingCase>>({
+    url: "/listings",
+    method: "post",
+    data: params
+  });
+
+  return res.data;
 }
