@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SearchBox from "../../components/SearchBox";
 import type { IListingCase } from "../../types/IListingCase";
 import { getAllListingCases } from "../../services/listingCaseService";
@@ -15,6 +15,7 @@ export default function ListingCasePage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedListingCase, setSelectedListingCase] =
     useState<IListingCase | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -35,6 +36,26 @@ export default function ListingCasePage() {
     setShowEditModal(true);
   };
 
+  const searchListingCases = useMemo(() => {
+    return listingCases.filter(
+      (listingCase) =>
+        listingCase.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        listingCase.description
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        listingCase.street.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        listingCase.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        listingCase.state.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        listingCase.postcode.toString().includes(searchTerm.toLowerCase()) ||
+        listingCase.propertyType
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        listingCase.saleCategory
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+    );
+  }, [listingCases, searchTerm]);
+
   if (isLoading) return <Spinner />;
 
   return (
@@ -50,6 +71,8 @@ export default function ListingCasePage() {
             <SearchBox
               className="sm:w-140 h-full w-full"
               placeholder="Search from listing cases"
+              value={searchTerm}
+              onChange={setSearchTerm}
             />
           </div>
 
@@ -66,7 +89,10 @@ export default function ListingCasePage() {
 
         <div>
           {/* handleEdit is used to open the edit modal and get the listing case from the table */}
-          <ListingCaseTable listingCases={listingCases} onEdit={handleEdit} />
+          <ListingCaseTable
+            listingCases={searchListingCases}
+            onEdit={handleEdit}
+          />
         </div>
       </section>
 

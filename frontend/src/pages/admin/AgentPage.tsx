@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SearchBox from "../../components/SearchBox";
 import AgentTable from "../../features/admin/agent/AgentTable";
 import type { IAgent } from "../../types/IAgent";
@@ -10,6 +10,7 @@ export default function AgentPage() {
   const [agents, setAgents] = useState<IAgent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -24,6 +25,17 @@ export default function AgentPage() {
       }
     })();
   });
+
+  const searchAgents = useMemo(() => {
+    return agents.filter(
+      (agent: IAgent) =>
+        agent.agentFirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.agentLastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [agents, searchTerm]);
 
   if (isLoading) return <Spinner />;
 
@@ -40,6 +52,8 @@ export default function AgentPage() {
             <SearchBox
               className="sm:w-140 h-full w-full"
               placeholder="Search from agents"
+              value={searchTerm}
+              onChange={setSearchTerm}
             />
           </div>
 
@@ -55,7 +69,7 @@ export default function AgentPage() {
         </div>
 
         <div>
-          <AgentTable agents={agents} />
+          <AgentTable agents={searchAgents} />
         </div>
       </section>
 
