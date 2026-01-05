@@ -1,25 +1,25 @@
 import { Bath, BedSingle, CarFront, Grid2x2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import MapAutocompleteComponent from "./MapAutocompleteComponent";
-import type { IAddress } from "../../../types/IListingCase";
+import type { IAddress, IListingCase } from "../../../types/IListingCase";
 import { useJsApiLoader } from "@react-google-maps/api";
 import { LIBRARIES } from "../../../utils/googleMapConfig";
 import Modal from "../../../components/modal/Modal";
 import TextField from "../../../components/form/TextField";
 import TextAreaField from "../../../components/form/TextAreaField";
 import RadioGroupField from "../../../components/form/RadioGroupField";
-import { useAuth } from "../../../hooks/useAuth";
 import BasicInfoCard from "../../../components/form/BasicInfoCard";
-import { createListingCase } from "../../../services/listingCaseService";
+import { updateListingCaseById } from "../../../services/listingCaseService";
 import {
   MapZodErrorsToFields,
   type FieldErrors,
 } from "../../../utils/MapZodErrorsToFields";
-import { createListingCaseSchema } from "./ListingCaseSchema";
+import { editListingCaseSchema } from "./ListingCaseSchema";
 
-interface CreatePropertyModalProps {
+interface EditPropertyModalProps {
   open: boolean;
   onClose: () => void;
+  listingCase: IListingCase;
 }
 
 interface FormState {
@@ -42,10 +42,11 @@ interface FormState {
 
 type FormErrors = FieldErrors<keyof FormState>;
 
-export default function CreatePropertyModal({
+export default function EditPropertyModal({
   open,
   onClose,
-}: CreatePropertyModalProps) {
+  listingCase,
+}: EditPropertyModalProps) {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAPS_API_KEY,
@@ -73,26 +74,25 @@ export default function CreatePropertyModal({
   );
 
   const [form, setForm] = useState<FormState>({
-    title: "",
-    description: "",
-    street: "",
-    city: "",
-    state: "",
-    postcode: 0,
-    longitude: 0,
-    latitude: 0,
-    price: 0,
-    bedrooms: 0,
-    bathrooms: 0,
-    garages: 0,
-    floorArea: 0,
-    propertyType: "",
-    saleCategory: "",
+    title: listingCase.title,
+    description: listingCase.description,
+    street: listingCase.street,
+    city: listingCase.city,
+    state: listingCase.state,
+    postcode: listingCase.postcode,
+    longitude: listingCase.longitude,
+    latitude: listingCase.latitude,
+    price: listingCase.price,
+    bedrooms: listingCase.bedrooms,
+    bathrooms: listingCase.bathrooms,
+    garages: listingCase.garages,
+    floorArea: listingCase.floorArea,
+    propertyType: listingCase.propertyType,
+    saleCategory: listingCase.saleCategory,
   });
   const [addressSearch, setAddressSearch] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const { user } = useAuth();
 
   // K extends keyof FormState: K must be a key of FormState
   // FormState[K]: get the type of the key
@@ -115,29 +115,9 @@ export default function CreatePropertyModal({
     }));
   };
 
-  const resetForm = () => {
-    setForm({
-      title: "",
-      description: "",
-      street: "",
-      city: "",
-      state: "",
-      postcode: 0,
-      longitude: 0,
-      latitude: 0,
-      price: 0,
-      bedrooms: 0,
-      bathrooms: 0,
-      garages: 0,
-      floorArea: 0,
-      propertyType: "",
-      saleCategory: "",
-    });
-  };
-
   const handleSave = async () => {
     // validate form
-    const formResult = createListingCaseSchema.safeParse(form);
+    const formResult = editListingCaseSchema.safeParse(form);
 
     // if the form is not valid
     if (!formResult.success) {
@@ -151,17 +131,9 @@ export default function CreatePropertyModal({
 
     try {
       setIsSaving(true);
-      const res = await createListingCase({
-        ...form,
-        userId: user?.id ?? "",
-      });
+      await updateListingCaseById(listingCase.id, form);
 
-      if (res.success) {
-        resetForm();
-        onClose();
-      } else {
-        throw new Error("Failed to create listing case");
-      }
+      onClose();
     } catch (error) {
       console.error(error);
     } finally {
@@ -177,7 +149,7 @@ export default function CreatePropertyModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Create Property"
+      title="Edit Property"
       description="Please take a moment to review and complete property details."
     >
       {/* Property Title */}

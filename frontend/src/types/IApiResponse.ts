@@ -26,9 +26,9 @@ export type IPostResponse<T> = BaseApiResponse & {
   message: string;
 }
 
-export type IPutResponse = BaseApiResponse & {
-  message: string;
-}
+// export type IPutResponse = BaseApiResponse & {
+//   message: string;
+// }
 
 export type IDeleteResponse = BaseApiResponse & {
   message: string;

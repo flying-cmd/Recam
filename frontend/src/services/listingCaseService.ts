@@ -1,6 +1,6 @@
 import type { AxiosResponse } from "axios";
 import type { IDeleteResponse, IGetResponse, IPostResponse } from "../types/IApiResponse";
-import type { IListingCaseDetails, IListingCase, ICreateListingCase } from "../types/IListingCase";
+import type { IListingCaseDetails, IListingCase, ICreateListingCase, IUpdateListingCase } from "../types/IListingCase";
 import type { IPagedResponse } from "../types/IPagedResponse";
 import { service } from "./request";
 
@@ -113,4 +113,12 @@ export const deleteListingCaseById = async (id: number): Promise<IDeleteResponse
   });
 
   return res.data;
+}
+
+export const updateListingCaseById = async (id: number, params: IUpdateListingCase): Promise<void> => {
+  await service<void>({
+    url: `/listings/${id}`,
+    method: "put",
+    data: params
+  });
 }

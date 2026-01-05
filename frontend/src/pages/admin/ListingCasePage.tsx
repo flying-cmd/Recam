@@ -5,12 +5,16 @@ import { getAllListingCases } from "../../services/listingCaseService";
 import ListingCaseTable from "../../features/admin/listingCase/ListingCaseTable";
 import Spinner from "../../components/Spinner";
 import CreatePropertyModal from "../../features/admin/listingCase/CreatePropertyModal";
+import EditPropertyModal from "../../features/admin/listingCase/EditListingCaseModal";
 // import Spinner from "../../components/Spinner";
 
 export default function ListingCasePage() {
   const [listingCases, setListingCases] = useState<IListingCase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedListingCase, setSelectedListingCase] =
+    useState<IListingCase | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -25,6 +29,11 @@ export default function ListingCasePage() {
       }
     })();
   });
+
+  const handleEdit = (listingCase: IListingCase) => {
+    setSelectedListingCase(listingCase);
+    setShowEditModal(true);
+  };
 
   if (isLoading) return <Spinner />;
 
@@ -48,7 +57,7 @@ export default function ListingCasePage() {
             <button
               type="button"
               className="bg-sky-500 hover:bg-sky-600 text-white rounded-md sm:px-2 sm:ml-6 sm:w-2/3 py-2 "
-              onClick={() => setShowModal(true)}
+              onClick={() => setShowCreateModal(true)}
             >
               + Create Property
             </button>
@@ -56,15 +65,28 @@ export default function ListingCasePage() {
         </div>
 
         <div>
-          <ListingCaseTable listingCases={listingCases} />
+          {/* handleEdit is used to open the edit modal and get the listing case from the table */}
+          <ListingCaseTable listingCases={listingCases} onEdit={handleEdit} />
         </div>
       </section>
 
       {/* Create Property Modal */}
-      {showModal && (
+      {showCreateModal && (
         <CreatePropertyModal
-          open={showModal}
-          onClose={() => setShowModal(false)}
+          open={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+        />
+      )}
+
+      {/* Edit Property Modal */}
+      {showEditModal && (
+        <EditPropertyModal
+          open={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedListingCase(null);
+          }}
+          listingCase={selectedListingCase!}
         />
       )}
     </>

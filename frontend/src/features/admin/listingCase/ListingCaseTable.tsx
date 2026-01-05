@@ -5,13 +5,13 @@ import type { IListingCase } from "../../../types/IListingCase";
 
 interface listingCaseTableProps {
   listingCases: IListingCase[];
+  onEdit: (listingCase: IListingCase) => void;
 }
 
 export default function ListingCaseTable({
   listingCases,
+  onEdit,
 }: listingCaseTableProps) {
-  const onEdit = () => {};
-
   const onDelete = async (listingCaseId: number) => {
     try {
       await deleteListingCaseById(listingCaseId);
@@ -54,7 +54,7 @@ export default function ListingCaseTable({
               </td>
               <td className="md:px-8 py-4">
                 <ActionsButton
-                  onEdit={onEdit}
+                  onEdit={() => onEdit(listingCase)} // Pass the listingCase to ListingCasePage
                   onDelete={() => onDelete(listingCase.id)}
                 />
               </td>

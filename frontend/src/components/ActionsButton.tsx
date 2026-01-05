@@ -30,14 +30,20 @@ export default function ActionsButton({
             <button
               type="button"
               className="block w-full p-1 text-left cursor-pointer hover:bg-gray-200"
-              onClick={onEdit}
+              onClick={() => {
+                setOpen(false);
+                onEdit();
+              }}
             >
               Edit
             </button>
             <button
               type="button"
               className="block w-full p-1 text-left cursor-pointer hover:bg-gray-200"
-              onClick={onDelete}
+              onClick={() => {
+                setOpen(false);
+                onDelete();
+              }}
             >
               Delete
             </button>
