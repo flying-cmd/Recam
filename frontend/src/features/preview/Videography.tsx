@@ -1,7 +1,7 @@
 import { Download } from "lucide-react";
-import type { MediaAsset } from "../../types/IListingCase";
 import { useState } from "react";
 import { downloadMediaFileById } from "../../services/listingCaseService";
+import type { MediaAsset } from "../../types/IMedia";
 
 interface VideographyProps {
   videographyAsset: MediaAsset[];

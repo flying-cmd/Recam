@@ -8,6 +8,7 @@ import { Grid2x2, House, Image, ScanEye, Users, Video } from "lucide-react";
 import UploadPhotographyPannel from "../../features/admin/listingCase/edit/UploadPhotographyPannel";
 import EditPropertyDetailsPannel from "../../features/admin/listingCase/edit/EditPropertyDetailsPannel";
 import UploadFloorPlanPannel from "../../features/admin/listingCase/edit/UploadFloorPlanPannel";
+import UploadVideographyPannel from "../../features/admin/listingCase/edit/UploadVideography";
 
 type NavSection =
   | ""
@@ -52,6 +53,13 @@ export default function EditListingCasePage() {
       case "Floor Plan":
         return (
           <UploadFloorPlanPannel
+            listingCaseId={parseInt(listingCaseId!)}
+            onBack={() => setNavSection("")}
+          />
+        );
+      case "Videography":
+        return (
+          <UploadVideographyPannel
             listingCaseId={parseInt(listingCaseId!)}
             onBack={() => setNavSection("")}
           />

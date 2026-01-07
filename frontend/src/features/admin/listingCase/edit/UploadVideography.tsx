@@ -10,19 +10,19 @@ import { MediaType, type MediaAsset } from "../../../../types/IMedia";
 import Spinner from "../../../../components/Spinner";
 import { downloadMediaFileById } from "../../../../services/listingCaseService";
 
-interface UploadFloorPlanPannelProps {
+interface UploadVideographyPannelProps {
   listingCaseId: number;
   onBack: () => void;
 }
 
-export default function UploadFloorPlanPannel({
+export default function UploadVideographyPannel({
   listingCaseId,
   onBack,
-}: UploadFloorPlanPannelProps) {
+}: UploadVideographyPannelProps) {
   const ref = useRef<HTMLInputElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
-  const [photos, setPhotos] = useState<MediaAsset[]>([]);
+  const [videos, setVideos] = useState<MediaAsset[]>([]);
   const [refreshKey, setRefreshKey] = useState(0); // used to refresh to get new photos
 
   const pickFiles = () => ref.current?.click();
@@ -34,8 +34,10 @@ export default function UploadFloorPlanPannel({
         setIsLoading(true);
         const res = await getAllMediaByListingCaseId(listingCaseId);
         if (res.success) {
-          setPhotos(
-            res.data.filter((media) => media.mediaType === MediaType.FloorPlan)
+          setVideos(
+            res.data.filter(
+              (media) => media.mediaType === MediaType.Videography
+            )
           );
         } else {
           throw new Error("Failed to get media");
@@ -61,7 +63,7 @@ export default function UploadFloorPlanPannel({
       for (const file of files) {
         formData.append("mediaFiles", file);
       }
-      formData.append("mediaType", MediaType.FloorPlan);
+      formData.append("mediaType", MediaType.Videography);
       const uploadRes = await uploadMedia(formData, listingCaseId);
 
       if (!uploadRes.success) {
@@ -102,7 +104,7 @@ export default function UploadFloorPlanPannel({
   if (isLoading) return <Spinner />;
 
   return (
-    <SectionPannelLayout title="Floor Plan" onBack={onBack}>
+    <SectionPannelLayout title="Videography" onBack={onBack}>
       {/* Button */}
       <div className="flex flex-col items-center justify-center">
         <button
@@ -112,50 +114,59 @@ export default function UploadFloorPlanPannel({
           onClick={pickFiles}
         >
           <Upload color="white" />
-          {isUploading ? "Uploading..." : "Upload Photos"}
+          {isUploading ? "Uploading..." : "Upload Videos"}
         </button>
 
         {/* Hidden file input */}
         <input
           type="file"
-          accept="image/*"
+          accept="video/*"
+          multiple
           ref={ref}
           hidden
           onChange={handleFileChange}
         />
 
-        {photos.length === 0 ? (
+        {videos.length === 0 ? (
           <div className="bg-gray-100 text-black/80 h-30 w-full flex flex-col items-center justify-center">
-            <p>No photos uploaded yet</p>
+            <p>No videos uploaded yet</p>
           </div>
         ) : (
-          <div className="w-full flex flex-row justify-start gap-2 flex-wrap">
-            {photos.map((photo) => (
-              <div key={photo.id} className="relative">
-                {/* Download button */}
-                <button
-                  type="button"
-                  className="absolute top-1 left-1 w-6 h-6 rounded-full bg-blue-600 opacity-80 hover:opacity-100 flex items-center justify-center"
-                  onClick={() => onDownload(photo.id)}
-                >
-                  <Download color="white" size={18} />
-                </button>
-                {/* Floor plan */}
-                <img
-                  src={photo.mediaUrl}
-                  alt={"Floor plan"}
-                  className="w-full h-40 object-cover"
-                />
-                {/* Delete button */}
-                <button
-                  type="button"
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-600 opacity-80 hover:opacity-100 flex items-center justify-center"
-                  onClick={() => {
-                    onDelete(photo.id);
-                  }}
-                >
-                  <Trash2 color="white" size={18} />
-                </button>
+          <div className="w-full flex flex-row justify-center gap-2 flex-wrap">
+            {videos.map((video) => (
+              <div key={video.id} className="flex flex-col flex-start">
+                {/* Video */}
+                <div>
+                  <video
+                    controls
+                    className="md:w-150 md:h-full w-90 h-40 object-cover"
+                  >
+                    <source
+                      src={video.mediaUrl}
+                      type={`video/${video.mediaUrl.split(".").pop()}`}
+                    />
+                  </video>
+                </div>
+                <div className="flex flex-row justify-between">
+                  {/* Download button */}
+                  <button
+                    type="button"
+                    className="w-6 h-6 rounded-full bg-blue-600 opacity-80 hover:opacity-100 flex items-center justify-center"
+                    onClick={() => onDownload(video.id)}
+                  >
+                    <Download color="white" size={18} />
+                  </button>
+                  {/* Delete button */}
+                  <button
+                    type="button"
+                    className="w-6 h-6 rounded-full bg-red-600 opacity-80 hover:opacity-100 flex items-center justify-center"
+                    onClick={() => {
+                      onDelete(video.id);
+                    }}
+                  >
+                    <Trash2 color="white" size={18} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
