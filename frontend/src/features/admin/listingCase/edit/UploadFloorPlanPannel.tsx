@@ -10,15 +10,15 @@ import { MediaType, type MediaAsset } from "../../../../types/IMedia";
 import Spinner from "../../../../components/Spinner";
 import { downloadMediaFileById } from "../../../../services/listingCaseService";
 
-interface UploadPhotographyPannelProps {
+interface UploadFloorPlanPannelProps {
   listingCaseId: number;
   onBack: () => void;
 }
 
-export default function UploadPhotographyPannel({
+export default function UploadFloorPlanPannel({
   listingCaseId,
   onBack,
-}: UploadPhotographyPannelProps) {
+}: UploadFloorPlanPannelProps) {
   const ref = useRef<HTMLInputElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -35,7 +35,7 @@ export default function UploadPhotographyPannel({
         const res = await getAllMediaByListingCaseId(listingCaseId);
         if (res.success) {
           setPhotos(
-            res.data.filter((media) => media.mediaType === MediaType.Photo)
+            res.data.filter((media) => media.mediaType === MediaType.FloorPlan)
           );
         } else {
           throw new Error("Failed to get media");
@@ -61,7 +61,7 @@ export default function UploadPhotographyPannel({
       for (const file of files) {
         formData.append("mediaFiles", file);
       }
-      formData.append("mediaType", MediaType.Photo);
+      formData.append("mediaType", MediaType.FloorPlan);
       const uploadRes = await uploadMedia(formData, listingCaseId);
 
       if (!uploadRes.success) {
@@ -141,10 +141,10 @@ export default function UploadPhotographyPannel({
                 >
                   <Download color="white" size={18} />
                 </button>
-                {/* Image */}
+                {/* Floor plan */}
                 <img
                   src={photo.mediaUrl}
-                  alt={"Image"}
+                  alt={"Floor plan"}
                   className="w-full h-40 object-cover"
                 />
                 {/* Delete button */}

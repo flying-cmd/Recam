@@ -2,7 +2,6 @@ import { useParams } from "react-router-dom";
 import TopBar from "../../components/TopBar";
 import { useEffect, useState } from "react";
 import { getListingCaseDetailsById } from "../../services/listingCaseService";
-import { MediaType, type IListingCaseDetails } from "../../types/IListingCase";
 import Hero from "../../features/preview/Hero";
 import PropertyImages from "../../features/preview/PropertyImages";
 import FloorPlan from "../../features/preview/FloorPlan";
@@ -10,6 +9,8 @@ import Videography from "../../features/preview/Videography";
 import LocationMap from "../../features/preview/LocationMap";
 import CaseContacts from "../../features/preview/CaseContacts";
 import Footer from "../../features/preview/Footer";
+import type { IListingCaseDetails } from "../../types/IListingCase";
+import { MediaType } from "../../types/IMedia";
 
 export default function PropertyDetails() {
   const { listingCaseId } = useParams();
@@ -19,7 +20,7 @@ export default function PropertyDetails() {
   useEffect(() => {
     const getDetails = async () => {
       try {
-        const res = await getListingCaseDetailsById(listingCaseId!);
+        const res = await getListingCaseDetailsById(parseInt(listingCaseId!));
         const details: IListingCaseDetails = res.data;
 
         setPropertyDetails(details);
@@ -74,7 +75,7 @@ export default function PropertyDetails() {
         street={propertyDetails.street}
         city={propertyDetails.city}
         state={propertyDetails.state}
-        postcode={propertyDetails.postcode}
+        postcode={propertyDetails.postcode.toString()}
         bedrooms={propertyDetails.bedrooms}
         bathrooms={propertyDetails.bathrooms}
         garages={propertyDetails.garages}
