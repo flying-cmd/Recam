@@ -1,25 +1,27 @@
 import { Bath, BedSingle, CarFront, Grid2x2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import MapAutocompleteComponent from "./MapAutocompleteComponent";
-import type { IAddress, IListingCase } from "../../../types/IListingCase";
+import MapAutocompleteComponent from "../MapAutocompleteComponent";
+import type {
+  IAddress,
+  IListingCaseDetails,
+} from "../../../../types/IListingCase";
 import { useJsApiLoader } from "@react-google-maps/api";
-import { LIBRARIES } from "../../../utils/googleMapConfig";
-import Modal from "../../../components/modal/Modal";
-import TextField from "../../../components/form/TextField";
-import TextAreaField from "../../../components/form/TextAreaField";
-import RadioGroupField from "../../../components/form/RadioGroupField";
-import BasicInfoCard from "../../../components/form/BasicInfoCard";
-import { updateListingCaseById } from "../../../services/listingCaseService";
+import { LIBRARIES } from "../../../../utils/googleMapConfig";
+import TextField from "../../../../components/form/TextField";
+import TextAreaField from "../../../../components/form/TextAreaField";
+import RadioGroupField from "../../../../components/form/RadioGroupField";
+import BasicInfoCard from "../../../../components/form/BasicInfoCard";
+import { updateListingCaseById } from "../../../../services/listingCaseService";
 import {
   MapZodErrorsToFields,
   type FieldErrors,
-} from "../../../utils/MapZodErrorsToFields";
-import { editListingCaseSchema } from "./ListingCaseSchema";
+} from "../../../../utils/MapZodErrorsToFields";
+import { editListingCaseSchema } from "../ListingCaseSchema";
+import SectionPannelLayout from "./SectionPannelLayout";
 
-interface EditPropertyModalProps {
-  open: boolean;
-  onClose: () => void;
-  listingCase: IListingCase;
+interface EditPropertyDetailsPannelProps {
+  listingCase: IListingCaseDetails;
+  onBack: () => void;
 }
 
 interface FormState {
@@ -42,11 +44,10 @@ interface FormState {
 
 type FormErrors = FieldErrors<keyof FormState>;
 
-export default function EditPropertyModal({
-  open,
-  onClose,
+export default function EditPropertyDetailsPannel({
   listingCase,
-}: EditPropertyModalProps) {
+  onBack,
+}: EditPropertyDetailsPannelProps) {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: import.meta.env.VITE_GOOGLEMAPS_API_KEY,
@@ -132,8 +133,6 @@ export default function EditPropertyModal({
     try {
       setIsSaving(true);
       await updateListingCaseById(listingCase.id, form);
-
-      onClose();
     } catch (error) {
       console.error(error);
     } finally {
@@ -146,12 +145,7 @@ export default function EditPropertyModal({
   }
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Edit Property"
-      description="Please take a moment to review and complete property details."
-    >
+    <SectionPannelLayout title="Property Details" onBack={onBack}>
       {/* Property Title */}
       <TextField
         label="Property Title"
@@ -328,14 +322,6 @@ export default function EditPropertyModal({
       <div className="flex flex-row justify-end gap-4 mt-4 w-full">
         <button
           type="button"
-          className="w-20 h-10 bg-white border-black border rounded-2xl p-2 hover:bg-gray-200"
-          onClick={onClose}
-          disabled={isSaving}
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
           className="w-20 h-10 bg-blue-400 border border-blue-500 rounded-2xl p-2 text-white hover:bg-blue-500"
           onClick={handleSave}
           disabled={isSaving}
@@ -343,6 +329,6 @@ export default function EditPropertyModal({
           {isSaving ? "Saving..." : "Save"}
         </button>
       </div>
-    </Modal>
+    </SectionPannelLayout>
   );
 }

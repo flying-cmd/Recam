@@ -5,16 +5,11 @@ import { getAllListingCases } from "../../services/listingCaseService";
 import ListingCaseTable from "../../features/admin/listingCase/ListingCaseTable";
 import Spinner from "../../components/Spinner";
 import CreatePropertyModal from "../../features/admin/listingCase/CreatePropertyModal";
-import EditPropertyModal from "../../features/admin/listingCase/EditListingCaseModal";
-// import Spinner from "../../components/Spinner";
 
 export default function ListingCasePage() {
   const [listingCases, setListingCases] = useState<IListingCase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedListingCase, setSelectedListingCase] =
-    useState<IListingCase | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -30,11 +25,6 @@ export default function ListingCasePage() {
       }
     })();
   });
-
-  const handleEdit = (listingCase: IListingCase) => {
-    setSelectedListingCase(listingCase);
-    setShowEditModal(true);
-  };
 
   const searchListingCases = useMemo(() => {
     return listingCases.filter(
@@ -89,10 +79,7 @@ export default function ListingCasePage() {
 
         <div>
           {/* handleEdit is used to open the edit modal and get the listing case from the table */}
-          <ListingCaseTable
-            listingCases={searchListingCases}
-            onEdit={handleEdit}
-          />
+          <ListingCaseTable listingCases={searchListingCases} />
         </div>
       </section>
 
@@ -101,18 +88,6 @@ export default function ListingCasePage() {
         <CreatePropertyModal
           open={showCreateModal}
           onClose={() => setShowCreateModal(false)}
-        />
-      )}
-
-      {/* Edit Property Modal */}
-      {showEditModal && (
-        <EditPropertyModal
-          open={showEditModal}
-          onClose={() => {
-            setShowEditModal(false);
-            setSelectedListingCase(null);
-          }}
-          listingCase={selectedListingCase!}
         />
       )}
     </>

@@ -1,4 +1,5 @@
 import type { IAgent } from "./IAgent";
+import type { MediaAsset } from "./IMedia";
 
 export type IListingCase = {
   id: number;
@@ -53,23 +54,6 @@ export enum SaleCategory {
   Auction = "Auction"
 }
 
-export type MediaAsset = {
-  id: number;
-  mediaType: string;
-  mediaUrl: string;
-  uploadedAt: string;
-  isSelect: boolean;
-  isHero: boolean;
-  isDeleted: boolean;
-}
-
-export enum MediaType {
-  Photo = "Photo",
-  Videography = "Videography",
-  FloorPlan = "FloorPlan",
-  VRTour = "VRTour"
-}
-
 export type CaseContact = {
   contactId: string;
   firstName: string;
@@ -87,7 +71,7 @@ export type IListingCaseDetails = {
   street: string;
   city: string;
   state: string;
-  postcode: string;
+  postcode: number;
   longitude: number;
   latitude: number;
   price: number;

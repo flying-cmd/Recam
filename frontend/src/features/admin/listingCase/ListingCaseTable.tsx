@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import ActionsButton from "../../../components/ActionsButton";
 import StatusBox from "../../../components/StatusBox";
 import { deleteListingCaseById } from "../../../services/listingCaseService";
@@ -5,13 +6,13 @@ import type { IListingCase } from "../../../types/IListingCase";
 
 interface listingCaseTableProps {
   listingCases: IListingCase[];
-  onEdit: (listingCase: IListingCase) => void;
 }
 
 export default function ListingCaseTable({
   listingCases,
-  onEdit,
 }: listingCaseTableProps) {
+  const navigate = useNavigate();
+
   const onDelete = async (listingCaseId: number) => {
     try {
       await deleteListingCaseById(listingCaseId);
@@ -54,7 +55,7 @@ export default function ListingCaseTable({
               </td>
               <td className="md:px-8 py-4">
                 <ActionsButton
-                  onEdit={() => onEdit(listingCase)} // Pass the listingCase to ListingCasePage
+                  onEdit={() => navigate(`/property-edit/${listingCase.id}`)}
                   onDelete={() => onDelete(listingCase.id)}
                 />
               </td>

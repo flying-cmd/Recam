@@ -8,6 +8,7 @@ import PropertyDetails from "./pages/admin/PropertyDetails";
 import AppLayout from "./pages/AppLayout";
 import AgentPage from "./pages/admin/AgentPage";
 import ListingCasePage from "./pages/admin/ListingCasePage";
+import EditListingCasePage from "./pages/admin/EditListingCasePage";
 
 function App() {
   return (
@@ -24,6 +25,10 @@ function App() {
               <Route path="dashboard" element={<ListingCasePage />} />
               <Route path="listings" element={<ListingCasePage />} />
               <Route path="agents" element={<AgentPage />} />
+              <Route
+                path="property-edit/:listingCaseId"
+                element={<EditListingCasePage />}
+              />
               <Route
                 path="listings/:listingCaseId"
                 element={<PropertyDetails />}
