@@ -4,11 +4,11 @@ import Register from "./pages/auth/Register";
 import AuthProvider from "./features/auth/AuthProvider";
 import Unauthorized from "./pages/auth/Unauthorized";
 import RoleBasedRoute from "./components/RoleBasedRoute";
-import PropertyDetails from "./pages/admin/PropertyDetails";
+import PropertyDetails from "./pages/photographyCompany/PropertyDetails";
 import AppLayout from "./pages/AppLayout";
-import AgentPage from "./pages/admin/AgentPage";
-import ListingCasePage from "./pages/admin/ListingCasePage";
-import EditListingCasePage from "./pages/admin/EditListingCasePage";
+import AgentPage from "./pages/photographyCompany/AgentPage";
+import ListingCasePage from "./pages/photographyCompany/ListingCasePage";
+import EditListingCasePage from "./pages/photographyCompany/EditListingCasePage";
 
 function App() {
   return (

@@ -6,6 +6,7 @@ interface AgentTableProps {
 }
 
 export default function AgentTable({ agents }: AgentTableProps) {
+  // TODO: Add edit and delete functionality
   const onEdit = () => {};
   const onDelete = () => {};
 

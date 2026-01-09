@@ -72,8 +72,6 @@ export default function UploadVideographyPannel({
 
       // Trigger useEffect to refresh to get new photos
       setRefreshKey((prev) => prev + 1);
-
-      setIsUploading(false);
     } catch (error) {
       console.error(error);
     } finally {

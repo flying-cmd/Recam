@@ -34,3 +34,24 @@ export const createAgentByPhotographyCompany = async (form: ICreateAgent): Promi
 
   return res.data;
 }
+
+export const addAgentByAgentId = async (agentId: string): Promise<void> => {
+  const res = await service<void>({
+    url: `/user/photography-company/agent/${agentId}`,
+    method: "put"
+  });
+
+  return res.data;
+}
+
+export const searchAgentByEmail = async (email: string): Promise<IGetResponse<IAgent>> => {
+  const res = await service<IGetResponse<IAgent>>({
+    url: `/user/agent/search`,
+    method: "get",
+    params: {
+      email
+    }
+  });
+
+  return res.data;
+}
