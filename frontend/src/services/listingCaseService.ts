@@ -105,3 +105,16 @@ export const updateListingCaseById = async (id: number, params: IUpdateListingCa
     data: params
   });
 }
+
+export const getListingCaseByUserId = async (pageNumber: number = 1, pageSize: number = 10): Promise<IGetResponse<IPagedResponse<IListingCaseDetails[]>>> => {
+  const res = await service<IGetResponse<IPagedResponse<IListingCaseDetails[]>>>({
+    url: `/listings`,
+    method: "get",
+    params: {
+      pageNumber,
+      pageSize
+    }
+  });
+
+  return res.data;
+}

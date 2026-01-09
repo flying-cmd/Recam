@@ -9,6 +9,7 @@ import AppLayout from "./pages/AppLayout";
 import AgentPage from "./pages/photographyCompany/AgentPage";
 import ListingCasePage from "./pages/photographyCompany/ListingCasePage";
 import EditListingCasePage from "./pages/photographyCompany/EditListingCasePage";
+import AgentPannel from "./pages/agent/AgentPannel";
 
 function App() {
   return (
@@ -33,6 +34,11 @@ function App() {
                 path="listings/:listingCaseId"
                 element={<PropertyDetails />}
               />
+            </Route>
+
+            {/* Protected routes (Agent) */}
+            <Route element={<RoleBasedRoute scopes="Agent" />}>
+              <Route path="my-property" element={<AgentPannel />} />
             </Route>
           </Route>
         </Routes>

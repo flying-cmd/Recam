@@ -12,6 +12,7 @@ import PopupBox from "../../components/PopupBox";
 import type { IApiError } from "../../types/IApiResponse";
 import { useAuth } from "../../hooks/useAuth";
 import Spinner from "../../components/Spinner";
+import { IRole } from "../../types/IRole";
 
 type LoginFormFieldsErrors = "email" | "password";
 
@@ -28,11 +29,11 @@ export default function LoginForm() {
     return <Spinner />;
   }
 
-  if (user?.scopes === "PhotographyCompany") {
+  if (user?.scopes === IRole.PhotographyCompany) {
     navigate("/dashboard");
     return;
-  } else if (user?.scopes == "Agent") {
-    navigate("/agent");
+  } else if (user?.scopes === IRole.Agent) {
+    navigate("/my-property");
     return;
   }
 
@@ -63,10 +64,10 @@ export default function LoginForm() {
 
       resetForm();
 
-      if (user?.scopes === "PhotographyCompany") {
+      if (user?.scopes === IRole.PhotographyCompany) {
         navigate("/dashboard");
-      } else if (user?.scopes == "Agent") {
-        navigate("/agent");
+      } else if (user?.scopes === IRole.Agent) {
+        navigate("/my-property");
       }
     } catch (error: unknown) {
       setErrorPopup({ open: true, message: (error as IApiError).title });
