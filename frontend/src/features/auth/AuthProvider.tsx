@@ -1,14 +1,23 @@
 import { jwtDecode, type JwtPayload } from "jwt-decode";
 import { useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
+import { IRole } from "../../types/IRole";
 
 type AppJwtPayload = JwtPayload & {
   email?: string;
   scopes?: string;
+  agentFirstName?: string;
+  agentLastName?: string;
 };
 
 class JwtUserInfo {
-  constructor(public id: string, public email: string, public scopes: string) {}
+  constructor(
+    public id: string,
+    public email: string,
+    public scopes: string,
+    public agentFirstName?: string,
+    public agentLastName?: string
+  ) {}
 }
 
 // Serve as the provider for the AuthContext
@@ -22,13 +31,25 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("token", token);
     const decodedToken: AppJwtPayload = jwtDecode(token);
     setToken(token);
-    setUser(
-      new JwtUserInfo(
-        decodedToken.sub ?? "",
-        decodedToken.email ?? "",
-        decodedToken.scopes ?? ""
-      )
-    );
+    if (decodedToken.scopes === IRole.PhotographyCompany) {
+      setUser(
+        new JwtUserInfo(
+          decodedToken.sub ?? "",
+          decodedToken.email ?? "",
+          decodedToken.scopes ?? ""
+        )
+      );
+    } else if (decodedToken.scopes === IRole.Agent) {
+      setUser(
+        new JwtUserInfo(
+          decodedToken.sub ?? "",
+          decodedToken.email ?? "",
+          decodedToken.scopes ?? "",
+          decodedToken.agentFirstName ?? "",
+          decodedToken.agentLastName ?? ""
+        )
+      );
+    }
   };
 
   const logout = () => {
@@ -52,13 +73,25 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           logout();
         } else {
           setToken(savedToken);
-          setUser(
-            new JwtUserInfo(
-              decodedToken.sub ?? "",
-              decodedToken.email ?? "",
-              decodedToken.scopes ?? ""
-            )
-          );
+          if (decodedToken.scopes === IRole.PhotographyCompany) {
+            setUser(
+              new JwtUserInfo(
+                decodedToken.sub ?? "",
+                decodedToken.email ?? "",
+                decodedToken.scopes ?? ""
+              )
+            );
+          } else if (decodedToken.scopes === IRole.Agent) {
+            setUser(
+              new JwtUserInfo(
+                decodedToken.sub ?? "",
+                decodedToken.email ?? "",
+                decodedToken.scopes ?? "",
+                decodedToken.agentFirstName ?? "",
+                decodedToken.agentLastName ?? ""
+              )
+            );
+          }
         }
       } catch {
         logout(); // Invalid token

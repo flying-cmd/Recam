@@ -1,7 +1,13 @@
 import { createContext } from "react";
 
 class JwtUserInfo {
-  constructor(public id: string, public email: string, public scopes: string) {}
+  constructor(
+    public id: string,
+    public email: string,
+    public scopes: string,
+    public agentFirstName?: string,
+    public agentLastName?: string
+  ) {}
 }
 
 type AuthContextType = {

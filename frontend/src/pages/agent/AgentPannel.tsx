@@ -47,7 +47,9 @@ export default function AgentPannel() {
       {/* Header */}
       <div className="bg-white">
         <div className="flex flex-col pt-8 pb-4 px-16 gap-4">
-          <div>Hi, Username</div>
+          <div>
+            Hi, {user?.agentFirstName} {user?.agentLastName}
+          </div>
           <div className="flex flex-row justify-between">
             <h2 className="font-bold text-xl">My Property</h2>
             <SearchBox
@@ -104,7 +106,7 @@ export default function AgentPannel() {
         </div>
 
         {/* Main Content */}
-        <div className="w-4/5 bg-white mt-2 flex flex-col items-center justify-center gap-2">
+        <div className="w-4/5 bg-white mt-2 flex flex-col gap-2">
           {propertyList.length > 0 ? (
             <>
               {propertyList.map((property) => (
@@ -116,7 +118,7 @@ export default function AgentPannel() {
               ))}
             </>
           ) : (
-            <span>No property found</span>
+            <span className="text-center m-2">No property found</span>
           )}
         </div>
       </div>
