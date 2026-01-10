@@ -694,6 +694,20 @@ public class ListingCaseService : IListingCaseService
             throw new NotFoundException(message: $"Agent {agentId} does not exist", title: "Agent does not exist");
         }
 
+        // Check if the agent is already assigned to the listing case
+        if (listingCase.AgentListingCases.Any(x => x.AgentId == agentId))
+        {
+            // Log
+            await _loggerService.LogAddAgentToListingCase(
+                listingCaseId: listingCaseId.ToString(),
+                agentId: agentId,
+                photographyCompanyId: userId,
+                error: $"Agent {agentId} is already assigned to this listing case"
+                );
+
+            throw new ArgumentErrorException(message: $"Agent {agentId} is already assigned to this listing case", title: "Agent is already assigned to this listing case");
+        }
+
         // Add agent to listing case
         AgentListingCase agentListingCase = new AgentListingCase() { AgentId = agentId, ListingCaseId = listingCaseId };
         await _listingCaseRepository.AddAgentToListingCaseAsync(agentListingCase);
@@ -728,6 +742,12 @@ public class ListingCaseService : IListingCaseService
         if (agent is null)
         {
             throw new NotFoundException(message: $"Agent {agentId} does not exist", title: "Agent does not exist");
+        }
+
+        // Check if the agent is assigned to the listing case
+        if (!await _listingCaseRepository.IsAgentAssignedToListingCaseAsync(listingCaseId, agentId))
+        {
+            throw new NotFoundException(message: $"Agent {agentId} is not assigned to this listing case", title: "Agent is not assigned to this listing case");
         }
 
         await _listingCaseRepository.DeleteAgentFromListingCaseAsync(listingCaseId, agentId);

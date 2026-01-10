@@ -21,5 +21,6 @@ public interface IListingCaseRepository
     Task<User?> FindUserByIdAsync(string userId);
     Task<IEnumerable<Agent>> GetAssignedAgentByListingCaseIdAsync(int listingCaseId);
     Task<IEnumerable<MediaAsset>> GetFinalSelectionByListingCaseIdAsync(int listingCaseId);
+    Task<bool> IsAgentAssignedToListingCaseAsync(int listingCaseId, string agentId);
     Task UpdateListingCaseAsync(ListingCase newListingCase);
 }

@@ -172,4 +172,10 @@ public class ListingCaseRepository : IListingCaseRepository
         _dbContext.AgentListingCases.Remove(agentListingCase);
         return _dbContext.SaveChangesAsync();
     }
+
+    public Task<bool> IsAgentAssignedToListingCaseAsync(int listingCaseId, string agentId)
+    {
+        return _dbContext.AgentListingCases
+            .AnyAsync(alc => alc.ListingCaseId == listingCaseId && alc.AgentId == agentId);
+    }
 }
