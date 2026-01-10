@@ -106,7 +106,7 @@ export default function AgentPannel() {
         </div>
 
         {/* Main Content */}
-        <div className="w-4/5 bg-white mt-2 flex flex-col gap-2">
+        <div className="w-4/5 mt-2 flex flex-col gap-3">
           {propertyList.length > 0 ? (
             <>
               {propertyList.map((property) => (

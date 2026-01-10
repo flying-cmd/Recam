@@ -11,7 +11,7 @@ export default function PropertyCard({
   onViewDetails,
 }: PropertyCardProps) {
   return (
-    <div className="relative border-none rounded-md">
+    <div className="relative border-none rounded-md bg-white">
       {/* Status */}
       <div className="absolute top-0 right-0">
         <StatusBox status={property.listingCaseStatus} />

@@ -42,7 +42,7 @@ export default function AssignToAgentModal({
     setIsAssigning(true);
     onAssign(selectedAgentId);
     setIsAssigning(false);
-    if (error !== "") {
+    if (error === "") {
       onClose();
     }
   };

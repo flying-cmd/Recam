@@ -1,7 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import type { IListingCaseDetails } from "../../types/IListingCase";
-import { getListingCaseDetailsById } from "../../services/listingCaseService";
+import {
+  ListingCaseStatus,
+  type IListingCaseDetails,
+} from "../../types/IListingCase";
+import {
+  getListingCaseDetailsById,
+  updateListingCaseStatus,
+} from "../../services/listingCaseService";
 import Spinner from "../../components/Spinner";
 import { Grid2x2, House, Image, ScanEye, Users, Video } from "lucide-react";
 import UploadPhotographyPannel from "../../features/photographyCompany/listingCase/edit/UploadPhotographyPannel";
@@ -28,19 +34,34 @@ export default function EditListingCasePage() {
   );
   const [navSection, setNavSection] = useState<NavSection>("");
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await getListingCaseDetailsById(parseInt(listingCaseId!));
-        setListingCase(res.data);
-        setIsLoading(false);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    })();
+  const loadListingCaseDetails = useCallback(async () => {
+    try {
+      const res = await getListingCaseDetailsById(parseInt(listingCaseId!));
+      setListingCase(res.data);
+    } catch (error) {
+      console.error(error);
+    }
   }, [listingCaseId]);
+
+  useEffect(() => {
+    try {
+      setIsLoading(true);
+      loadListingCaseDetails();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [listingCaseId, loadListingCaseDetails]);
+
+  const handleDeliverToAgent = async () => {
+    try {
+      await updateListingCaseStatus(parseInt(listingCaseId!));
+      loadListingCaseDetails();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const renderPannel = () => {
     switch (navSection) {
@@ -76,6 +97,17 @@ export default function EditListingCasePage() {
         );
       default:
         return null;
+    }
+  };
+
+  const getButtonTitle = (status: string) => {
+    switch (status) {
+      case ListingCaseStatus.Created:
+        return "Deliver to Agent";
+      case ListingCaseStatus.Pending:
+        return "Pending for Review";
+      case ListingCaseStatus.Delivered:
+        return "Has been Delivered";
     }
   };
 
@@ -143,9 +175,17 @@ export default function EditListingCasePage() {
         <div className="mt-12">
           <button
             type="button"
-            className="bg-sky-600 rounded-md p-2 hover:bg-sky-700 text-white"
+            className={`rounded-md p-2 text-white ${
+              listingCase?.listingCaseStatus !== ListingCaseStatus.Created
+                ? "bg-gray-400"
+                : "bg-sky-600 hover:bg-sky-700 hover:cursor-pointer"
+            }`}
+            onClick={handleDeliverToAgent}
+            disabled={
+              listingCase?.listingCaseStatus !== ListingCaseStatus.Created
+            }
           >
-            Deliver to agent
+            {getButtonTitle(listingCase?.listingCaseStatus ?? "")}
           </button>
         </div>
       )}

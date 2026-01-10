@@ -148,3 +148,10 @@ export const deleteAgentFromListingCase = async (listingCaseId: number, agentId:
     }
   });
 }
+
+export const updateListingCaseStatus = async (listingCaseId: number): Promise<void> => {
+  await service<void>({
+    url: `/listings/${listingCaseId}/status`,
+    method: "patch"
+  });
+}
