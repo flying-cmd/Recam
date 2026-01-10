@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 interface ActionsButtonProps {
-  onEdit: () => void;
+  onEdit?: () => void;
   onDelete: () => void;
 }
 
@@ -27,16 +27,18 @@ export default function ActionsButton({
          bg-white rounded-md shadow-lg overflow-hidden z-50"
         >
           <div className="divide-y divide-gray-300">
-            <button
-              type="button"
-              className="block w-full p-1 text-left cursor-pointer hover:bg-gray-200"
-              onClick={() => {
-                setOpen(false);
-                onEdit();
-              }}
-            >
-              Edit
-            </button>
+            {onEdit && (
+              <button
+                type="button"
+                className="block w-full p-1 text-left cursor-pointer hover:bg-gray-200"
+                onClick={() => {
+                  setOpen(false);
+                  onEdit();
+                }}
+              >
+                Edit
+              </button>
+            )}
             <button
               type="button"
               className="block w-full p-1 text-left cursor-pointer hover:bg-gray-200"

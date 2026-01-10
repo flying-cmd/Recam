@@ -67,7 +67,7 @@ export default function ListingCasePage() {
     <>
       <h1 className="text-center font-bold text-2xl mt-20">Hi, Welcome!</h1>
 
-      <section className="sm:mx-25">
+      <section className="sm:mx-25 mb-10">
         <div className="flex items-center my-6">
           {/* spacer */}
           <div className="flex-1" />

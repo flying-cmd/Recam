@@ -55,3 +55,10 @@ export const searchAgentByEmail = async (email: string): Promise<IGetResponse<IA
 
   return res.data;
 }
+
+export const deleteAssignedAgent = async (agentId: string): Promise<void> => {
+  await service<void>({
+    url: `/user/photography-company/agent/${agentId}`,
+    method: "delete"
+  });
+}
