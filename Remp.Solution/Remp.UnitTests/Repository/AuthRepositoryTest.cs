@@ -92,7 +92,7 @@ public class AuthRepositoryTest
             AgentFirstName = "Test",
             AgentLastName = "Test",
             CompanyName = "Test",
-            AvataUrl = "https://example.com/avatar.jpg",
+            AvatarUrl = "https://example.com/avatar.jpg",
         };
         var password = "password";
 
@@ -120,7 +120,7 @@ public class AuthRepositoryTest
             AgentFirstName = "Test",
             AgentLastName = "Test",
             CompanyName = "Test",
-            AvataUrl = "https://example.com/avatar.jpg",
+            AvatarUrl = "https://example.com/avatar.jpg",
         };
         var password = "password";
 
@@ -147,7 +147,7 @@ public class AuthRepositoryTest
             AgentFirstName = "Test",
             AgentLastName = "Test",
             CompanyName = "Test",
-            AvataUrl = "https://example.com/avatar.jpg",
+            AvatarUrl = "https://example.com/avatar.jpg",
         };
         var password = "password";
 

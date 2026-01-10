@@ -7,7 +7,7 @@ public class Agent
 
     public string AgentFirstName { get; set; } = string.Empty;
     public string AgentLastName { get; set; } = string.Empty;
-    public string AvataUrl { get; set; } = string.Empty;
+    public string AvatarUrl { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
     
     // Navigation Properties

@@ -169,7 +169,7 @@ public class AuthServiceTests
                     a.AgentFirstName == registerRequest.FirstName &&
                     a.AgentLastName == registerRequest.LastName &&
                     a.CompanyName == registerRequest.CompanyName &&
-                    a.AvataUrl == "https://avatar_url"),
+                    a.AvatarUrl == "https://avatar_url"),
                 registerRequest.Password,
                 RoleNames.Agent))
             .Returns(Task.CompletedTask);
@@ -196,7 +196,7 @@ public class AuthServiceTests
                     a.AgentFirstName == registerRequest.FirstName &&
                     a.AgentLastName == registerRequest.LastName &&
                     a.CompanyName == registerRequest.CompanyName &&
-                    a.AvataUrl == "https://avatar_url"),
+                    a.AvatarUrl == "https://avatar_url"),
                 registerRequest.Password,
                 RoleNames.Agent),
             Times.Once);

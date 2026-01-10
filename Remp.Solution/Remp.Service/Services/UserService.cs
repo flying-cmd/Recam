@@ -149,7 +149,7 @@ public class UserService : IUserService
                 AgentFirstName = createAgentAccountRequestDto.AgentFirstName,
                 AgentLastName = createAgentAccountRequestDto.AgentLastName,
                 CompanyName = createAgentAccountRequestDto.CompanyName,
-                AvataUrl = avatarUrl ?? string.Empty
+                AvatarUrl = avatarUrl ?? string.Empty
             };
 
             await _userRepository.AddAgentAsync(agent);

@@ -19,7 +19,7 @@ public class AgentConfiguration : IEntityTypeConfiguration<Agent>
             .HasMaxLength(20)
             .IsRequired();
 
-        builder.Property(a => a.AvataUrl)
+        builder.Property(a => a.AvatarUrl)
             .IsRequired();
 
         builder.Property(a => a.CompanyName)

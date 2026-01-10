@@ -91,7 +91,7 @@ public class AuthService : IAuthService
             AgentFirstName = registerUser.FirstName,
             AgentLastName = registerUser.LastName,
             CompanyName = registerUser.CompanyName,
-            AvataUrl = avatarUrl
+            AvatarUrl = avatarUrl
         };
 
         // Create Agent
