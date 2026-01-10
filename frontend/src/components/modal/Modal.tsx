@@ -20,7 +20,7 @@ export default function Modal({
   }
 
   return (
-    <div className="fixed inset-0 z-999">
+    <div className="fixed inset-0 z-9999">
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/50" onClick={onClose}></div>
 

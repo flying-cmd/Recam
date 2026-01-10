@@ -4,6 +4,7 @@ import type { IListingCaseDetails, IListingCase, ICreateListingCase, IUpdateList
 import type { IPagedResponse } from "../types/IPagedResponse";
 import { service } from "./request";
 import { getFilenameFromDisposition } from "./helper/getFilenameFromDisposition";
+import type { IAgent } from "../types/IAgent";
 
 export const getAllListingCases = async (pageNumber: number = 1, pageSize: number = 10): Promise<IGetResponse<IPagedResponse<IListingCase[]>>> => {
   const res = await service<IGetResponse<IPagedResponse<IListingCase[]>>>({
@@ -117,4 +118,33 @@ export const getListingCaseByUserId = async (pageNumber: number = 1, pageSize: n
   });
 
   return res.data;
+}
+
+export const getAssignedAgentsByListingCaseId = async (listingCaseId: number): Promise<IGetResponse<IAgent[]>> => {
+  const res = await service<IGetResponse<IAgent[]>>({
+    url: `/listings/${listingCaseId}/assigned-agent`,
+    method: "get"
+  });
+
+  return res.data;
+}
+
+export const assignAgentToListingCase = async (listingCaseId: number, agentId: string): Promise<void> => {
+  await service<void>({
+    url: `/listings/${listingCaseId}/assigned-agent`,
+    method: "put",
+    params: {
+      agentId
+    }
+  });
+}
+
+export const deleteAgentFromListingCase = async (listingCaseId: number, agentId: string): Promise<void> => {
+  await service<void>({
+    url: `/listings/${listingCaseId}/assigned-agent`,
+    method: "delete",
+    params: {
+      agentId
+    }
+  });
 }
