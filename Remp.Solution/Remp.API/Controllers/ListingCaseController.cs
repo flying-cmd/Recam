@@ -583,5 +583,31 @@ namespace Remp.API.Controllers
 
             return StatusCode(204, new PutResponse(true));
         }
+
+        /// <summary>
+        /// Get assigned agents by listing case id.
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <returns>
+        /// Returns the assigned agent
+        /// </returns>
+        /// <response code="200">Returns the assigned agent</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to get assigned agent</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
+        [HttpGet("{listingCaseId:int}/assigned-agent")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<IEnumerable<SearchAgentResponseDto>>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+        public async Task<ActionResult<GetResponse<IEnumerable<SearchAgentResponseDto>>>> GetAssignedAgentByListingCaseIdAsync(int listingCaseId)
+        {
+            var result = await _listingCaseService.GetAssignedAgentByListingCaseIdAsync(listingCaseId);
+            return Ok(new GetResponse<IEnumerable<SearchAgentResponseDto>>(true, result));
+        }
     }
 }

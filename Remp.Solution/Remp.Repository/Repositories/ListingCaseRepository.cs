@@ -149,4 +149,15 @@ public class ListingCaseRepository : IListingCaseRepository
         await _dbContext.AgentListingCases.AddAsync(agentListingCase);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<Agent>> GetAssignedAgentByListingCaseIdAsync(int listingCaseId)
+    {
+        return await _dbContext.AgentListingCases
+            .AsNoTracking()
+            .Where(alc => alc.ListingCaseId == listingCaseId)
+            .Include(alc => alc.Agent)
+                .ThenInclude(a => a.User)
+            .Select(alc => alc.Agent)
+            .ToListAsync();
+    }
 }

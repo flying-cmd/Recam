@@ -698,4 +698,19 @@ public class ListingCaseService : IListingCaseService
         AgentListingCase agentListingCase = new AgentListingCase() { AgentId = agentId, ListingCaseId = listingCaseId };
         await _listingCaseRepository.AddAgentToListingCaseAsync(agentListingCase);
     }
+
+    public async Task<IEnumerable<SearchAgentResponseDto>> GetAssignedAgentByListingCaseIdAsync(int listingCaseId)
+    {
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+
+        if (listingCase is null)
+        {
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        var assignedAgent = await _listingCaseRepository.GetAssignedAgentByListingCaseIdAsync(listingCaseId);
+
+        return _mapper.Map<IEnumerable<SearchAgentResponseDto>>(assignedAgent);
+    }
 }
