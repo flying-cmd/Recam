@@ -23,6 +23,7 @@ export default function AssignToAgentPannel({
   const [agents, setAgents] = useState<IAgent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState("");
 
   const loadAgents = useCallback(async () => {
     if (!listingCaseId) return;
@@ -56,6 +57,12 @@ export default function AssignToAgentPannel({
   };
 
   const handleAssignAgent = async (agentId: string) => {
+    // Ensure that the agent is not already assigned to this listing case
+    if (agents.find((agent) => agent.id === agentId)) {
+      setError("Agent is already assigned to this listing case");
+      return;
+    }
+
     await assignAgentToListingCase(parseInt(listingCaseId!), agentId);
     await loadAgents();
   };
@@ -101,8 +108,12 @@ export default function AssignToAgentPannel({
       {showModal && (
         <AssignToAgentModal
           open={showModal}
-          onClose={() => setShowModal(false)}
+          onClose={() => {
+            setShowModal(false);
+            setError("");
+          }}
           onAssign={handleAssignAgent}
+          error={error}
         />
       )}
     </>

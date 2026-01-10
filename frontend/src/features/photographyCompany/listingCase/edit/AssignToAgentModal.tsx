@@ -8,12 +8,14 @@ interface AssignToAgentModalProps {
   open: boolean;
   onClose: () => void;
   onAssign: (agentId: string) => void;
+  error: string;
 }
 
 export default function AssignToAgentModal({
   open,
   onClose,
   onAssign,
+  error,
 }: AssignToAgentModalProps) {
   const [agents, setAgents] = useState<IAgent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,7 +42,9 @@ export default function AssignToAgentModal({
     setIsAssigning(true);
     onAssign(selectedAgentId);
     setIsAssigning(false);
-    onClose();
+    if (error !== "") {
+      onClose();
+    }
   };
 
   return (
@@ -68,6 +72,8 @@ export default function AssignToAgentModal({
           )}
         </div>
 
+        {error && <p className="text-red-500">{error}</p>}
+
         {/* Button */}
         <div className="flex flex-row justify-end">
           <button
@@ -84,7 +90,7 @@ export default function AssignToAgentModal({
             onClick={handleAssign}
             disabled={isAssigning}
           >
-            Add Agent
+            {isAssigning ? "Adding..." : "Add Agent"}
           </button>
         </div>
       </div>
