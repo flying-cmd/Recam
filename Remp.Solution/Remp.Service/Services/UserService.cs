@@ -178,6 +178,25 @@ public class UserService : IUserService
         return new CreateAgentAccountResponseDto(user.Id, createAgentAccountRequestDto.Email, password);
     }
 
+    public async Task DeleteAssignedAgentByAgentIdAsync(string agentId, string currentUserId)
+    {
+        // Check if the currentUserId exists
+        var photographyCompany = await _userRepository.FindPhotographyCompanyByIdAsync(currentUserId);
+        if (photographyCompany is null)
+        {
+            throw new NotFoundException(message: $"PhotographyCompany {currentUserId} does not exist", title: "PhotographyCompany does not exist");
+        }
+
+        // Check if the agentId exists
+        var agent = await _userRepository.FindAgentByIdAsync(agentId);
+        if (agent is null)
+        {
+            throw new NotFoundException(message: $"Agent {agentId} does not exist", title: "Agent does not exist");
+        }
+
+        await _userRepository.DeleteAssignedAgentByAgentIdAsync(agentId, currentUserId);
+    }
+
     public async Task<SearchAgentResponseDto?> GetAgentByEmailAsync(string email)
     {
         var agent = await _userRepository.GetAgentByEmailAsync(email);

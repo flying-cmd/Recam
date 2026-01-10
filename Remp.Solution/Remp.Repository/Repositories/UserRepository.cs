@@ -125,4 +125,12 @@ public class UserRepository : IUserRepository
             throw;
         }
     }
+
+    public async Task DeleteAssignedAgentByAgentIdAsync(string agentId, string photographyCompanyId)
+    {
+        await _context.AgentPhotographyCompanies
+            .AsNoTracking()
+            .Where(apc => apc.AgentId == agentId && apc.PhotographyCompanyId == photographyCompanyId)
+            .ExecuteDeleteAsync();
+    }
 }

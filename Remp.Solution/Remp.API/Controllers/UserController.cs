@@ -123,6 +123,41 @@ namespace Remp.API.Controllers
         }
 
         /// <summary>
+        /// Photography company deletes an agent by agent id.
+        /// </summary>
+        /// <param name="agentId">
+        /// The ID of the agent to delete.
+        /// </param>
+        /// <returns>
+        /// Returns status code 204 if success. Returns status code 400 if failed.
+        /// </returns>
+        /// <response code="204">Agent deleted</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to delete agent</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
+        [HttpDelete("photography-company/agent/{agentId}")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(DeleteResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+        public async Task<ActionResult<DeleteResponse>> DeleteAssignedAgentByAgentIdAsync(string agentId)
+        {
+            // Get current user id
+            var currentUser = HttpContext.User;
+            var currentUserId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null)
+            {
+                return Forbid();
+            }
+
+            await _userService.DeleteAssignedAgentByAgentIdAsync(agentId, currentUserId);
+
+            return StatusCode(204, new DeleteResponse(true));
+        }
+
+        /// <summary>
         /// Photography company creates an agent account.
         /// </summary>
         /// <param name="createAgentAccountRequestDto">

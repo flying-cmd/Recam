@@ -17,4 +17,5 @@ public interface IUserRepository
     Task<bool> IsAgentAddedToPhotographyCompanyAsync(string agentId, string photographyCompanyId);
     Task<IEnumerable<int>> GetPhotographyCompanyListingCaseIdsAsync(string photographyCompanyId);
     Task ExecuteTransactionAsync(Func<Task> action);
+    Task DeleteAssignedAgentByAgentIdAsync(string agentId, string photographyCompanyId);
 }
