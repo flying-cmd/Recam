@@ -3,12 +3,13 @@ import { useParams } from "react-router-dom";
 import type { IListingCaseDetails } from "../../types/IListingCase";
 import { getListingCaseDetailsById } from "../../services/listingCaseService";
 import Spinner from "../../components/Spinner";
-import TabButton from "../../features/admin/listingCase/TabButton";
 import { Grid2x2, House, Image, ScanEye, Users, Video } from "lucide-react";
-import UploadPhotographyPannel from "../../features/admin/listingCase/edit/UploadPhotographyPannel";
-import EditPropertyDetailsPannel from "../../features/admin/listingCase/edit/EditPropertyDetailsPannel";
-import UploadFloorPlanPannel from "../../features/admin/listingCase/edit/UploadFloorPlanPannel";
-import UploadVideographyPannel from "../../features/admin/listingCase/edit/UploadVideography";
+import UploadPhotographyPannel from "../../features/photographyCompany/listingCase/edit/UploadPhotographyPannel";
+import UploadVideographyPannel from "../../features/photographyCompany/listingCase/edit/UploadVideography";
+import AssignToAgentPannel from "../../features/photographyCompany/listingCase/edit/AssignToAgentPannel";
+import UploadFloorPlanPannel from "../../features/photographyCompany/listingCase/edit/UploadFloorPlanPannel";
+import EditPropertyDetailsPannel from "../../features/photographyCompany/listingCase/edit/EditPropertyDetailsPannel";
+import TabButton from "../../features/photographyCompany/listingCase/TabButton";
 
 type NavSection =
   | ""
@@ -64,6 +65,8 @@ export default function EditListingCasePage() {
             onBack={() => setNavSection("")}
           />
         );
+      case "Agents":
+        return <AssignToAgentPannel onBack={() => setNavSection("")} />;
       case "Property details":
         return (
           <EditPropertyDetailsPannel

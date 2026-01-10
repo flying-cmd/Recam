@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import SearchBox from "../../components/SearchBox";
-import AgentTable from "../../features/admin/agent/AgentTable";
 import type { IAgent } from "../../types/IAgent";
 import { getAgentsUnderPhotographyCompany } from "../../services/userService";
 import Spinner from "../../components/Spinner";
-import AddAgentModal from "../../features/admin/agent/AddAgentModal";
+import AgentTable from "../../features/photographyCompany/agent/AgentTable";
+import AddAgentModal from "../../features/photographyCompany/agent/AddAgentModal";
 
 export default function AgentPage() {
   const [agents, setAgents] = useState<IAgent[]>([]);
