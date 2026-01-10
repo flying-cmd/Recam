@@ -22,7 +22,7 @@ public class AuthRepository : IAuthRepository
         return await _userManager.CheckPasswordAsync(user, password);
     }
 
-    public async Task CreateAgentAsync(User user, Agent agent, string password, string role)
+    public async Task CreateAgentAsync(User user, PhotographyCompany photographyCompany, string password, string role)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
@@ -46,7 +46,7 @@ public class AuthRepository : IAuthRepository
                 throw new Exception($"Failed to add role to user: {errors}");
             }
 
-            _dbContext.Agents.Add(agent);
+            _dbContext.PhotographyCompanies.Add(photographyCompany);
             await _dbContext.SaveChangesAsync();
 
             await transaction.CommitAsync();

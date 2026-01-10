@@ -39,7 +39,7 @@ namespace Remp.API.Controllers
         }
 
         /// <summary>
-        /// Register
+        /// Register a photography company
         /// </summary>
         /// <param name="registerRequest">
         /// The payload containing the details of the user to register.
@@ -53,7 +53,7 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PostResponse<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
         public async Task<ActionResult<PostResponse<string>>> Register(
-            [FromForm] RegisterRequestDto registerRequest)
+            [FromBody] RegisterRequestDto registerRequest)
         {
             var result = await _authService.RegisterAsync(registerRequest);
             

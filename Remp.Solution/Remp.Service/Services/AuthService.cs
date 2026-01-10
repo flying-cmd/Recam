@@ -76,26 +76,20 @@ public class AuthService : IAuthService
             throw new ArgumentErrorException(message: "Email already exists", title: "Email already exists");
         }
 
-        // Upload avatar to blob storage
-        var avatarUrl = await _blobStorageService.UploadFileAsync(registerUser.Avatar);
-
         var user = new User()
         {
             Email = registerUser.Email,
             UserName = registerUser.Email
         };
         
-        var agent = new Agent()
+        var photographyCompany = new PhotographyCompany()
         {
             Id = user.Id,
-            AgentFirstName = registerUser.FirstName,
-            AgentLastName = registerUser.LastName,
-            CompanyName = registerUser.CompanyName,
-            AvatarUrl = avatarUrl
+            PhotographyCompanyName = registerUser.PhotographyCompanyName,
         };
 
         // Create Agent
-        await _authRepository.CreateAgentAsync(user, agent, registerUser.Password, RoleNames.Agent);
+        await _authRepository.CreateAgentAsync(user, photographyCompany, registerUser.Password, RoleNames.PhotographyCompany);
         
         // Log
         await _loggerService.LogRegister(
