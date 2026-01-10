@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InputBox from "../../components/InputBox";
-import { loginSchema } from "./schema";
 import {
   MapZodErrorsToFields,
   type FieldErrors,
@@ -13,6 +12,7 @@ import type { IApiError } from "../../types/IApiResponse";
 import { useAuth } from "../../hooks/useAuth";
 import Spinner from "../../components/Spinner";
 import { IRole } from "../../types/IRole";
+import { loginSchema } from "./loginSchema";
 
 type LoginFormFieldsErrors = "email" | "password";
 

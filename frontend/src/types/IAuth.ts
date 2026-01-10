@@ -8,13 +8,11 @@ export type ILoginRequest = {
 export type ILoginResponse = IPostResponse<string>;
 
 export type IRegisterRequest = {
+  photographyCompanyName: string;
   email: string;
+  phoneNumber: string;
   password: string;
   confirmPassword: string;
-  firstName: string;
-  lastName: string;
-  companyName: string;
-  avatarFile: File;
 }
 
 export type IRegisterResponse = IPostResponse<string>;

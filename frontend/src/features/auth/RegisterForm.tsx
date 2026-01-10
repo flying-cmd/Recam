@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InputBox from "../../components/InputBox";
-import { registerSchema } from "./schema";
+import { registerSchema } from "./registerSchema";
 import {
   MapZodErrorsToFields,
   type FieldErrors,
@@ -12,22 +12,18 @@ import type { IApiError } from "../../types/IApiResponse";
 import PopupBox from "../../components/PopupBox";
 
 type RegisterFormFieldsErrors =
+  | "photographyCompanyName"
   | "email"
+  | "phoneNumber"
   | "password"
-  | "confirmPassword"
-  | "firstName"
-  | "lastName"
-  | "companyName"
-  | "avatarFile";
+  | "confirmPassword";
 
 export default function RegisterForm() {
+  const [photographyCompanyName, setPhotographyCompanyName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<FieldErrors<RegisterFormFieldsErrors>>(
     {}
   );
@@ -36,33 +32,23 @@ export default function RegisterForm() {
   const navigate = useNavigate();
 
   const resetForm = () => {
+    setPhotographyCompanyName("");
     setEmail("");
+    setPhoneNumber("");
     setPassword("");
     setConfirmPassword("");
-    setFirstName("");
-    setLastName("");
-    setCompanyName("");
-    setAvatarFile(null);
     setErrors({});
-  };
-
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setAvatarFile(e.target.files[0]);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const formResult = registerSchema.safeParse({
+      photographyCompanyName,
       email,
+      phoneNumber,
       password,
       confirmPassword,
-      firstName,
-      lastName,
-      companyName,
-      avatarFile,
     });
 
     // if the form is not valid
@@ -76,19 +62,17 @@ export default function RegisterForm() {
 
     try {
       const res: IRegisterResponse = await register({
+        photographyCompanyName,
         email,
+        phoneNumber,
         password,
         confirmPassword,
-        firstName,
-        lastName,
-        companyName,
-        avatarFile: avatarFile as File,
       });
 
       localStorage.setItem("token", res.data);
 
       resetForm();
-      navigate("/home");
+      navigate("/dashboard");
     } catch (error: unknown) {
       console.error(error);
       setErrorPopup({ open: true, message: (error as IApiError).title });
@@ -105,6 +89,18 @@ export default function RegisterForm() {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <InputBox
+              id="photographyCompanyName"
+              label="Photography Company Name"
+              type="text"
+              value={photographyCompanyName}
+              setValue={setPhotographyCompanyName}
+              placeholder="Enter your photography company name"
+              error={errors.photographyCompanyName}
+            />
+          </div>
+
+          <div className="mb-4">
+            <InputBox
               id="email"
               label="Email"
               type="email"
@@ -115,39 +111,15 @@ export default function RegisterForm() {
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <InputBox
-              id="firstName"
-              label="First Name"
-              type="text"
-              value={firstName}
-              setValue={setFirstName}
-              placeholder="Enter your first name"
-              error={errors.firstName}
-            />
-          </div>
-
-          <div className="mb-6">
-            <InputBox
-              id="lastName"
-              label="Last Name"
-              type="text"
-              value={lastName}
-              setValue={setLastName}
-              placeholder="Enter your last name"
-              error={errors.lastName}
-            />
-          </div>
-
-          <div className="mb-6">
-            <InputBox
-              id="companyName"
-              label="Company Name"
-              type="text"
-              value={companyName}
-              setValue={setCompanyName}
-              placeholder="Enter your company name"
-              error={errors.companyName}
+              id="phoneNumber"
+              label="Phone Number"
+              type="tel"
+              value={phoneNumber}
+              setValue={setPhoneNumber}
+              placeholder="Enter your phone number"
+              error={errors.phoneNumber}
             />
           </div>
 
@@ -173,25 +145,6 @@ export default function RegisterForm() {
               placeholder="Confirm your password"
               error={errors.confirmPassword}
             />
-          </div>
-
-          <div className="mb-6">
-            <label
-              htmlFor="avatarFile"
-              className="block text-gray-700 text-sm font-bold mb-2"
-            >
-              Avatar
-            </label>
-            <input
-              id="avatarFile"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleAvatarChange}
-              className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-semibold hover:file:bg-gray-200"
-            />
-            {errors.avatarFile && (
-              <p className="mt-1 text-sm text-red-600">{errors.avatarFile}</p>
-            )}
           </div>
 
           <div className="flex items-center justify-between ">
