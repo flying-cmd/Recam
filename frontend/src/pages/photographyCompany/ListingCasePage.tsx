@@ -5,18 +5,23 @@ import { getAllListingCases } from "../../services/listingCaseService";
 import Spinner from "../../components/Spinner";
 import ListingCaseTable from "../../features/photographyCompany/listingCase/ListingCaseTable";
 import CreatePropertyModal from "../../features/photographyCompany/listingCase/CreatePropertyModal";
+import Pagination from "../../components/Pagination";
 
 export default function ListingCasePage() {
   const [listingCases, setListingCases] = useState<IListingCase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [pageNumber, setPageNumber] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 5;
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await getAllListingCases();
+        const res = await getAllListingCases(pageNumber, pageSize);
         setListingCases(res.data.items);
+        setTotalCount(res.data.totalCount);
         setIsLoading(false);
       } catch (error) {
         console.error(error);
@@ -24,7 +29,17 @@ export default function ListingCasePage() {
         setIsLoading(false);
       }
     })();
-  });
+  }, [pageNumber, pageSize]);
+
+  const handlePageChange = (page: number) => setPageNumber(page);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  useEffect(() => {
+    if (pageNumber > totalPages) {
+      setPageNumber(totalPages);
+    }
+  }, [pageNumber, totalPages]);
 
   const searchListingCases = useMemo(() => {
     return listingCases.filter(
@@ -80,6 +95,17 @@ export default function ListingCasePage() {
         <div>
           {/* handleEdit is used to open the edit modal and get the listing case from the table */}
           <ListingCaseTable listingCases={searchListingCases} />
+        </div>
+
+        {/* Pagination */}
+        <div className="mt-2">
+          <Pagination
+            currentPage={pageNumber}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            onPageChange={handlePageChange}
+            siblingCount={1}
+          />
         </div>
       </section>
 

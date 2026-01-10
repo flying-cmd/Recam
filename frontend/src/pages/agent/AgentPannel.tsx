@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SearchBox from "../../components/SearchBox";
 import TabButton from "../../features/agent/TabButton";
 import { useAuth } from "../../hooks/useAuth";
@@ -6,6 +6,7 @@ import type { IListingCaseDetails } from "../../types/IListingCase";
 import { getListingCaseByUserId } from "../../services/listingCaseService";
 import PropertyCard from "../../features/agent/PropertyCard";
 import Spinner from "../../components/Spinner";
+import Pagination from "../../components/Pagination";
 
 export default function AgentPannel() {
   const { user } = useAuth();
@@ -15,7 +16,8 @@ export default function AgentPannel() {
   const [isLoading, setIsLoading] = useState(true);
   const [propertyList, setPropertyList] = useState<IListingCaseDetails[]>([]);
   const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 5;
 
   // Get property list
   useEffect(() => {
@@ -23,6 +25,7 @@ export default function AgentPannel() {
       try {
         setIsLoading(true);
         const res = await getListingCaseByUserId(pageNumber, pageSize);
+        setTotalCount(res.data.totalCount);
         if (activeTab !== "All") {
           setPropertyList(
             res.data.items.filter(
@@ -39,6 +42,22 @@ export default function AgentPannel() {
       }
     })();
   }, [user?.id, pageNumber, pageSize, activeTab]);
+
+  const handleChangeTab = (
+    tab: "All" | "Created" | "Pending" | "Delivered"
+  ) => {
+    setActiveTab(tab);
+    setPageNumber(1);
+  };
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(totalCount / pageSize)),
+    [totalCount, pageSize]
+  );
+
+  useEffect(() => {
+    if (pageNumber > totalPages) setPageNumber(totalPages);
+  }, [pageNumber, totalPages]);
 
   if (isLoading) return <Spinner />;
 
@@ -75,7 +94,7 @@ export default function AgentPannel() {
               title="All"
               active={activeTab === "All"}
               onClick={() => {
-                setActiveTab("All");
+                handleChangeTab("All");
               }}
             />
             {/* Created */}
@@ -83,7 +102,7 @@ export default function AgentPannel() {
               title="Created"
               active={activeTab === "Created"}
               onClick={() => {
-                setActiveTab("Created");
+                handleChangeTab("Created");
               }}
             />
             {/* Pending */}
@@ -91,7 +110,7 @@ export default function AgentPannel() {
               title="Pending"
               active={activeTab === "Pending"}
               onClick={() => {
-                setActiveTab("Pending");
+                handleChangeTab("Pending");
               }}
             />
             {/* Delivered */}
@@ -99,7 +118,7 @@ export default function AgentPannel() {
               title="Delivered"
               active={activeTab === "Delivered"}
               onClick={() => {
-                setActiveTab("Delivered");
+                handleChangeTab("Delivered");
               }}
             />
           </div>
@@ -116,6 +135,17 @@ export default function AgentPannel() {
                   onViewDetails={() => {}}
                 />
               ))}
+
+              {/* Pagination */}
+              <div className="mt-2">
+                <Pagination
+                  currentPage={pageNumber}
+                  pageSize={pageSize}
+                  totalCount={totalCount}
+                  onPageChange={setPageNumber}
+                  siblingCount={1}
+                />
+              </div>
             </>
           ) : (
             <span className="text-center m-2">No property found</span>
