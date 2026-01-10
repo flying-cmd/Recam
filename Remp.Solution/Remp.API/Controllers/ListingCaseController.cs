@@ -609,5 +609,34 @@ namespace Remp.API.Controllers
             var result = await _listingCaseService.GetAssignedAgentByListingCaseIdAsync(listingCaseId);
             return Ok(new GetResponse<IEnumerable<SearchAgentResponseDto>>(true, result));
         }
+
+        /// <summary>
+        /// Delete an agent from a listing case
+        /// </summary>
+        /// <param name="listingCaseId">
+        /// The ID of the listing case
+        /// </param>
+        /// <param name="agentId">
+        /// The ID of the agent
+        /// </param>
+        /// <returns>
+        /// If success, returns status code 204
+        /// </returns>
+        /// <response code="204">Delete successfully</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="400">Failed to delete agent</response>
+        /// <remarks>
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// </remarks>
+        [HttpDelete("{listingCaseId:int}/assigned-agent")]
+        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+        public async Task<IActionResult> DeleteAgentFromListingCaseAsync([FromRoute] int listingCaseId, [FromQuery] string agentId)
+        {
+            await _listingCaseService.DeleteAgentFromListingCaseAsync(listingCaseId, agentId);
+            return StatusCode(204, new PutResponse(true));
+        }
     }
 }

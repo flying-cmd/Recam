@@ -160,4 +160,16 @@ public class ListingCaseRepository : IListingCaseRepository
             .Select(alc => alc.Agent)
             .ToListAsync();
     }
+
+    public Task DeleteAgentFromListingCaseAsync(int listingCaseId, string agentId)
+    {
+        var agentListingCase = _dbContext.AgentListingCases.FirstOrDefault(alc => alc.ListingCaseId == listingCaseId && alc.AgentId == agentId);
+        if (agentListingCase == null)
+        {
+            throw new InvalidOperationException("AgentListingCase not found");
+        }
+
+        _dbContext.AgentListingCases.Remove(agentListingCase);
+        return _dbContext.SaveChangesAsync();
+    }
 }

@@ -10,6 +10,7 @@ public interface IListingCaseRepository
     Task<IEnumerable<MediaAsset>> AddMediaAssetAsync(IEnumerable<MediaAsset> mediaAssets);
     Task<int> CountListingCasesByAgentIdAsync(string currentUserId);
     Task<int> CountListingCasesByPhotographyCompanyIdAsync(string currentUserId);
+    Task DeleteAgentFromListingCaseAsync(int listingCaseId, string agentId);
     Task DeleteListingCaseAsync(ListingCase listingCase);
     Task<MediaAsset?> FindCoverImageByListingCaseIdAsync(int listingCaseId);
     Task<ListingCase?> FindListingCaseByListingCaseIdAsync(int id);

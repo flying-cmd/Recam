@@ -11,6 +11,7 @@ public interface IListingCaseService
     Task<CaseContactDto> CreateCaseContactByListingCaseIdAsync(int listingCaseId, CreateCaseContactRequestDto createCaseContactRequest);
     Task<ListingCaseResponseDto> CreateListingCaseAsync(CreateListingCaseRequestDto createListingCaseRequestDto);
     Task<IEnumerable<MediaAssetDto>> CreateMediaByListingCaseIdAsync(IEnumerable<IFormFile> files, MediaType mediaType, int listingCaseId, string userId);
+    Task DeleteAgentFromListingCaseAsync(int listingCaseId, string agentId);
     Task DeleteListingCaseByListingCaseIdAsync(int listingCaseId, string currentUserId);
     Task<(byte[] ZipContent, string ContentType, string ZipFileName)> DownloadAllMediaByListingCaseIdAsync(int listingCaseId);
     Task<string> GenerateSharedUrlAsync(int listingCaseId);

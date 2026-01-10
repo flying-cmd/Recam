@@ -713,4 +713,23 @@ public class ListingCaseService : IListingCaseService
 
         return _mapper.Map<IEnumerable<SearchAgentResponseDto>>(assignedAgent);
     }
+
+    public async Task DeleteAgentFromListingCaseAsync(int listingCaseId, string agentId)
+    {
+        // Check if the listing case exists
+        var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
+        if (listingCase is null)
+        {
+            throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
+        }
+
+        // Check if the agent exists
+        var agent = await _userRepository.FindAgentByIdAsync(agentId);
+        if (agent is null)
+        {
+            throw new NotFoundException(message: $"Agent {agentId} does not exist", title: "Agent does not exist");
+        }
+
+        await _listingCaseRepository.DeleteAgentFromListingCaseAsync(listingCaseId, agentId);
+    }
 }
