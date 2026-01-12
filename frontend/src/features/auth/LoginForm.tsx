@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import InputBox from "../../components/InputBox";
 import {
   MapZodErrorsToFields,
@@ -30,11 +30,9 @@ export default function LoginForm() {
   }
 
   if (user?.scopes === IRole.PhotographyCompany) {
-    navigate("/dashboard");
-    return;
+    return <Navigate to="/dashboard" replace />;
   } else if (user?.scopes === IRole.Agent) {
-    navigate("/my-property");
-    return;
+    return <Navigate to="/my-property" replace />;
   }
 
   const resetForm = () => {
@@ -65,9 +63,9 @@ export default function LoginForm() {
       resetForm();
 
       if (user?.scopes === IRole.PhotographyCompany) {
-        navigate("/dashboard");
+        return <Navigate to="/dashboard" replace />;
       } else if (user?.scopes === IRole.Agent) {
-        navigate("/my-property");
+        return <Navigate to="/my-property" replace />;
       }
     } catch (error: unknown) {
       setErrorPopup({ open: true, message: (error as IApiError).title });

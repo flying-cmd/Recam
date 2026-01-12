@@ -17,6 +17,7 @@ export default function AgentPannel() {
   const [propertyList, setPropertyList] = useState<IListingCaseDetails[]>([]);
   const [pageNumber, setPageNumber] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
   const pageSize = 5;
 
   // Get property list
@@ -26,10 +27,32 @@ export default function AgentPannel() {
         setIsLoading(true);
         const res = await getListingCaseByUserId(pageNumber, pageSize);
         setTotalCount(res.data.totalCount);
+
+        // Filter property list by active tab
         if (activeTab !== "All") {
           setPropertyList(
             res.data.items.filter(
               (item) => item.listingCaseStatus === activeTab
+            )
+          );
+        } else {
+          setPropertyList(res.data.items);
+        }
+
+        // Filter property list by search term
+        if (searchTerm !== "") {
+          setPropertyList((prev) =>
+            prev.filter(
+              (item) =>
+                item.title.includes(searchTerm) ||
+                item.description.includes(searchTerm) ||
+                item.street.includes(searchTerm) ||
+                item.city.includes(searchTerm) ||
+                item.state.includes(searchTerm) ||
+                item.postcode.toString().includes(searchTerm) ||
+                item.listingCaseStatus.includes(searchTerm) ||
+                item.propertyType.includes(searchTerm) ||
+                item.saleCategory.includes(searchTerm)
             )
           );
         } else {
@@ -41,7 +64,7 @@ export default function AgentPannel() {
         setIsLoading(false);
       }
     })();
-  }, [user?.id, pageNumber, pageSize, activeTab]);
+  }, [user?.id, pageNumber, pageSize, activeTab, searchTerm]);
 
   const handleChangeTab = (
     tab: "All" | "Created" | "Pending" | "Delivered"
@@ -62,7 +85,8 @@ export default function AgentPannel() {
   if (isLoading) return <Spinner />;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    // min-h-screen means that the element is at least the viewport height, but it can grow taller if the content is taller
+    <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
       <div className="bg-white">
         <div className="flex flex-col pt-8 pb-4 px-16 gap-4">
@@ -74,8 +98,8 @@ export default function AgentPannel() {
             <SearchBox
               className=""
               placeholder="Search my property"
-              value=""
-              onChange={() => {}}
+              value={searchTerm}
+              onChange={setSearchTerm}
             />
           </div>
         </div>
