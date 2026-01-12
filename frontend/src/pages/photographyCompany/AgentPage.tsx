@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import SearchBox from "../../components/SearchBox";
 import type { IAgent } from "../../types/IAgent";
 import {
+  addAgentByAgentId,
   deleteAssignedAgent,
   getAgentsUnderPhotographyCompany,
 } from "../../services/userService";
@@ -20,7 +21,7 @@ export default function AgentPage() {
       const res = await getAgentsUnderPhotographyCompany();
       setAgents(res.data);
     } catch (error) {
-      console.error(error);
+      throw new Error((error as Error).message);
     }
   }, []);
 
@@ -49,14 +50,29 @@ export default function AgentPage() {
     );
   }, [agents, searchTerm]);
 
-  const handleDelete = async (agentId: string) => {
-    try {
-      await deleteAssignedAgent(agentId);
-      await loadAgents();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const handleAddAgent = useCallback(
+    async (agentId: string) => {
+      try {
+        await addAgentByAgentId(agentId);
+        await loadAgents();
+      } catch (error) {
+        throw new Error((error as Error).message);
+      }
+    },
+    [loadAgents]
+  );
+
+  const handleDelete = useCallback(
+    async (agentId: string) => {
+      try {
+        await deleteAssignedAgent(agentId);
+        await loadAgents();
+      } catch (error) {
+        throw new Error((error as Error).message);
+      }
+    },
+    [loadAgents]
+  );
 
   if (isLoading) return <Spinner />;
 
@@ -99,6 +115,7 @@ export default function AgentPage() {
         <AddAgentModal
           open={showAddAgentModal}
           onClose={() => setShowAddAgentModal(false)}
+          onAddAgent={handleAddAgent}
         />
       )}
     </>

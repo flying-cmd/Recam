@@ -7,14 +7,12 @@ import {
 } from "../../../utils/MapZodErrorsToFields";
 import { addAgentSchema } from "./addAgentSchema";
 import SearchBox from "../../../components/SearchBox";
-import {
-  addAgentByAgentId,
-  searchAgentByEmail,
-} from "../../../services/userService";
+import { searchAgentByEmail } from "../../../services/userService";
 
 interface AddAgentModalProps {
   open: boolean;
   onClose: () => void;
+  onAddAgent: (agentId: string) => Promise<void>;
 }
 
 interface FormState {
@@ -28,7 +26,11 @@ interface FormState {
 
 type FormErrors = FieldErrors<keyof FormState>;
 
-export default function AddAgentModal({ open, onClose }: AddAgentModalProps) {
+export default function AddAgentModal({
+  open,
+  onClose,
+  onAddAgent,
+}: AddAgentModalProps) {
   const [form, setForm] = useState<FormState>({
     id: "",
     email: "",
@@ -84,7 +86,7 @@ export default function AddAgentModal({ open, onClose }: AddAgentModalProps) {
       }
     } catch (error) {
       console.error(error);
-      setSearchError("Agent not found");
+      setSearchError((error as Error).message);
     } finally {
       setIsSearching(false);
     }
@@ -106,12 +108,13 @@ export default function AddAgentModal({ open, onClose }: AddAgentModalProps) {
 
     try {
       setIsAdding(true);
-      await addAgentByAgentId(form.id ?? "");
+      await onAddAgent(form.id ?? "");
 
       resetForm();
       onClose();
     } catch (error) {
       console.error(error);
+      setSearchError((error as Error).message);
     } finally {
       setIsAdding(false);
     }

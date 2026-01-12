@@ -37,7 +37,8 @@ service.interceptors.response.use(function onFulfilled(response: AxiosResponse) 
         status: data.status,
         title: data.title
       };
-      return Promise.reject(apiError);
+      throw new Error(apiError.title);
+      // return Promise.reject(apiError);
     }
 
     return Promise.reject({ title: "Internal Server Error", status: 500 } as IApiError);
