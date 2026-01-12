@@ -1,7 +1,7 @@
 import { Bath, BedSingle, CarFront, Grid2x2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import MapAutocompleteComponent from "./MapAutocompleteComponent";
-import type { IAddress } from "../../../types/IListingCase";
+import type { IAddress, ICreateListingCase } from "../../../types/IListingCase";
 import { useJsApiLoader } from "@react-google-maps/api";
 import { LIBRARIES } from "../../../utils/googleMapConfig";
 import Modal from "../../../components/modal/Modal";
@@ -10,7 +10,6 @@ import TextAreaField from "../../../components/form/TextAreaField";
 import RadioGroupField from "../../../components/form/RadioGroupField";
 import { useAuth } from "../../../hooks/useAuth";
 import BasicInfoCard from "../../../components/form/BasicInfoCard";
-import { createListingCase } from "../../../services/listingCaseService";
 import {
   MapZodErrorsToFields,
   type FieldErrors,
@@ -20,6 +19,7 @@ import { createListingCaseSchema } from "./ListingCaseSchema";
 interface CreatePropertyModalProps {
   open: boolean;
   onClose: () => void;
+  onCreate: (formData: ICreateListingCase) => Promise<void>;
 }
 
 interface FormState {
@@ -45,6 +45,7 @@ type FormErrors = FieldErrors<keyof FormState>;
 export default function CreatePropertyModal({
   open,
   onClose,
+  onCreate,
 }: CreatePropertyModalProps) {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -151,17 +152,12 @@ export default function CreatePropertyModal({
 
     try {
       setIsSaving(true);
-      const res = await createListingCase({
+      await onCreate({
         ...form,
         userId: user?.id ?? "",
       });
-
-      if (res.success) {
-        resetForm();
-        onClose();
-      } else {
-        throw new Error("Failed to create listing case");
-      }
+      resetForm();
+      onClose();
     } catch (error) {
       console.error(error);
     } finally {

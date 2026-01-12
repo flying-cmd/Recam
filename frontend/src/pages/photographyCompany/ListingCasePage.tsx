@@ -1,7 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import SearchBox from "../../components/SearchBox";
-import type { IListingCase } from "../../types/IListingCase";
-import { getAllListingCases } from "../../services/listingCaseService";
+import type {
+  ICreateListingCase,
+  IListingCase,
+} from "../../types/IListingCase";
+import {
+  createListingCase,
+  deleteListingCaseById,
+  getAllListingCases,
+} from "../../services/listingCaseService";
 import Spinner from "../../components/Spinner";
 import ListingCaseTable from "../../features/photographyCompany/listingCase/ListingCaseTable";
 import CreatePropertyModal from "../../features/photographyCompany/listingCase/CreatePropertyModal";
@@ -16,12 +23,22 @@ export default function ListingCasePage() {
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 5;
 
+  const loadListingCases = useCallback(async () => {
+    try {
+      const res = await getAllListingCases(pageNumber, pageSize);
+      setListingCases(res.data.items);
+      setTotalCount(res.data.totalCount);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to load listing cases");
+    }
+  }, [pageNumber, pageSize]);
+
   useEffect(() => {
     (async () => {
       try {
-        const res = await getAllListingCases(pageNumber, pageSize);
-        setListingCases(res.data.items);
-        setTotalCount(res.data.totalCount);
+        setIsLoading(true);
+        await loadListingCases();
         setIsLoading(false);
       } catch (error) {
         console.error(error);
@@ -29,7 +46,7 @@ export default function ListingCasePage() {
         setIsLoading(false);
       }
     })();
-  }, [pageNumber, pageSize]);
+  }, [loadListingCases]);
 
   const handlePageChange = (page: number) => setPageNumber(page);
 
@@ -60,6 +77,32 @@ export default function ListingCasePage() {
           .includes(searchTerm.toLowerCase())
     );
   }, [listingCases, searchTerm]);
+
+  const handleCreateListingCase = useCallback(
+    async (formData: ICreateListingCase) => {
+      try {
+        await createListingCase(formData);
+        await loadListingCases();
+      } catch (error) {
+        console.error(error);
+        throw new Error("Failed to create listing case");
+      }
+    },
+    [loadListingCases]
+  );
+
+  const handleDelete = useCallback(
+    async (listingCaseId: number) => {
+      try {
+        await deleteListingCaseById(listingCaseId);
+        await loadListingCases();
+      } catch (error) {
+        console.error(error);
+        throw new Error("Failed to delete listing case");
+      }
+    },
+    [loadListingCases]
+  );
 
   if (isLoading) return <Spinner />;
 
@@ -94,7 +137,10 @@ export default function ListingCasePage() {
 
         <div>
           {/* handleEdit is used to open the edit modal and get the listing case from the table */}
-          <ListingCaseTable listingCases={searchListingCases} />
+          <ListingCaseTable
+            listingCases={searchListingCases}
+            onDelete={handleDelete}
+          />
         </div>
 
         {/* Pagination */}
@@ -114,6 +160,7 @@ export default function ListingCasePage() {
         <CreatePropertyModal
           open={showCreateModal}
           onClose={() => setShowCreateModal(false)}
+          onCreate={handleCreateListingCase}
         />
       )}
     </>

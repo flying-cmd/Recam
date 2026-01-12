@@ -1,25 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import ActionsButton from "../../../components/ActionsButton";
 import StatusBox from "../../../components/StatusBox";
-import { deleteListingCaseById } from "../../../services/listingCaseService";
 import type { IListingCase } from "../../../types/IListingCase";
 
 interface listingCaseTableProps {
   listingCases: IListingCase[];
+  onDelete: (id: number) => void;
 }
 
 export default function ListingCaseTable({
   listingCases,
+  onDelete,
 }: listingCaseTableProps) {
   const navigate = useNavigate();
-
-  const onDelete = async (listingCaseId: number) => {
-    try {
-      await deleteListingCaseById(listingCaseId);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   return (
     <div className="border-2 border-gray-300 rounded-lg">
