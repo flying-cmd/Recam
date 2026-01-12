@@ -25,7 +25,7 @@ public class ListingCaseConfiguration : IEntityTypeConfiguration<ListingCase>
             .IsRequired();
 
         builder.Property(lc => lc.City)
-            .HasMaxLength(10)
+            .HasMaxLength(20)
             .IsRequired();
 
         builder.Property(lc => lc.State)
