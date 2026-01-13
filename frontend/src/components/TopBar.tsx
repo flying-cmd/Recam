@@ -1,12 +1,13 @@
 import { ChevronLeft, Download, ExternalLink, Pencil } from "lucide-react";
 import ActionButton from "./preview/ActionButton";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { downloadAllMediaFiles } from "../services/listingCaseService";
 import { useState } from "react";
 
 export default function TopBar() {
   const { listingCaseId } = useParams<{ listingCaseId: string }>();
   const [isDownloading, setIsDownloading] = useState(false);
+  const navigate = useNavigate();
 
   const handleDownload = async () => {
     if (!listingCaseId) return;
@@ -23,7 +24,11 @@ export default function TopBar() {
 
   return (
     <div className="flex justify-around items-center">
-      <button type="button" className="inline-flex">
+      <button
+        type="button"
+        className="inline-flex hover:cursor-pointer hover:text-sky-600"
+        onClick={() => navigate(-1)}
+      >
         <ChevronLeft />
         BACK
       </button>

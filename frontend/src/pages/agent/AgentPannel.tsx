@@ -7,6 +7,7 @@ import { getListingCaseByUserId } from "../../services/listingCaseService";
 import PropertyCard from "../../features/agent/PropertyCard";
 import Spinner from "../../components/Spinner";
 import Pagination from "../../components/Pagination";
+import { useNavigate } from "react-router-dom";
 
 export default function AgentPannel() {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ export default function AgentPannel() {
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const pageSize = 5;
+  const navigate = useNavigate();
 
   // Get property list
   useEffect(() => {
@@ -29,35 +31,29 @@ export default function AgentPannel() {
         setTotalCount(res.data.totalCount);
 
         // Filter property list by active tab
+        let filteredPropertyList = res.data.items;
         if (activeTab !== "All") {
-          setPropertyList(
-            res.data.items.filter(
-              (item) => item.listingCaseStatus === activeTab
-            )
+          filteredPropertyList = res.data.items.filter(
+            (item) => item.listingCaseStatus === activeTab
           );
-        } else {
-          setPropertyList(res.data.items);
         }
 
         // Filter property list by search term
         if (searchTerm !== "") {
-          setPropertyList((prev) =>
-            prev.filter(
-              (item) =>
-                item.title.includes(searchTerm) ||
-                item.description.includes(searchTerm) ||
-                item.street.includes(searchTerm) ||
-                item.city.includes(searchTerm) ||
-                item.state.includes(searchTerm) ||
-                item.postcode.toString().includes(searchTerm) ||
-                item.listingCaseStatus.includes(searchTerm) ||
-                item.propertyType.includes(searchTerm) ||
-                item.saleCategory.includes(searchTerm)
-            )
+          filteredPropertyList = filteredPropertyList.filter(
+            (item) =>
+              item.title.includes(searchTerm) ||
+              item.description.includes(searchTerm) ||
+              item.street.includes(searchTerm) ||
+              item.city.includes(searchTerm) ||
+              item.state.includes(searchTerm) ||
+              item.postcode.toString().includes(searchTerm) ||
+              item.listingCaseStatus.includes(searchTerm) ||
+              item.propertyType.includes(searchTerm) ||
+              item.saleCategory.includes(searchTerm)
           );
-        } else {
-          setPropertyList(res.data.items);
         }
+        setPropertyList(filteredPropertyList);
       } catch (error) {
         console.error(error);
       } finally {
@@ -156,7 +152,7 @@ export default function AgentPannel() {
                 <PropertyCard
                   key={property.id}
                   property={property}
-                  onViewDetails={() => {}}
+                  onViewDetails={() => navigate(`${property.id}`)}
                 />
               ))}
 

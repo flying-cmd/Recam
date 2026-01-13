@@ -1,4 +1,7 @@
 import { Bath, BedSingle, CarFront, Grid2x2 } from "lucide-react";
+import { useState } from "react";
+import EditDescriptionModal from "./EditDescriptionModal";
+import type { IUpdateListingCase } from "../../types/IListingCase";
 
 interface HeroProps {
   imageUrl: string;
@@ -14,6 +17,7 @@ interface HeroProps {
   floorArea: number;
   propertyType: string;
   saleCategory: string;
+  onSave: (updatedParams: IUpdateListingCase) => Promise<void>;
 }
 
 export default function Hero({
@@ -30,7 +34,26 @@ export default function Hero({
   floorArea,
   propertyType,
   saleCategory,
+  onSave,
 }: HeroProps) {
+  const [open, setOpen] = useState(false);
+  const [desc, setDesc] = useState(description);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await onSave({ description: desc });
+      setIsSaving(false);
+      setOpen(false);
+    } catch (error) {
+      setError((error as Error).message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <>
       <div className="flex md::w-full md:h-full h-70">
@@ -100,10 +123,26 @@ export default function Hero({
         <button
           type="button"
           className="text-sm font-medium underline underline-offset-2 hover:text-blue-600 cursor-pointer"
+          onClick={() => {
+            setDesc(description);
+            setError("");
+            setOpen(true);
+          }}
         >
           Click to add
         </button>
       </div>
+
+      {/* Modal */}
+      <EditDescriptionModal
+        open={open}
+        onClose={() => setOpen(false)}
+        value={desc}
+        onChange={setDesc}
+        onSave={handleSave}
+        isSaving={isSaving}
+        error={error}
+      />
     </>
   );
 }

@@ -1,7 +1,7 @@
 import { Download } from "lucide-react";
-import type { MediaAsset } from "../../types/IListingCase";
 import { downloadMediaFileById } from "../../services/listingCaseService";
 import { useState } from "react";
+import type { MediaAsset } from "../../types/IMedia";
 
 interface PropertyImagesProps {
   selectedImagesAsset: MediaAsset[];
@@ -36,12 +36,15 @@ export default function PropertyImages({
       <div className="flex">
         {selectedImagesAsset.map((asset) => (
           <div key={asset.id} className="m-1 md:w-1/4 md:h-1/4 w-1/3 h-1/3">
-            <img
-              src={asset.mediaUrl}
-              alt="property image"
-              className="w-full h-full object-fill"
-              loading="lazy"
-            />
+            {/* aspect-[16/9] makes every card the same shape */}
+            <div className="w-full aspect-16/10">
+              <img
+                src={asset.mediaUrl}
+                alt="property image"
+                className="w-full h-full object-fill"
+                loading="lazy"
+              />
+            </div>
 
             <div className="flex justify-end">
               <button

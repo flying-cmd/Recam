@@ -110,19 +110,19 @@ export interface ICreateListingCase {
 }
 
 export interface IUpdateListingCase {
-  title: string;
-  description: string;
-  street: string;
-  city: string;
-  state: string;
-  postcode: number;
-  longitude: number;
-  latitude: number;
-  price: number;
-  bedrooms: number;
-  bathrooms: number;
-  garages: number;
-  floorArea: number;
-  propertyType: string;
-  saleCategory: string;
+  title?: string;
+  description?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  postcode?: number;
+  longitude?: number;
+  latitude?: number;
+  price?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  garages?: number;
+  floorArea?: number;
+  propertyType?: string;
+  saleCategory?: string;
 }

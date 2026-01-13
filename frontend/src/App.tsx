@@ -10,6 +10,7 @@ import AgentPage from "./pages/photographyCompany/AgentPage";
 import ListingCasePage from "./pages/photographyCompany/ListingCasePage";
 import EditListingCasePage from "./pages/photographyCompany/EditListingCasePage";
 import AgentPannel from "./pages/agent/AgentPannel";
+import PropertyDetailsAgentView from "./pages/agent/PropertyDetailsAgentView";
 
 function App() {
   return (
@@ -39,6 +40,10 @@ function App() {
             {/* Protected routes (Agent) */}
             <Route element={<RoleBasedRoute scopes="Agent" />}>
               <Route path="my-property" element={<AgentPannel />} />
+              <Route
+                path="my-property/:listingCaseId"
+                element={<PropertyDetailsAgentView />}
+              />
             </Route>
           </Route>
         </Routes>
