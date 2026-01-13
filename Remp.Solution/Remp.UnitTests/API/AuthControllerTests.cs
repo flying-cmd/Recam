@@ -57,22 +57,21 @@ public class AuthControllerTests
         var avatarFile = new Mock<IFormFile>();
         var request = new RegisterRequestDto
         {
+            PhotographyCompanyName = "Test Photography Company",
             Email = "test@example.com",
+            PhoneNumber = "123456789",
             Password = "password",
             ConfirmPassword = "password",
-            FirstName = "John",
-            LastName = "Doe",
-            Avatar = avatarFile.Object
         };
 
         _authServiceMock
             .Setup(s => s.RegisterAsync(
                 It.Is<RegisterRequestDto>(
-                    u => u.Email == request.Email &&
+                    u => u.PhotographyCompanyName == request.PhotographyCompanyName &&
+                    u.Email == request.Email &&
                     u.Password == request.Password &&
                     u.ConfirmPassword == request.ConfirmPassword &&
-                    u.FirstName == request.FirstName &&
-                    u.LastName == request.LastName
+                    u.PhoneNumber == request.PhoneNumber
                     )
                 )
             )
@@ -94,11 +93,11 @@ public class AuthControllerTests
         _authServiceMock
             .Verify(a => a.RegisterAsync(
                 It.Is<RegisterRequestDto>(
-                    u => u.Email == request.Email &&
+                    u => u.PhotographyCompanyName == request.PhotographyCompanyName &&
+                    u.Email == request.Email &&
                     u.Password == request.Password &&
                     u.ConfirmPassword == request.ConfirmPassword &&
-                    u.FirstName == request.FirstName &&
-                    u.LastName == request.LastName
+                    u.PhoneNumber == request.PhoneNumber
                     )
                 ), 
                 Times.Once);

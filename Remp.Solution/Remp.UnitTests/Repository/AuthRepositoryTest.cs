@@ -86,27 +86,24 @@ public class AuthRepositoryTest
     {
         // Arrange
         var user = new User { Email = "test@example.com" };
-        var agent = new Agent
+        var photographyCompany = new PhotographyCompany
         {
             Id = Guid.NewGuid().ToString(),
-            AgentFirstName = "Test",
-            AgentLastName = "Test",
-            CompanyName = "Test",
-            AvatarUrl = "https://example.com/avatar.jpg",
+            PhotographyCompanyName = "Test Photography Company",
         };
         var password = "password";
 
         _userManagerMock.Setup(u => u.CreateAsync(user, password)).ReturnsAsync(IdentityResult.Success);
-        _userManagerMock.Setup(u => u.AddToRoleAsync(user, RoleNames.Agent)).ReturnsAsync(IdentityResult.Success);
+        _userManagerMock.Setup(u => u.AddToRoleAsync(user, RoleNames.PhotographyCompany)).ReturnsAsync(IdentityResult.Success);
 
         // Act
-        await _authRepository.CreateAgentAsync(user, agent, password, RoleNames.Agent);
+        await _authRepository.CreateAgentAsync(user, photographyCompany, password, RoleNames.PhotographyCompany);
         
         // Assert
-        var createdAgent = await _dbContext.Agents.FirstOrDefaultAsync(a => a.Id == agent.Id);
-        createdAgent.Should().BeEquivalentTo(agent);
+        var createdAgent = await _dbContext.PhotographyCompanies.FirstOrDefaultAsync(pc => pc.Id == photographyCompany.Id);
+        createdAgent.Should().BeEquivalentTo(photographyCompany);
         _userManagerMock.Verify(u => u.CreateAsync(user, password), Times.Once);
-        _userManagerMock.Verify(u => u.AddToRoleAsync(user, RoleNames.Agent), Times.Once);
+        _userManagerMock.Verify(u => u.AddToRoleAsync(user, RoleNames.PhotographyCompany), Times.Once);
     }
 
     [Fact]
@@ -114,26 +111,23 @@ public class AuthRepositoryTest
     {
         // Arrange
         var user = new User { Email = "test@example.com", UserName = "test@example.com" };
-        var agent = new Agent
+        var photographyCompany = new PhotographyCompany
         {
             Id = Guid.NewGuid().ToString(),
-            AgentFirstName = "Test",
-            AgentLastName = "Test",
-            CompanyName = "Test",
-            AvatarUrl = "https://example.com/avatar.jpg",
+            PhotographyCompanyName = "Test Photography Company",
         };
         var password = "password";
 
         _userManagerMock.Setup(u => u.CreateAsync(user, password)).ReturnsAsync(IdentityResult.Failed());
-        _userManagerMock.Setup(u => u.AddToRoleAsync(user, RoleNames.Agent)).ReturnsAsync(IdentityResult.Success);
+        _userManagerMock.Setup(u => u.AddToRoleAsync(user, RoleNames.PhotographyCompany)).ReturnsAsync(IdentityResult.Success);
 
         // Act
-        var result = async() => await _authRepository.CreateAgentAsync(user, agent, password, RoleNames.Agent);
+        var result = async() => await _authRepository.CreateAgentAsync(user, photographyCompany, password, RoleNames.PhotographyCompany);
         
         // Assert
         await result.Should().ThrowAsync<Exception>();
         _userManagerMock.Verify(u => u.CreateAsync(user, password), Times.Once);
-        _userManagerMock.Verify(u => u.AddToRoleAsync(user, RoleNames.Agent), Times.Never);
+        _userManagerMock.Verify(u => u.AddToRoleAsync(user, RoleNames.PhotographyCompany), Times.Never);
     }
 
     [Fact]
@@ -141,26 +135,23 @@ public class AuthRepositoryTest
     {
         // Arrange
         var user = new User { Email = "test@example.com", UserName = "test@example.com" };
-        var agent = new Agent
+        var photographyCompany = new PhotographyCompany
         {
             Id = Guid.NewGuid().ToString(),
-            AgentFirstName = "Test",
-            AgentLastName = "Test",
-            CompanyName = "Test",
-            AvatarUrl = "https://example.com/avatar.jpg",
+            PhotographyCompanyName = "Test Photography Company",
         };
         var password = "password";
 
         _userManagerMock.Setup(u => u.CreateAsync(user, password)).ReturnsAsync(IdentityResult.Success);
-        _userManagerMock.Setup(u => u.AddToRoleAsync(user, RoleNames.Agent)).ReturnsAsync(IdentityResult.Failed());
+        _userManagerMock.Setup(u => u.AddToRoleAsync(user, RoleNames.PhotographyCompany)).ReturnsAsync(IdentityResult.Failed());
 
         // Act
-        var result = async() => await _authRepository.CreateAgentAsync(user, agent, password, RoleNames.Agent);
+        var result = async() => await _authRepository.CreateAgentAsync(user, photographyCompany, password, RoleNames.PhotographyCompany);
         
         // Assert
         await result.Should().ThrowAsync<Exception>();
         _userManagerMock.Verify(u => u.CreateAsync(user, password), Times.Once);
-        _userManagerMock.Verify(u => u.AddToRoleAsync(user, RoleNames.Agent), Times.Once);
+        _userManagerMock.Verify(u => u.AddToRoleAsync(user, RoleNames.PhotographyCompany), Times.Once);
     }
 
     [Fact]

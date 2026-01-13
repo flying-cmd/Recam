@@ -27,6 +27,7 @@ public class ListingCaseProfile : Profile
             .ForMember(d => d.PropertyType, opt => opt.MapFrom(src => src.PropertyType.ToString()))
             .ForMember(d => d.SaleCategory, opt => opt.MapFrom(src => src.SaleCategory.ToString()));
 
-        CreateMap<UpdateListingCaseRequestDto, ListingCase>();
+        CreateMap<UpdateListingCaseRequestDto, ListingCase>()
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
     }
 }

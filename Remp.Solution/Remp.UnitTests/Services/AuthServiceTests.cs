@@ -15,7 +15,6 @@ public class AuthServiceTests
 {
     private readonly Mock<IAuthRepository> _authRepositoryMock;
     private readonly Mock<IJwtTokenService> _jwtTokenServiceMock;
-    private readonly Mock<IBlobStorageService> _blobStorageServiceMock;
     private readonly Mock<ILoggerService> _loggerServiceMock;
     private readonly AuthService _authService;
 
@@ -23,12 +22,10 @@ public class AuthServiceTests
     {
         _authRepositoryMock = new Mock<IAuthRepository>();
         _jwtTokenServiceMock = new Mock<IJwtTokenService>();
-        _blobStorageServiceMock = new Mock<IBlobStorageService>();
         _loggerServiceMock = new Mock<ILoggerService>();
         _authService = new AuthService(
             _authRepositoryMock.Object, 
-            _jwtTokenServiceMock.Object, 
-            _blobStorageServiceMock.Object, 
+            _jwtTokenServiceMock.Object,
             _loggerServiceMock.Object);
     }
 
@@ -98,17 +95,12 @@ public class AuthServiceTests
         var avatarFile = new Mock<IFormFile>();
         var registerRequest = new RegisterRequestDto
         {
+            PhotographyCompanyName = "Test Photography Company",
             Email = "test@example.com",
+            PhoneNumber = "123456789",
             Password = "password",
             ConfirmPassword = "password",
-            FirstName = "Test",
-            LastName = "Test",
-            Avatar = avatarFile.Object
         };
-
-        _blobStorageServiceMock
-            .Setup(b => b.UploadFileAsync(registerRequest.Avatar))
-            .ReturnsAsync("https://avatar_url");
 
         var user = new User { Email = registerRequest.Email, UserName = registerRequest.Email };
         _authRepositoryMock.Setup(r => r.FindByEmailAsync(registerRequest.Email)).ReturnsAsync(user);
@@ -120,7 +112,6 @@ public class AuthServiceTests
         // Assert
         await act.Should().ThrowAsync<ArgumentErrorException>();
         _authRepositoryMock.Verify(r => r.FindByEmailAsync(registerRequest.Email), Times.Once);
-        _blobStorageServiceMock.Verify(b => b.UploadFileAsync(registerRequest.Avatar), Times.Never);
         _loggerServiceMock.Verify(l => l.LogRegister(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 
@@ -131,18 +122,13 @@ public class AuthServiceTests
         var avatarFile = new Mock<IFormFile>();
         var registerRequest = new RegisterRequestDto
         {
+            PhotographyCompanyName = "Test Photography Company",
             Email = "test@example.com",
+            PhoneNumber = "123456789",
             Password = "password",
             ConfirmPassword = "password",
-            FirstName = "Test",
-            LastName = "Test",
-            Avatar = avatarFile.Object
         };
         _authRepositoryMock.Setup(r => r.FindByEmailAsync(registerRequest.Email)).ReturnsAsync((User?)null);
-
-        _blobStorageServiceMock
-            .Setup(b => b.UploadFileAsync(registerRequest.Avatar))
-            .ReturnsAsync("https://avatar_url");
 
         _loggerServiceMock.Setup(l => l.LogRegister("test@example.com", It.IsAny<string>(), It.IsAny<string>(), null, null));
 
@@ -165,13 +151,10 @@ public class AuthServiceTests
                 It.Is<User>(u => 
                     u.Email == registerRequest.Email &&
                     u.UserName == registerRequest.Email),
-                It.Is<Agent>(a => 
-                    a.AgentFirstName == registerRequest.FirstName &&
-                    a.AgentLastName == registerRequest.LastName &&
-                    a.CompanyName == registerRequest.CompanyName &&
-                    a.AvatarUrl == "https://avatar_url"),
+                It.Is<PhotographyCompany>(pc => 
+                    pc.PhotographyCompanyName == registerRequest.PhotographyCompanyName),
                 registerRequest.Password,
-                RoleNames.Agent))
+                RoleNames.PhotographyCompany))
             .Returns(Task.CompletedTask);
         
         _jwtTokenServiceMock
@@ -185,20 +168,16 @@ public class AuthServiceTests
         // Assert
         result.Should().Be("jwt-token");
         _authRepositoryMock.Verify(r => r.FindByEmailAsync(registerRequest.Email), Times.Once);
-        _blobStorageServiceMock.Verify(b => b.UploadFileAsync(registerRequest.Avatar), Times.Once);
         //_authRepositoryMock.Verify(r => r.CreateAgentAsync(user, agent, registerRequest.Password, RoleNames.Agent), Times.Once);
         //_jwtTokenServiceMock.Verify(j => j.CreateTokenAsync(user), Times.Once);
         _authRepositoryMock.Verify(r => r.CreateAgentAsync(
                 It.Is<User>(u => 
                     u.Email == registerRequest.Email &&
                     u.UserName == registerRequest.Email),
-                It.Is<Agent>(a => 
-                    a.AgentFirstName == registerRequest.FirstName &&
-                    a.AgentLastName == registerRequest.LastName &&
-                    a.CompanyName == registerRequest.CompanyName &&
-                    a.AvatarUrl == "https://avatar_url"),
+                It.Is<PhotographyCompany>(pc => 
+                    pc.PhotographyCompanyName == registerRequest.PhotographyCompanyName),
                 registerRequest.Password,
-                RoleNames.Agent),
+                RoleNames.PhotographyCompany),
             Times.Once);
 
         _jwtTokenServiceMock

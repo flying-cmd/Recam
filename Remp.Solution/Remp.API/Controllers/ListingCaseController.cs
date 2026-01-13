@@ -146,10 +146,10 @@ namespace Remp.API.Controllers
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Request validation failed.</response>
         /// <remarks>
-        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role.
+        /// This endpoint is restricted to users in the <c>PhotographyCompany</c> role or <c>Agent</c> role.
         /// </remarks>
         [HttpPut("{listingCaseId}")]
-        [Authorize(Roles = RoleNames.PhotographyCompany)]
+        [Authorize(Roles = $"{RoleNames.PhotographyCompany},{RoleNames.Agent}")]
         [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(PutResponse))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -163,7 +163,14 @@ namespace Remp.API.Controllers
                 return Forbid();
             }
 
-            await _listingCaseService.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, currentUserId);
+            // Get current user role
+            var currentUserRole = currentUser.FindFirstValue("scopes");
+            if (currentUserRole == null)
+            {
+                return Forbid();
+            }
+
+            await _listingCaseService.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, currentUserId, currentUserRole);
             
             return StatusCode(204, new PutResponse(true));
         }

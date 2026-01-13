@@ -1377,7 +1377,7 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync((ListingCase?)null);
 
         // Act
-        var act = async () => await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, request, userId);
+        var act = async () => await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, request, userId, RoleNames.PhotographyCompany);
 
         // Assert
         await act.Should().ThrowAsync<NotFoundException>();
@@ -1399,7 +1399,7 @@ public class ListingCaseServiceTests
         _listingCaseRepositoryMock.Setup(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId)).ReturnsAsync(listingCase);
 
         // Act
-        var act = async () => await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, request, userId);
+        var act = async () => await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, request, userId, RoleNames.PhotographyCompany);
 
         // Assert
         await act.Should().ThrowAsync<ForbiddenException>();
@@ -1435,7 +1435,7 @@ public class ListingCaseServiceTests
             });
 
         // Act
-        await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, userId);
+        await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, userId, RoleNames.PhotographyCompany);
 
         // Assert
         _listingCaseRepositoryMock.Verify(r => r.FindListingCaseByListingCaseIdAsync(listingCaseId), Times.Once);
@@ -1495,7 +1495,7 @@ public class ListingCaseServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, userId);
+        await _listingCaseServices.UpdateListingCaseAsync(listingCaseId, updateListingCaseRequest, userId, RoleNames.PhotographyCompany);
 
         // Assert
         updatedListingCase.Title.Should().Be(updateListingCaseRequest.Title);

@@ -11,18 +11,15 @@ public class AuthService : IAuthService
 {
     private readonly IAuthRepository _authRepository;
     private readonly IJwtTokenService _jwtTokenService;
-    private readonly IBlobStorageService _blobStorageService;
     private readonly ILoggerService _loggerService;
 
     public AuthService(
         IAuthRepository authRepository, 
-        IJwtTokenService jwtTokenService, 
-        IBlobStorageService blobStorageService,
+        IJwtTokenService jwtTokenService,
         ILoggerService loggerService)
     {
         _authRepository = authRepository;
         _jwtTokenService = jwtTokenService;
-        _blobStorageService = blobStorageService;
         _loggerService = loggerService;
     }
 

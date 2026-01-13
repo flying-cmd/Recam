@@ -218,7 +218,7 @@ public class ListingCaseControllerTests
         // Assert
         Assert.IsType<ForbidResult>(result.Result);
 
-        _listingCaseServiceMock.Verify(x => x.UpdateListingCaseAsync(listingCaseId, request, "1"), Times.Never);
+        _listingCaseServiceMock.Verify(x => x.UpdateListingCaseAsync(listingCaseId, request, "1", RoleNames.PhotographyCompany), Times.Never);
     }
 
     [Fact]
@@ -257,7 +257,7 @@ public class ListingCaseControllerTests
         var response = Assert.IsType<PutResponse>(requestResult.Value);
         response.Success.Should().BeTrue();
         response.Message.Should().Be("Updated successfully");
-        _listingCaseServiceMock.Verify(x => x.UpdateListingCaseAsync(listingCaseId, request, "1"), Times.Once);
+        _listingCaseServiceMock.Verify(x => x.UpdateListingCaseAsync(listingCaseId, request, "1", RoleNames.PhotographyCompany), Times.Once);
     }
 
     [Fact]

@@ -517,7 +517,7 @@ public class ListingCaseService : IListingCaseService
             );
     }
 
-    public async Task UpdateListingCaseAsync(int listingCaseId, UpdateListingCaseRequestDto updateListingCaseRequest, string userId)
+    public async Task UpdateListingCaseAsync(int listingCaseId, UpdateListingCaseRequestDto updateListingCaseRequest, string userId, string userRole)
     {
         // Check if the listing case exists
         var listingCase = await _listingCaseRepository.FindListingCaseByListingCaseIdAsync(listingCaseId);
@@ -526,12 +526,21 @@ public class ListingCaseService : IListingCaseService
             throw new NotFoundException(message: $"Listing case {listingCaseId} does not exist", title: "Listing case does not exist");
         }
 
-        // Check if the listing case belongs to the user
-        if (userId != listingCase.UserId)
+        // Check if the user is the owner of the listing case (PhotographyCompany)
+        if (userRole == RoleNames.PhotographyCompany && listingCase.UserId != userId)
         {
             throw new ForbiddenException(
                 message: $"User {userId} cannot update this listing case because the user is not the owner of this listing case",
                 title: "You cannot update this listing case because you are not the owner of this listing case"
+                );
+        }
+
+        // Check if the user is the assigned agent
+        if (userRole == RoleNames.Agent && listingCase.AgentListingCases.Any(x => x.AgentId != userId))
+        {
+            throw new ForbiddenException(
+                message: $"User {userId} cannot update this listing case because the user is not the assigned agent of this listing case",
+                title: "You cannot update this listing case because you are not the assigned agent of this listing case"
                 );
         }
 

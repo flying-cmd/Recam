@@ -23,6 +23,6 @@ public interface IListingCaseService
     Task<IEnumerable<MediaAssetDto>> GetListingCaseMediaByListingCaseIdAsync(int listingCaseId, string userId, string userRole);
     Task SetCoverImageByListingCaseIdAsync(int listingCaseId, int mediaAssetId, string userId);
     Task SetSelectedMediaByListingCaseIdAsync(int listingCaseId, IEnumerable<int> mediaIds, string userId);
-    Task UpdateListingCaseAsync(int listingCaseId, UpdateListingCaseRequestDto updateListingCaseRequest, string userId);
+    Task UpdateListingCaseAsync(int listingCaseId, UpdateListingCaseRequestDto updateListingCaseRequest, string userId, string userRole);
     Task UpdateListingCaseStatusAsync(int listingCaseId, string currentUserId);
 }
