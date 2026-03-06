@@ -3,7 +3,7 @@ import { unAuthorizedApiList } from "./unAuthorizedApiList";
 import type { IApiError, IExceptionResponse } from "../types/IApiResponse";
 
 export const service: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL,
+  baseURL: `${import.meta.env.VITE_BACKEND_URL}/api`,
   timeout: 15000
 });
 
