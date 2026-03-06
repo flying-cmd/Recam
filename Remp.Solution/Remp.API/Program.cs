@@ -194,7 +194,7 @@ builder.Services.AddCors(options =>
         builder =>
         {
             builder.WithOrigins(
-                "http://localhost:5173" // React local dev
+                builder.Configuration["FrontendUrl"] // React local dev
                 )
                 .AllowAnyHeader()
                 .AllowAnyMethod()
