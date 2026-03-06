@@ -35,9 +35,13 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+Console.WriteLine("SQL Server successfully configured");
+
 // MongoDB
 builder.Services.Configure<MongoDbSetting>(builder.Configuration.GetSection("MongoDb"));
 builder.Services.AddSingleton<MongoDbContext>();
+
+Console.WriteLine("MongoDB successfully configured");
 
 // Serilog
 Log.Logger = new LoggerConfiguration()
