@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import AuthProvider from "./features/auth/AuthProvider";
@@ -18,6 +18,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route element={<AppLayout />}>
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="unauthorized" element={<Unauthorized />} />
