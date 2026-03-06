@@ -80,7 +80,7 @@ export default function AdminPannel() {
         </div>
 
         <div>
-          <ListingCaseTable listingCases={listingCases} />
+          <ListingCaseTable listingCases={listingCases} onDelete={() => {}} />
         </div>
       </section>
     </>

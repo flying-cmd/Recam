@@ -1,5 +1,5 @@
 import { Download } from "lucide-react";
-import type { MediaAsset } from "../../types/IListingCase";
+import type { MediaAsset } from "../../types/IMedia";
 import { useState } from "react";
 import { downloadMediaFileById } from "../../services/listingCaseService";
 

@@ -82,6 +82,7 @@ export default function PropertyDetails() {
         floorArea={propertyDetails.floorArea}
         propertyType={propertyDetails.propertyType}
         saleCategory={propertyDetails.saleCategory}
+        onSave={async () => {}}
       />
 
       <div className="bg-gray-300 h-1 my-2"></div>
