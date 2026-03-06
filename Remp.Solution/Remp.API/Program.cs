@@ -190,11 +190,13 @@ builder.Services.AddSwaggerGen(
 
 builder.Services.AddCors(options =>
 {
+    var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
+
     options.AddPolicy(name: "AllowSpecificOrigin",
-        builder =>
+        policy =>
         {
-            builder.WithOrigins(
-                builder.Configuration["FrontendUrl"] // React local dev
+            policy.WithOrigins(
+                frontendUrl // React local dev / deployed frontend URL
                 )
                 .AllowAnyHeader()
                 .AllowAnyMethod()
