@@ -445,23 +445,37 @@ public class ListingCaseServiceTests
     }
 
     [Fact]
-    public async Task GetAllListingCasesAsync_WhenUserRoleIsPhotographyCompanyButListingCaseIsEmpty_ShouldThrowNotFoundException()
+    public async Task GetAllListingCasesAsync_WhenUserRoleIsPhotographyCompanyButListingCaseIsEmpty_ShouldReturnEmptyPagedResult()
     {
         // Arrange
         var pageNumber = 1;
         var pageSize = 10;
         var userId = "1";
         var userRole = RoleNames.PhotographyCompany;
+        var listingCases = new List<ListingCase>();
+        var listingCaseResponseDtos = new List<ListingCaseResponseDto>();
+
         _listingCaseRepositoryMock
             .Setup(r => r.FindListingCasesByPhotographyCompanyIdAsync(pageNumber, pageSize, userId))
-            .ReturnsAsync(new List<ListingCase>());
+            .ReturnsAsync(listingCases);
+        _listingCaseRepositoryMock
+            .Setup(r => r.CountListingCasesByPhotographyCompanyIdAsync(userId))
+            .ReturnsAsync(0);
+        _mapperMock
+            .Setup(m => m.Map<IEnumerable<ListingCaseResponseDto>>(listingCases))
+            .Returns(listingCaseResponseDtos);
 
         // Act
-        var act = async () => await _listingCaseServices.GetAllListingCasesAsync(pageNumber, pageSize, userId, userRole);
+        var result = await _listingCaseServices.GetAllListingCasesAsync(pageNumber, pageSize, userId, userRole);
 
         // Assert
-        await act.Should().ThrowAsync<NotFoundException>();
+        result.PageNumber.Should().Be(pageNumber);
+        result.PageSize.Should().Be(pageSize);
+        result.TotalCount.Should().Be(0);
+        result.Items.Should().BeEmpty();
         _listingCaseRepositoryMock.Verify(r => r.FindListingCasesByPhotographyCompanyIdAsync(pageNumber, pageSize, userId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.CountListingCasesByPhotographyCompanyIdAsync(userId), Times.Once);
+        _mapperMock.Verify(m => m.Map<IEnumerable<ListingCaseResponseDto>>(listingCases), Times.Once);
     }
 
     [Fact]
@@ -516,23 +530,37 @@ public class ListingCaseServiceTests
     }
 
     [Fact]
-    public async Task GetAllListingCasesAsync_WhenUserRoleIsAgentButListingCaseIsEmpty_ShouldThrowNotFoundException()
+    public async Task GetAllListingCasesAsync_WhenUserRoleIsAgentButListingCaseIsEmpty_ShouldReturnEmptyPagedResult()
     {
         // Arrange
         var pageNumber = 1;
         var pageSize = 10;
         var userId = "1";
         var userRole = RoleNames.Agent;
+        var listingCases = new List<ListingCase>();
+        var listingCaseResponseDtos = new List<ListingCaseResponseDto>();
+
         _listingCaseRepositoryMock
             .Setup(r => r.FindListingCasesByAgentIdAsync(pageNumber, pageSize, userId))
-            .ReturnsAsync(new List<ListingCase>());
+            .ReturnsAsync(listingCases);
+        _listingCaseRepositoryMock
+            .Setup(r => r.CountListingCasesByAgentIdAsync(userId))
+            .ReturnsAsync(0);
+        _mapperMock
+            .Setup(m => m.Map<IEnumerable<ListingCaseResponseDto>>(listingCases))
+            .Returns(listingCaseResponseDtos);
 
         // Act
-        var act = async () => await _listingCaseServices.GetAllListingCasesAsync(pageNumber, pageSize, userId, userRole);
+        var result = await _listingCaseServices.GetAllListingCasesAsync(pageNumber, pageSize, userId, userRole);
 
         // Assert
-        await act.Should().ThrowAsync<NotFoundException>();
+        result.PageNumber.Should().Be(pageNumber);
+        result.PageSize.Should().Be(pageSize);
+        result.TotalCount.Should().Be(0);
+        result.Items.Should().BeEmpty();
         _listingCaseRepositoryMock.Verify(r => r.FindListingCasesByAgentIdAsync(pageNumber, pageSize, userId), Times.Once);
+        _listingCaseRepositoryMock.Verify(r => r.CountListingCasesByAgentIdAsync(userId), Times.Once);
+        _mapperMock.Verify(m => m.Map<IEnumerable<ListingCaseResponseDto>>(listingCases), Times.Once);
     }
 
     [Fact]
