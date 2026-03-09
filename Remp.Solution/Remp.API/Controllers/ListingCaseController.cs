@@ -106,7 +106,6 @@ namespace Remp.API.Controllers
         /// <response code="200">Returns a list of listing cases, current page number, page size, total pages and total count</response>
         /// <response code="401">Unauthorized</response>
         /// <response code="400">Invalid page number or page size</response>
-        /// <response code="404">No listing cases found</response>
         /// <remarks>
         /// This endpoint is restricted to users in the <c>PhotographyCompany</c> or <c>Agent</c> roles.
         /// </remarks>
@@ -115,7 +114,6 @@ namespace Remp.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetResponse<PagedResult<ListingCaseResponseDto>>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GetResponse<PagedResult<ListingCaseResponseDto>>>> GetAllListingCasesAsync([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
             var currentUser = HttpContext.User;

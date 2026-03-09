@@ -270,15 +270,6 @@ public class ListingCaseService : IListingCaseService
         if (currrentUserRole == RoleNames.PhotographyCompany)
         {
             listingCases = await _listingCaseRepository.FindListingCasesByPhotographyCompanyIdAsync(pageNumber, pageSize, currentUserId);
-
-            if (!listingCases.Any())
-            {
-                throw new NotFoundException(
-                    message: $"No listing cases created by the photography company {currentUserId} found. Page number: {pageNumber}, Page size: {pageSize}", 
-                    title: "No listing cases found."
-                    );
-            }
-
             totalCount = await _listingCaseRepository.CountListingCasesByPhotographyCompanyIdAsync(currentUserId);
         }
 
@@ -286,16 +277,6 @@ public class ListingCaseService : IListingCaseService
         if (currrentUserRole == RoleNames.Agent)
         {
             listingCases = await _listingCaseRepository.FindListingCasesByAgentIdAsync(pageNumber, pageSize, currentUserId);
-
-
-            if (!listingCases.Any())
-            {
-                throw new NotFoundException(
-                    message: $"No listing cases related to the agent {currentUserId} found. Page number: {pageNumber}, Page size: {pageSize}", 
-                    title: "No listing cases found."
-                    );
-            }
-
             totalCount = await _listingCaseRepository.CountListingCasesByAgentIdAsync(currentUserId);
         }
 
