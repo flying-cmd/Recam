@@ -11,6 +11,9 @@ export type IExceptionResponse = {
 export type IApiError = {
   status: number;
   title: string;
+  detail?: string;
+  traceId?: string;
+  isNetworkError?: boolean;
 }
 
 type BaseApiResponse = {

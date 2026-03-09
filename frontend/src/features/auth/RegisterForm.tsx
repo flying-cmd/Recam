@@ -8,8 +8,8 @@ import {
 } from "../../utils/MapZodErrorsToFields";
 import { register } from "../../services/authApi";
 import type { IRegisterResponse } from "../../types/IAuth";
-import type { IApiError } from "../../types/IApiResponse";
 import PopupBox from "../../components/PopupBox";
+import { getErrorMessage } from "../../utils/getApiErrorMessage";
 
 type RegisterFormFieldsErrors =
   | "photographyCompanyName"
@@ -74,8 +74,7 @@ export default function RegisterForm() {
       resetForm();
       navigate("/dashboard");
     } catch (error: unknown) {
-      console.error(error);
-      setErrorPopup({ open: true, message: (error as IApiError).title });
+      setErrorPopup({ open: true, message: getErrorMessage(error) });
     }
   };
 

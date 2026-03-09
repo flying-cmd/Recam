@@ -8,11 +8,11 @@ import {
 import { login as loginApi } from "../../services/authApi";
 import type { ILoginResponse } from "../../types/IAuth";
 import PopupBox from "../../components/PopupBox";
-import type { IApiError } from "../../types/IApiResponse";
 import { useAuth } from "../../hooks/useAuth";
 import Spinner from "../../components/Spinner";
 import { IRole } from "../../types/IRole";
 import { loginSchema } from "./loginSchema";
+import { getErrorMessage } from "../../utils/getApiErrorMessage";
 
 type LoginFormFieldsErrors = "email" | "password";
 
@@ -68,7 +68,7 @@ export default function LoginForm() {
         return <Navigate to="/my-property" replace />;
       }
     } catch (error: unknown) {
-      setErrorPopup({ open: true, message: (error as IApiError).title });
+      setErrorPopup({ open: true, message: getErrorMessage(error) });
     }
   };
 
