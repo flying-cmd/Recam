@@ -15,11 +15,11 @@ export const getApiErrorMessage = (error: IApiError): string => {
   }
 
   if (error.status === 401) {
-    return "Your session has expired. Please log in again.";
+    return error.title || "You are not authenticated.";
   }
 
   if (error.status === 403) {
-    return "You do not have permission for this action.";
+    return error.title || "You are not authorized.";
   }
 
   return error.title || "Something went wrong.";
